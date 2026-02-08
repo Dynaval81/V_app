@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/service_status.dart';
 import '../widgets/dashboard_card.dart';
 import '../widgets/theme_switch.dart';
 import 'main_app.dart';
+import 'auth/register_screen.dart';
 import '../constants/app_colors.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -284,7 +286,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ListTile(
               leading: Icon(Icons.logout, color: Colors.red),
               title: Text('Logout', style: TextStyle(color: Colors.red)),
-              onTap: () {},
+              onTap: () async {
+                try {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.clear();
+                  
+                  Navigator.pop(context); // Закрыть Bottom Sheet
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => RegisterScreen()),
+                    (route) => false, // Удалить весь стек навигации
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Logout error: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
             ),
           ],
         ),

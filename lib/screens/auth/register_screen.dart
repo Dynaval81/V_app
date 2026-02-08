@@ -13,10 +13,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nicknameController = TextEditingController();
+  bool _isLoading = false;
 
   Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
+      setState(() => _isLoading = true);
+      
       try {
+        // Simulate API call
+        await Future.delayed(Duration(seconds: 2));
+        
         // ИСПРАВЛЕНО: 4-значный номер
         final vtalkNumber = '${1000 + (DateTime.now().millisecondsSinceEpoch % 9000)}';
         
@@ -30,6 +36,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
             : _nicknameController.text);
         await prefs.setString('vtalk_number', vtalkNumber);
         
+        if (!mounted) return;
+        
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -42,12 +50,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         );
       } catch (e) {
+        if (!mounted) return;
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Registration error: $e'),
             backgroundColor: Colors.red,
           ),
         );
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
       }
     }
   }
@@ -100,8 +114,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Please enter email';
                   }
-                  if (!value.contains('@')) {
-                    return 'Please enter valid email';
+                  final emailRegex = RegExp(
+                    r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+                  );
+                  if (!emailRegex.hasMatch(value)) {
+                    return 'Please enter a valid email';
                   }
                   return null;
                 },
@@ -167,7 +184,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               SizedBox(height: 30),
               
               ElevatedButton(
-                onPressed: _register,
+                onPressed: _isLoading ? null : _register,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   padding: EdgeInsets.symmetric(vertical: 16),
@@ -175,13 +192,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: Text(
-                  'Sign Up',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.white,
-                  ),
-                ),
+                child: _isLoading
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation(Colors.white),
+                        ),
+                      )
+                    : Text(
+                        'Sign Up',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
               
               SizedBox(height: 20),

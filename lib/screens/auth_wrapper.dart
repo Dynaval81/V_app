@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/theme_manager.dart';
 import 'main_app.dart';
 import 'auth/register_screen.dart';
-import 'auth/login_screen.dart';
 
 class AuthWrapper extends StatefulWidget {
   @override
