@@ -2,95 +2,148 @@ import 'package:flutter/material.dart';
 import '../chat_screen.dart';
 
 class ChatsScreen extends StatelessWidget {
-  // Mock данные для чатов
-  final List<ChatItem> _chats = [
-    ChatItem(
-      name: 'Alice',
-      lastMessage: 'Hey! How are you?',
-      timestamp: '10:30',
-      unreadCount: 2,
-      avatarColor: Colors.purple,
-      isPinned: true,
-    ),
-    ChatItem(
-      name: 'Bob',
-      lastMessage: 'Check out this link...',
-      timestamp: 'Yesterday',
-      unreadCount: 0,
-      avatarColor: Colors.blue,
-      isPinned: false,
-    ),
-    ChatItem(
-      name: 'Charlie',
-      lastMessage: 'See you tomorrow!',
-      timestamp: 'Monday',
-      unreadCount: 5,
-      avatarColor: Colors.green,
-      isPinned: false,
-    ),
-    ChatItem(
-      name: 'David',
-      lastMessage: 'Thanks for the help!',
-      timestamp: 'Sunday',
-      unreadCount: 0,
-      avatarColor: Colors.orange,
-      isPinned: false,
-    ),
-    ChatItem(
-      name: 'Eve',
-      lastMessage: 'Meeting at 3pm',
-      timestamp: 'Saturday',
-      unreadCount: 1,
-      avatarColor: Colors.red,
-      isPinned: true,
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    // Mock данные для чатов
+    final List<ChatItem> _chats = [
+      ChatItem(
+        name: 'Alice',
+        lastMessage: 'Hey! How are you?',
+        timestamp: '10:30',
+        unreadCount: 2,
+        avatarColor: Colors.purple,
+        isPinned: true,
+      ),
+      ChatItem(
+        name: 'Bob',
+        lastMessage: 'Check out this link...',
+        timestamp: 'Yesterday',
+        unreadCount: 0,
+        avatarColor: Colors.blue,
+        isPinned: false,
+      ),
+      ChatItem(
+        name: 'Charlie',
+        lastMessage: 'See you tomorrow!',
+        timestamp: 'Monday',
+        unreadCount: 5,
+        avatarColor: Colors.green,
+        isPinned: false,
+      ),
+      ChatItem(
+        name: 'David',
+        lastMessage: 'Thanks for the help!',
+        timestamp: 'Sunday',
+        unreadCount: 0,
+        avatarColor: Colors.orange,
+        isPinned: false,
+      ),
+      ChatItem(
+        name: 'Eve',
+        lastMessage: 'Meeting at 3pm',
+        timestamp: 'Saturday',
+        unreadCount: 1,
+        avatarColor: Colors.red,
+        isPinned: true,
+      ),
+    ];
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         title: Text(
-          'Chats',
+          "Messages", 
           style: TextStyle(
-            color: Theme.of(context).textTheme.bodyLarge?.color,
-            fontSize: 24,
             fontWeight: FontWeight.bold,
-          ),
+            color: Theme.of(context).textTheme.bodyLarge?.color
+          )
         ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              Icons.search,
-              color: Theme.of(context).iconTheme.color,
+        // Убрали лупу отсюда!
+      ),
+      body: Column(
+        children: [
+          // 1. Поиск (одна лупа)
+          Padding(
+            padding: EdgeInsets.all(16),
+            child: TextField(
+              style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Theme.of(context).cardColor,
+                hintText: "Search contacts...",
+                hintStyle: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6)),
+                prefixIcon: Icon(Icons.search, color: Theme.of(context).iconTheme.color?.withOpacity(0.6)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15), 
+                  borderSide: BorderSide.none
+                ),
+              ),
             ),
-            onPressed: () {},
           ),
-          IconButton(
-            icon: Icon(
-              Icons.more_vert,
-              color: Theme.of(context).iconTheme.color,
+
+          // 2. Статусы контактов (Любимая фишка молодежи)
+          Container(
+            height: 90,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.symmetric(horizontal: 10),
+              itemCount: 8,
+              itemBuilder: (context, index) => Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                child: Column(
+                  children: [
+                    Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 30, 
+                          backgroundColor: Colors.blueAccent, 
+                          child: CircleAvatar(
+                            radius: 27, 
+                            backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=$index")
+                          )
+                        ),
+                        Positioned(
+                          right: 2, 
+                          bottom: 2, 
+                          child: Container(
+                            width: 12, 
+                            height: 12, 
+                            decoration: BoxDecoration(
+                              color: Colors.green, 
+                              shape: BoxShape.circle, 
+                              border: Border.all(
+                                color: Theme.of(context).scaffoldBackgroundColor, 
+                                width: 2
+                              )
+                            )
+                          )
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      "User $index", 
+                      style: TextStyle(
+                        color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7), 
+                        fontSize: 10
+                      )
+                    ),
+                  ],
+                ),
+              ),
             ),
-            onPressed: () {},
+          ),
+
+          // 3. Список чатов
+          Expanded(
+            child: ListView.builder(
+              itemCount: _chats.length,
+              itemBuilder: (context, index) => _buildChatItem(context, _chats[index]),
+            ),
           ),
         ],
-      ),
-      body: ListView.builder(
-        itemCount: _chats.length,
-        itemBuilder: (context, index) {
-          final chat = _chats[index];
-          return _buildChatItem(context, chat);
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Open new chat
-        },
-        backgroundColor: Colors.blue,
-        child: Icon(Icons.add),
       ),
     );
   }

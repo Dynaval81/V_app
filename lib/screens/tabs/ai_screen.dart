@@ -184,6 +184,11 @@ class _AIScreenState extends State<AIScreen> {
       ),
       child: Row(
         children: [
+          // НОВАЯ КНОПКА: AI Инструменты
+          IconButton(
+            icon: Icon(Icons.auto_awesome, color: Colors.blueAccent),
+            onPressed: () => _showAIActionMenu(),
+          ),
           Expanded(
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 16),
@@ -199,26 +204,63 @@ class _AIScreenState extends State<AIScreen> {
                 controller: _textController,
                 style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
                 decoration: InputDecoration(
-                  hintText: "Type a message...",
+                  hintText: "Message or /draw...", 
                   hintStyle: TextStyle(
                     color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6)
-                  ),
-                  border: InputBorder.none,
+                  ), 
+                  border: InputBorder.none
                 ),
                 onSubmitted: (_) => _sendMessage(),
               ),
             ),
           ),
-          SizedBox(width: 8),
-          CircleAvatar(
-            backgroundColor: Colors.blueAccent,
-            child: IconButton(
-              icon: Icon(Icons.send, color: Colors.white, size: 20),
-              onPressed: _sendMessage,
-            ),
+          IconButton(
+            icon: Icon(Icons.send, color: Colors.blueAccent), 
+            onPressed: _sendMessage
           ),
         ],
       ),
     );
   }
+
+  // Меню действий AI
+  void _showAIActionMenu() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20))
+      ),
+      builder: (context) => Container(
+        padding: EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _aiAction(Icons.brush, "Generate Image", Colors.purpleAccent),
+            _aiAction(Icons.photo_filter, "AI Editor", Colors.orangeAccent),
+            _aiAction(Icons.face_retouching_natural, "Avatar Maker", Colors.tealAccent),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _aiAction(IconData i, String l, Color c) => Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      CircleAvatar(
+        radius: 30, 
+        backgroundColor: c.withOpacity(0.1), 
+        child: Icon(i, color: c, size: 30)
+      ),
+      SizedBox(height: 8),
+      Text(
+        l, 
+        style: TextStyle(
+          color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7), 
+          fontSize: 12
+        )
+      ),
+    ],
+  );
 }
