@@ -1,62 +1,36 @@
 import 'package:flutter/material.dart';
 
 class DashboardScreen extends StatelessWidget {
-  final Function(int) onTabSwitch;
+  final Function(int) onTabSwitch; // Это передается из MainApp
   DashboardScreen({required this.onTabSwitch});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Color(0xFF1A1A2E),
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.all(24.0),
+          padding: EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "Welcome back,", 
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)
-                )
-              ),
-              Text(
-                "Dynaval81", 
-                style: TextStyle(
-                  color: Theme.of(context).textTheme.bodyLarge?.color, 
-                  fontSize: 24, 
-                  fontWeight: FontWeight.bold
-                )
-              ),
+              SizedBox(height: 20),
+              Text("Dynaval81", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+              Text("Vtalk Control Panel", style: TextStyle(color: Colors.white54)),
               SizedBox(height: 40),
+
+              // Кнопки теперь ОБЯЗАНЫ работать
+              _buildBtn("MESSENGER", Icons.chat_bubble, Colors.blue, () => onTabSwitch(1)),
+              _buildBtn("VPN SERVICE", Icons.vpn_lock, Colors.green, () => onTabSwitch(2)),
+              _buildBtn("AI ASSISTANT", Icons.auto_awesome, Colors.purple, () => onTabSwitch(3)),
               
-              // Кнопки сервисов
-              _buildLargeButton(
-                context,
-                "MESSENGER", 
-                "Open secure chats", 
-                Icons.chat_bubble, 
-                Colors.blue, 
-                () => onTabSwitch(0)
-              ),
-              SizedBox(height: 16),
-              _buildLargeButton(
-                context,
-                "VPN SERVICE", 
-                "Connect to secure node", 
-                Icons.vpn_lock, 
-                Colors.green, 
-                () => onTabSwitch(1)
-              ),
-              SizedBox(height: 16),
-              _buildLargeButton(
-                context,
-                "AI ASSISTANT", 
-                "Generate & Edit with AI", 
-                Icons.auto_awesome, 
-                Colors.purple, 
-                () => onTabSwitch(2)
-              ),
+              Spacer(), // Прижимает настройки к низу
+              
+              _buildBtn("SETTINGS", Icons.settings, Colors.orange, () {
+                // Здесь логика перехода в настройки (например, Navigator.push)
+                print("Settings clicked");
+              }),
+              SizedBox(height: 20),
             ],
           ),
         ),
@@ -64,46 +38,28 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLargeButton(BuildContext context, String title, String sub, IconData icon, Color color, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.3)),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: color, size: 30),
-            SizedBox(width: 20),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title, 
-                  style: TextStyle(
-                    color: Theme.of(context).textTheme.bodyLarge?.color, 
-                    fontWeight: FontWeight.bold
-                  )
-                ),
-                Text(
-                  sub, 
-                  style: TextStyle(
-                    color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7), 
-                    fontSize: 12
-                  )
-                ),
-              ],
-            ),
-            Spacer(),
-            Icon(
-              Icons.arrow_forward_ios, 
-              color: Theme.of(context).iconTheme.color?.withOpacity(0.6), 
-              size: 16
-            ),
-          ],
+  Widget _buildBtn(String title, IconData icon, Color color, VoidCallback action) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: InkWell(
+        onTap: action, // Тот самый вызов переключения
+        borderRadius: BorderRadius.circular(15),
+        child: Container(
+          padding: EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Color(0xFF252541),
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: color.withOpacity(0.3)),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, color: color, size: 28),
+              SizedBox(width: 20),
+              Text(title, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              Spacer(),
+              Icon(Icons.arrow_forward_ios, color: Colors.white24, size: 14),
+            ],
+          ),
         ),
       ),
     );

@@ -24,10 +24,12 @@ class _MainAppState extends State<MainApp> {
     super.initState();
     _currentIndex = widget.initialTab;
     _screens = [
-      ChatsScreen(),
-      VPNScreen(),
-      AIScreen(),
-      DashboardScreen(onTabSwitch: _changeTab),
+      DashboardScreen(onTabSwitch: (index) {
+        setState(() { _currentIndex = index; });
+      }), // index 0
+      ChatsScreen(), // index 1
+      VPNScreen(),  // index 2
+      AIScreen(),   // index 3
     ];
   }
 
@@ -178,6 +180,11 @@ class _MainAppState extends State<MainApp> {
         unselectedFontSize: 11,
         items: [
           BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            activeIcon: Icon(Icons.home),
+            label: 'Home',    // для index 0 (Dashboard)
+          ),
+          BottomNavigationBarItem(
             icon: BadgedIcon(
               icon: Icons.chat_bubble_outline,
               badgeCount: 3, // Mock
@@ -186,22 +193,17 @@ class _MainAppState extends State<MainApp> {
               icon: Icons.chat_bubble,
               badgeCount: 3,
             ),
-            label: 'Chats',
+            label: 'Chats',   // для index 1
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.vpn_key_outlined),
             activeIcon: Icon(Icons.vpn_key),
-            label: 'VPN',
+            label: 'VPN',     // для index 2
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.smart_toy_outlined),
             activeIcon: Icon(Icons.smart_toy),
-            label: 'AI',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_outlined),
-            activeIcon: Icon(Icons.dashboard),
-            label: 'Dashboard',
+            label: 'AI', // для index 3
           ),
         ],
       ),
