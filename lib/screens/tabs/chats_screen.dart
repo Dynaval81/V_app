@@ -1,67 +1,107 @@
 import 'package:flutter/material.dart';
+import '../../utils/glass_kit.dart';
 
 class ChatsScreen extends StatelessWidget {
-  final List<Map<String, String>> mockChats = [
-    {"name": "Dmitry", "msg": "Hey, how's the VPN?", "time": "12:40"},
-    {"name": "Vtalk AI", "msg": "I can generate that image now.", "time": "11:15"},
-    {"name": "Support", "msg": "Your node is active.", "time": "Yesterday"},
-  ];
+  final bool isDark;
+  ChatsScreen({required this.isDark});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF1A1A2E),
-      appBar: AppBar(
-        backgroundColor: Color(0xFF1A1A2E),
-        elevation: 0,
-        title: Text("Messages", style: TextStyle(fontWeight: FontWeight.bold)),
-        actions: [IconButton(icon: Icon(Icons.search), onPressed: () {})],
-      ),
-      body: Column(
-        children: [
-          // СТАТУСЫ (Оборачиваем в SizedBox, чтобы не было Overflow)
-          SizedBox(
-            height: 100,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(horizontal: 10),
-              itemCount: 5,
-              itemBuilder: (context, index) => _buildStatusCircle(index),
-            ),
-          ),
-          // СПИСОК ЧАТОВ
-          Expanded(
-            child: ListView.builder(
-              itemCount: mockChats.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=$index"),
+      body: Container(
+        decoration: GlassKit.mainBackground(isDark),
+        child: SafeArea(
+          child: CustomScrollView(
+            slivers: [
+              // ЗАКРЕПЛЕННАЯ ШАПКА
+              SliverAppBar(
+                backgroundColor: Colors.transparent,
+                pinned: true, 
+                expandedHeight: 70,
+                elevation: 0,
+                flexibleSpace: GlassKit.liquidGlass( // Шапка тоже стеклянная
+                  radius: 0,
+                  child: FlexibleSpaceBar(
+                    titlePadding: EdgeInsets.only(left: 20, bottom: 16),
+                    title: Text("Vtalk", style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
                   ),
-                  title: Text(mockChats[index]['name']!, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  subtitle: Text(mockChats[index]['msg']!, style: TextStyle(color: Colors.white54)),
-                  trailing: Text(mockChats[index]['time']!, style: TextStyle(color: Colors.white24, fontSize: 12)),
-                );
-              },
-            ),
+                ),
+                actions: [
+                  IconButton(icon: Icon(Icons.search, color: isDark ? Colors.white : Colors.black), onPressed: () {}),
+                  Padding(
+                    padding: EdgeInsets.only(right: 16),
+                    child: CircleAvatar(radius: 16, backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=me")),
+                  ),
+                ],
+              ),
+
+              // ПОИСК (теперь он тут)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: GlassKit.liquidGlass(
+                    radius: 12,
+                    child: TextField(
+                      decoration: InputDecoration(
+                        hintText: "Search messages...",
+                        hintStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
+                        prefixIcon: Icon(Icons.search, color: isDark ? Colors.white38 : Colors.black38),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              // СТАТУСЫ (уезжают)
+              SliverToBoxAdapter(
+                child: Container(
+                  height: 100,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: 10,
+                    itemBuilder: (context, index) => _statusItem(index, isDark),
+                  ),
+                ),
+              ),
+
+              // СПИСОК ЧАТОВ (без боксов, просто список)
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => Column(
+                    children: [
+                      ListTile(
+                        leading: CircleAvatar(backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=$index")),
+                        title: Text("User $index", style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
+                        subtitle: Text("Latest message text here...", style: TextStyle(color: isDark ? Colors.white54 : Colors.black54)),
+                        trailing: Text("12:00", style: TextStyle(color: isDark ? Colors.white24 : Colors.black26, fontSize: 11)),
+                      ),
+                      Divider(color: Colors.white.withOpacity(0.05), indent: 70), // Тонкая линия вместо бокса
+                    ],
+                  ),
+                  childCount: 20,
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildStatusCircle(int i) {
+  Widget _statusItem(int i, bool isDark) {
     return Padding(
-      padding: EdgeInsets.all(8.0),
+      padding: EdgeInsets.symmetric(horizontal: 10),
       child: Column(
         children: [
           CircleAvatar(
-            radius: 28,
-            backgroundColor: Colors.blueAccent,
-            child: CircleAvatar(radius: 25, backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=${i + 10}")),
+            radius: 30,
+            backgroundColor: i == 0 ? Colors.blue : Colors.greenAccent.withOpacity(0.5),
+            child: CircleAvatar(radius: 27, backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=s$i")),
           ),
-          SizedBox(height: 4),
-          Text("User $i", style: TextStyle(color: Colors.white70, fontSize: 10)),
+          SizedBox(height: 5),
+          Text(i == 0 ? "You" : "User $i", style: TextStyle(color: isDark ? Colors.white70 : Colors.black87, fontSize: 10)),
         ],
       ),
     );

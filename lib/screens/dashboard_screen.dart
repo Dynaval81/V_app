@@ -1,59 +1,62 @@
 import 'package:flutter/material.dart';
+import '../utils/glass_kit.dart';
+import 'settings_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   final Function(int) onTabSwitch;
-  DashboardScreen({required this.onTabSwitch});
+  final bool isDark;
+  DashboardScreen({required this.onTabSwitch, this.isDark = true});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF1A1A2E),
-      appBar: AppBar( // Своя шапка в стиле мессенджера
-        backgroundColor: Color(0xFF1A1A2E),
-        elevation: 0,
-        title: Text("Vtalk Console", style: TextStyle(fontWeight: FontWeight.bold)),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings_outlined), 
-            onPressed: () => onTabSwitch(3) // Например, переброс на AI или экран настроек
+      body: Container(
+        width: double.infinity,
+        decoration: GlassKit.mainBackground(isDark),
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildAppBar("Vtalk Console"),
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.all(20),
+                  children: [
+                    _glassBtn("MESSENGER", Icons.chat_bubble_outline, Colors.blueAccent, () => onTabSwitch(1)),
+                    _glassBtn("VPN SERVICE", Icons.vpn_lock, Colors.greenAccent, () => onTabSwitch(2)),
+                    _glassBtn("AI ASSISTANT", Icons.auto_awesome, Colors.purpleAccent, () => onTabSwitch(3)),
+                    _glassBtn("SETTINGS", Icons.settings_suggest, Colors.orangeAccent, () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsScreen()));
+                    }),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(20),
-        child: Column(
-          children: [
-            _buildMenuCard("MESSENGER", Icons.chat_bubble, Colors.blue, () => onTabSwitch(1)),
-            SizedBox(height: 15),
-            _buildMenuCard("VPN SERVICE", Icons.security, Colors.green, () => onTabSwitch(2)),
-            SizedBox(height: 15),
-            _buildMenuCard("AI STUDIO", Icons.auto_awesome, Colors.purple, () => onTabSwitch(3)),
-          ],
         ),
       ),
     );
   }
 
-  Widget _buildMenuCard(String title, IconData icon, Color color, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Color(0xFF252541),
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: color.withOpacity(0.2)),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: color, size: 30),
-            SizedBox(width: 20),
-            Text(title, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            Spacer(),
-            Icon(Icons.arrow_forward_ios, color: Colors.white24, size: 14),
-          ],
-        ),
+  Widget _buildAppBar(String title) {
+    return Padding(
+      padding: EdgeInsets.all(20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 24, fontWeight: FontWeight.bold)),
+          CircleAvatar(radius: 22, backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=me")),
+        ],
       ),
+    );
+  }
+
+  Widget _glassBtn(String t, IconData i, Color c, VoidCallback a) {
+    return ListTile(
+      onTap: a,
+      leading: Icon(i, color: c, size: 28),
+      title: Text(t, style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.w600, letterSpacing: 1.5)),
+      trailing: Icon(Icons.arrow_forward_ios, color: isDark ? Colors.white10 : Colors.black12, size: 16),
+      contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
     );
   }
 }

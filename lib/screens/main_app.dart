@@ -19,18 +19,34 @@ class MainApp extends StatefulWidget {
 class _MainAppState extends State<MainApp> {
   late int _currentIndex;
   late List<Widget> _screens;
+  bool _isDark = true; // Глобальная переменная темы
 
   void initState() {
     super.initState();
     _currentIndex = widget.initialTab;
     _screens = [
-      DashboardScreen(onTabSwitch: (index) {
+      DashboardScreen(isDark: _isDark, onTabSwitch: (index) {
         setState(() { _currentIndex = index; });
       }), // index 0
-      ChatsScreen(), // index 1
-      VPNScreen(),  // index 2
-      AIScreen(),   // index 3
+      ChatsScreen(isDark: _isDark), // index 1
+      VPNScreen(isDark: _isDark),  // index 2
+      AIScreen(isDark: _isDark),   // index 3
     ];
+  }
+
+  void _toggleTheme(bool value) {
+    setState(() {
+      _isDark = value;
+      // Обновляем все экраны с новой темой
+      _screens = [
+        DashboardScreen(isDark: _isDark, onTabSwitch: (index) {
+          setState(() { _currentIndex = index; });
+        }),
+        ChatsScreen(isDark: _isDark),
+        VPNScreen(isDark: _isDark),
+        AIScreen(isDark: _isDark),
+      ];
+    });
   }
 
   void _changeTab(int index) {
