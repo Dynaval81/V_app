@@ -30,7 +30,7 @@ class RegistrationSuccessScreen extends StatelessWidget {
               SizedBox(height: 30),
               
               Text(
-                'Registration Success!',
+                'Registration Successful',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
