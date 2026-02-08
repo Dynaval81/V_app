@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../dashboard_screen.dart';
+import '../constants/app_colors.dart';
 
 class RegistrationSuccessScreen extends StatelessWidget {
   final String nickname;
@@ -14,28 +15,32 @@ class RegistrationSuccessScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF1A1A2E),
-      body: Center(
+      backgroundColor: AppColors.primaryBackground,
+      body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.check_circle,
-                color: Colors.green,
-                size: 80,
-              ),
-              
-              SizedBox(height: 30),
-              
-              Text(
-                'Registration Successful',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+              SizedBox(height: 60),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.check_circle,
+                    color: AppColors.accentGreen,
+                    size: 40,
+                  ),
+                  SizedBox(width: 16),
+                  Text(
+                    'Registration Successful',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primaryText,
+                    ),
+                  ),
+                ],
               ),
               
               SizedBox(height: 40),
@@ -44,7 +49,7 @@ class RegistrationSuccessScreen extends StatelessWidget {
                 'Your Vtalk ID:',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.white70,
+                  color: AppColors.secondaryText,
                 ),
               ),
               
@@ -55,7 +60,7 @@ class RegistrationSuccessScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.blue,
+                  color: AppColors.primaryBlue,
                 ),
               ),
               
@@ -68,7 +73,7 @@ class RegistrationSuccessScreen extends StatelessWidget {
                     'Your Vtalk Number:',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.white70,
+                      color: AppColors.secondaryText,
                     ),
                   ),
                   SizedBox(height: 4),
@@ -100,9 +105,9 @@ class RegistrationSuccessScreen extends StatelessWidget {
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   decoration: BoxDecoration(
-                    color: Color(0xFF252541),
+                    color: AppColors.cardBackground,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.green.withOpacity(0.3)),
+                    border: Border.all(color: AppColors.accentGreen.withOpacity(0.3)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -122,13 +127,13 @@ class RegistrationSuccessScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Colors.green,
+                          color: AppColors.accentGreen,
                         ),
                       ),
                       SizedBox(width: 10),
                       Icon(
                         Icons.copy,
-                        color: Colors.green,
+                        color: AppColors.accentGreen,
                         size: 20,
                       ),
                     ],
@@ -143,7 +148,7 @@ class RegistrationSuccessScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.white70,
+                  color: AppColors.secondaryText,
                 ),
               ),
               
@@ -157,7 +162,7 @@ class RegistrationSuccessScreen extends StatelessWidget {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: AppColors.primaryBlue,
                   padding: EdgeInsets.symmetric(horizontal: 40, vertical: 16),
                 ),
                 child: Text(

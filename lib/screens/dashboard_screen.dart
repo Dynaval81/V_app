@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/service_status.dart';
 import '../widgets/dashboard_card.dart';
 import 'main_app.dart';
+import '../constants/app_colors.dart';
 
 class DashboardScreen extends StatefulWidget {
   @override
@@ -9,7 +10,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  late List<ServiceStatus> _services;
+  List<ServiceStatus> _services = [];
   bool _isLoading = false;
 
   @override
@@ -53,11 +54,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF1A1A2E),
+      backgroundColor: AppColors.primaryBackground,
       body: RefreshIndicator(
         onRefresh: _loadServiceStatuses,
-        color: Colors.blue,
-        backgroundColor: Color(0xFF252541),
+        color: AppColors.primaryBlue,
+        backgroundColor: AppColors.cardBackground,
         child: SafeArea(
           child: SingleChildScrollView(
             physics: AlwaysScrollableScrollPhysics(),
@@ -185,9 +186,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildStatusSection() {
     return Container(
-      padding: EdgeInsets.all(20),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Color(0xFF252541),
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -199,9 +200,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Text(
                 'Services Status',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.primaryText,
                 ),
               ),
               if (_isLoading)
@@ -210,13 +211,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   height: 16,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
                   ),
                 ),
             ],
           ),
           
-          SizedBox(height: 16),
+          SizedBox(height: 12),
           
           ...(_services.map((service) => _buildStatusRow(service)).toList()),
         ],

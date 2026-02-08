@@ -15,8 +15,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _register() {
     if (_formKey.currentState!.validate()) {
-      // ИСПРАВЛЕНО: только числовой номер (без VT-)
-      final vtalkNumber = '${10000000 + (DateTime.now().millisecondsSinceEpoch % 90000000)}';
+      // ИСПРАВЛЕНО: 4-значный номер
+      final vtalkNumber = '${1000 + (DateTime.now().millisecondsSinceEpoch % 9000)}';
       
       Navigator.pushReplacement(
         context,
