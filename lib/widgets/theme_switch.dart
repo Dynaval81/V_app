@@ -16,6 +16,14 @@ class _ThemeSwitchState extends State<ThemeSwitch> {
         'Dark Mode',
         style: TextStyle(
           color: _isDarkMode ? AppColors.primaryText : AppColors.lightPrimaryText,
+          fontSize: 16,
+        ),
+      ),
+      subtitle: Text(
+        'Switch between light and dark themes',
+        style: TextStyle(
+          color: _isDarkMode ? AppColors.secondaryText : AppColors.lightSecondaryText,
+          fontSize: 12,
         ),
       ),
       value: _isDarkMode,
@@ -23,9 +31,19 @@ class _ThemeSwitchState extends State<ThemeSwitch> {
         setState(() {
           _isDarkMode = value;
         });
-        // TODO: Implement theme switching logic
+        // TODO: Implement actual theme switching
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_isDarkMode ? 'Dark mode enabled' : 'Light mode enabled'),
+            duration: Duration(seconds: 1),
+          ),
+        );
       },
       activeColor: AppColors.primaryBlue,
+      secondary: Icon(
+        _isDarkMode ? Icons.dark_mode : Icons.light_mode,
+        color: _isDarkMode ? AppColors.primaryText : AppColors.lightPrimaryText,
+      ),
     );
   }
 }

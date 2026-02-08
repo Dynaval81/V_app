@@ -157,6 +157,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 SizedBox(height: 16),
                 
                 DashboardCard(
+                  icon: '📈',
+                  title: 'Statistics',
+                  description: 'View app statistics',
+                  color: Colors.cyan,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MainApp(initialTab: 3),
+                      ),
+                    );
+                  },
+                ),
+                
+                SizedBox(height: 16),
+                
+                Container(
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardBackground,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ThemeSwitch(),
+                ),
+                
+                SizedBox(height: 16),
+                
+                DashboardCard(
                   icon: '⚙️',
                   title: 'Settings',
                   description: 'Manage your account',
