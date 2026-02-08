@@ -18,20 +18,24 @@ class MainApp extends StatefulWidget {
 
 class _MainAppState extends State<MainApp> {
   late int _currentIndex;
+  late List<Widget> _screens;
 
   void initState() {
     super.initState();
     _currentIndex = widget.initialTab;
+    _screens = [
+      ChatsScreen(),
+      VPNScreen(),
+      AIScreen(),
+      DashboardScreen(onTabSwitch: _changeTab),
+    ];
   }
 
-  final List<Widget> _screens = [
-    ChatsScreen(),
-    VPNScreen(),
-    AIScreen(),
-    DashboardScreen(onTabSwitch: (index) {
-      // Handle navigation from dashboard
-    }),
-  ];
+  void _changeTab(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
 
   Future<void> _showProfile() async {
     final prefs = await SharedPreferences.getInstance();

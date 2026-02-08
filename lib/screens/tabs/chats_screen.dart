@@ -1,302 +1,163 @@
 import 'package:flutter/material.dart';
-import '../chat_screen.dart';
 
-class ChatsScreen extends StatelessWidget {
+class ChatsScreen extends StatefulWidget {
+  @override
+  _ChatsScreenState createState() => _ChatsScreenState();
+}
+
+class _ChatsScreenState extends State<ChatsScreen> {
   @override
   Widget build(BuildContext context) {
-    // Mock данные для чатов
-    final List<ChatItem> _chats = [
-      ChatItem(
-        name: 'Alice',
-        lastMessage: 'Hey! How are you?',
-        timestamp: '10:30',
-        unreadCount: 2,
-        avatarColor: Colors.purple,
-        isPinned: true,
-      ),
-      ChatItem(
-        name: 'Bob',
-        lastMessage: 'Check out this link...',
-        timestamp: 'Yesterday',
-        unreadCount: 0,
-        avatarColor: Colors.blue,
-        isPinned: false,
-      ),
-      ChatItem(
-        name: 'Charlie',
-        lastMessage: 'See you tomorrow!',
-        timestamp: 'Monday',
-        unreadCount: 5,
-        avatarColor: Colors.green,
-        isPinned: false,
-      ),
-      ChatItem(
-        name: 'David',
-        lastMessage: 'Thanks for the help!',
-        timestamp: 'Sunday',
-        unreadCount: 0,
-        avatarColor: Colors.orange,
-        isPinned: false,
-      ),
-      ChatItem(
-        name: 'Eve',
-        lastMessage: 'Meeting at 3pm',
-        timestamp: 'Saturday',
-        unreadCount: 1,
-        avatarColor: Colors.red,
-        isPinned: true,
-      ),
-    ];
-
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        elevation: 0,
-        title: Text(
-          "Messages", 
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).textTheme.bodyLarge?.color
-          )
-        ),
-        // Убрали лупу отсюда!
-      ),
-      body: Column(
-        children: [
-          // 1. Поиск (одна лупа)
-          Padding(
-            padding: EdgeInsets.all(16),
-            child: TextField(
-              style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Theme.of(context).cardColor,
-                hintText: "Search contacts...",
-                hintStyle: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6)),
-                prefixIcon: Icon(Icons.search, color: Theme.of(context).iconTheme.color?.withOpacity(0.6)),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15), 
-                  borderSide: BorderSide.none
+      body: NestedScrollView(
+        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+          return <Widget>[
+            SliverAppBar(
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              floating: true,
+              pinned: true,
+              snap: true,
+              expandedHeight: 140.0, // Высота, когда всё раскрыто
+              title: Text(
+                "Vtalk Messenger",
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
-          ),
-
-          // 2. Статусы контактов (Любимая фишка молодежи)
-          Container(
-            height: 90,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(horizontal: 10),
-              itemCount: 8,
-              itemBuilder: (context, index) => Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8),
+              actions: [
+                // Аватарка в углу (вместо трех точек)
+                Padding(
+                  padding: EdgeInsets.only(right: 16),
+                  child: CircleAvatar(
+                    radius: 18, 
+                    backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=me")
+                  ),
+                ),
+              ],
+              bottom: PreferredSize(
+                preferredSize: Size.fromHeight(80),
                 child: Column(
                   children: [
-                    Stack(
-                      children: [
-                        CircleAvatar(
-                          radius: 30, 
-                          backgroundColor: Colors.blueAccent, 
-                          child: CircleAvatar(
-                            radius: 27, 
-                            backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=$index")
-                          )
+                    // Поиск (скрывается при скролле вверх)
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Container(
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor, 
+                          borderRadius: BorderRadius.circular(10)
                         ),
-                        Positioned(
-                          right: 2, 
-                          bottom: 2, 
-                          child: Container(
-                            width: 12, 
-                            height: 12, 
-                            decoration: BoxDecoration(
-                              color: Colors.green, 
-                              shape: BoxShape.circle, 
-                              border: Border.all(
-                                color: Theme.of(context).scaffoldBackgroundColor, 
-                                width: 2
-                              )
-                            )
-                          )
+                        child: TextField(
+                          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+                          decoration: InputDecoration(
+                            hintText: "Search",
+                            hintStyle: TextStyle(
+                              color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6)
+                            ),
+                            prefixIcon: Icon(
+                              Icons.search, 
+                              color: Theme.of(context).iconTheme.color?.withOpacity(0.6), 
+                              size: 20
+                            ),
+                            border: InputBorder.none,
+                          ),
                         ),
-                      ],
+                      ),
                     ),
-                    SizedBox(height: 4),
-                    Text(
-                      "User $index", 
-                      style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7), 
-                        fontSize: 10
-                      )
+                    // Горизонтальные статусы
+                    Container(
+                      height: 60,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: 10,
+                        itemBuilder: (context, index) {
+                          if (index == 0) return _buildAddStatus(); // Первый кружок - "Добавить"
+                          return _buildStatusCircle(index);
+                        },
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
-          ),
-
-          // 3. Список чатов
-          Expanded(
-            child: ListView.builder(
-              itemCount: _chats.length,
-              itemBuilder: (context, index) => _buildChatItem(context, _chats[index]),
+          ];
+        },
+        body: ListView.builder(
+          padding: EdgeInsets.all(0),
+          itemCount: 20,
+          itemBuilder: (context, index) => ListTile(
+            leading: CircleAvatar(
+              backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=$index")
             ),
+            title: Text(
+              "User $index", 
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyLarge?.color
+              )
+            ),
+            subtitle: Text(
+              "How is app going?", 
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)
+              )
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddStatus() {
+    return Padding(
+      padding: EdgeInsets.only(left: 16, right: 8),
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 20, 
+            backgroundColor: Colors.blueAccent, 
+            child: Icon(Icons.add, color: Colors.white)
+          ),
+          SizedBox(height: 4),
+          Text(
+            "My status", 
+            style: TextStyle(
+              color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6), 
+              fontSize: 10
+            )
           ),
         ],
       ),
     );
   }
 
-  Widget _buildChatItem(BuildContext context, ChatItem chat) {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ChatScreen(chatName: chat.name),
-          ),
-        );
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: Theme.of(context).dividerColor.withOpacity(0.3),
-              width: 0.5,
+  Widget _buildStatusCircle(int i) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 8),
+      child: Column(
+        children: [
+          Container(
+            padding: EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle, 
+              border: Border.all(color: Colors.greenAccent, width: 2)
+            ),
+            child: CircleAvatar(
+              radius: 18, 
+              backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=${i+10}")
             ),
           ),
-        ),
-        child: Row(
-          children: [
-            // Avatar
-            Stack(
-              children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor: chat.avatarColor,
-                  child: Text(
-                    chat.name[0].toUpperCase(),
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                if (chat.isPinned)
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      padding: EdgeInsets.all(2),
-                      decoration: BoxDecoration(
-                        color: Colors.amber,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.push_pin,
-                        size: 12,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            
-            SizedBox(width: 12),
-            
-            // Content
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        chat.name,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).textTheme.bodyLarge?.color,
-                        ),
-                      ),
-                      Text(
-                        chat.timestamp,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: chat.unreadCount > 0
-                              ? Colors.blue
-                              : Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                  
-                  SizedBox(height: 4),
-                  
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          chat.lastMessage,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                      if (chat.unreadCount > 0)
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.blue,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '${chat.unreadCount}',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          SizedBox(height: 4),
+          Text(
+            "User $i", 
+            style: TextStyle(
+              color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7), 
+              fontSize: 10
+            )
+          ),
+        ],
       ),
     );
   }
-}
-
-// Model для чата
-class ChatItem {
-  final String name;
-  final String lastMessage;
-  final String timestamp;
-  final int unreadCount;
-  final Color avatarColor;
-  final bool isPinned;
-
-  ChatItem({
-    required this.name,
-    required this.lastMessage,
-    required this.timestamp,
-    required this.unreadCount,
-    required this.avatarColor,
-    required this.isPinned,
-  });
 }
