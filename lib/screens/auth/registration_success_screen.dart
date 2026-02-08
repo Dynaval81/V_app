@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../dashboard_screen.dart';
-import '../constants/app_colors.dart';
+import '../../constants/app_colors.dart';
 
 class RegistrationSuccessScreen extends StatelessWidget {
   final String nickname;

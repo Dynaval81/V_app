@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Dark Theme Colors
-  static const Color darkPrimaryBackground = Color(0xFF1A1A2E);
-  static const Color darkCardBackground = Color(0xFF252541);
-  static const Color darkSurfaceBackground = Color(0xFF16213E);
+  static const Color primaryBackground = Color(0xFF1A1A2E);
+  static const Color cardBackground = Color(0xFF252541);
+  static const Color surfaceBackground = Color(0xFF16213E);
   
   // Light Theme Colors
   static const Color lightPrimaryBackground = Color(0xFFF5F5F5);
@@ -18,10 +18,10 @@ class AppColors {
   static const Color accentOrange = Colors.orange;
   
   // Text colors - Dark Theme
-  static const Color darkPrimaryText = Colors.white;
-  static const Color darkSecondaryText = Colors.white70;
-  static const Color darkHintTextColor = Colors.white38;
-  static const Color darkDisabledTextColor = Colors.white30;
+  static const Color primaryText = Colors.white;
+  static const Color secondaryText = Colors.white70;
+  static const Color hintTextColor = Colors.white38;
+  static const Color disabledTextColor = Colors.white30;
   
   // Text colors - Light Theme
   static const Color lightPrimaryText = Color(0xFF1A1A2E);
@@ -30,7 +30,7 @@ class AppColors {
   static const Color lightDisabledTextColor = Color(0xFFCCCCCC);
   
   // Border colors
-  static const Color darkPrimaryBorder = Colors.white30;
+  static const Color primaryBorder = Colors.white30;
   static const Color lightPrimaryBorder = Color(0xFFE0E0E0);
   static const Color focusedBorder = Colors.blue;
   static const Color successBorder = Colors.green;
