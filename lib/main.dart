@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'screens/splash_screen.dart';
+import 'screens/auth_wrapper.dart';
 import 'theme/theme_manager.dart';
 import 'theme/app_theme.dart';
 
@@ -17,8 +17,10 @@ class VtalkApp extends StatelessWidget {
         builder: (context, themeManager, child) {
           return MaterialApp(
             title: 'Vtalk',
-            theme: themeManager.getCurrentTheme(),
-            home: SplashScreen(),
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeManager.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            home: AuthWrapper(),
             debugShowCheckedModeBanner: false,
           );
         },

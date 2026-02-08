@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
 import 'registration_success_screen.dart';
 
@@ -13,22 +14,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _nicknameController = TextEditingController();
 
-  void _register() {
+  Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
-      // ИСПРАВЛЕНО: 4-значный номер
-      final vtalkNumber = '${1000 + (DateTime.now().millisecondsSinceEpoch % 9000)}';
-      
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => RegistrationSuccessScreen(
-            nickname: _nicknameController.text.isEmpty 
-                ? _emailController.text.split('@')[0] 
-                : _nicknameController.text,
-            vtalkNumber: vtalkNumber,
+      try {
+        // ИСПРАВЛЕНО: 4-значный номер
+        final vtalkNumber = '${1000 + (DateTime.now().millisecondsSinceEpoch % 9000)}';
+        
+        // Сохраняем данные пользователя
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('auth_token', 'mock_token_${DateTime.now().millisecondsSinceEpoch}');
+        await prefs.setString('user_id', DateTime.now().millisecondsSinceEpoch.toString());
+        await prefs.setString('user_email', _emailController.text);
+        await prefs.setString('user_nickname', _nicknameController.text.isEmpty 
+            ? _emailController.text.split('@')[0] 
+            : _nicknameController.text);
+        await prefs.setString('vtalk_number', vtalkNumber);
+        
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RegistrationSuccessScreen(
+              nickname: _nicknameController.text.isEmpty 
+                  ? _emailController.text.split('@')[0] 
+                  : _nicknameController.text,
+              vtalkNumber: vtalkNumber,
+            ),
           ),
-        ),
-      );
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Registration error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/app_colors.dart';
 import 'app_theme.dart';
 
@@ -12,14 +13,35 @@ class ThemeManager extends ChangeNotifier {
 
   bool get isDarkMode => _isDarkMode;
 
-  void toggleTheme() {
+  Future<void> loadTheme() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _isDarkMode = prefs.getBool('is_dark_mode') ?? true;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading theme: $e');
+    }
+  }
+
+  Future<void> toggleTheme() async {
     _isDarkMode = !_isDarkMode;
+    await _saveTheme();
     notifyListeners();
   }
 
-  void setTheme(bool isDark) {
+  Future<void> setTheme(bool isDark) async {
     _isDarkMode = isDark;
+    await _saveTheme();
     notifyListeners();
+  }
+
+  Future<void> _saveTheme() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('is_dark_mode', _isDarkMode);
+    } catch (e) {
+      debugPrint('Error saving theme: $e');
+    }
   }
 
   ThemeData getCurrentTheme() {
