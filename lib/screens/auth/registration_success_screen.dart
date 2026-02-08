@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../dashboard_screen.dart';
+import '../main_app.dart';
 import '../../constants/app_colors.dart';
 
 class RegistrationSuccessScreen extends StatelessWidget {
@@ -162,7 +163,7 @@ class RegistrationSuccessScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => DashboardScreen()),
+                    MaterialPageRoute(builder: (context) => MainApp(initialTab: 3)),
                   );
                 },
                 style: ElevatedButton.styleFrom(

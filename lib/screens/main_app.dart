@@ -19,7 +19,6 @@ class MainApp extends StatefulWidget {
 class _MainAppState extends State<MainApp> {
   late int _currentIndex;
 
-  @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialTab;
@@ -29,7 +28,9 @@ class _MainAppState extends State<MainApp> {
     ChatsScreen(),
     VPNScreen(),
     AIScreen(),
-    DashboardScreen(),
+    DashboardScreen(onTabSwitch: (index) {
+      // Handle navigation from dashboard
+    }),
   ];
 
   Future<void> _showProfile() async {

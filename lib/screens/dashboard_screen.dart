@@ -1,378 +1,168 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../models/service_status.dart';
-import '../widgets/dashboard_card.dart';
-import 'main_app.dart';
-import 'auth/register_screen.dart';
-import '../providers/theme_provider.dart';
 
-class DashboardScreen extends StatefulWidget {
-  @override
-  _DashboardScreenState createState() => _DashboardScreenState();
-}
-
-class _DashboardScreenState extends State<DashboardScreen> {
-  List<ServiceStatus> _services = [];
-  bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadServiceStatuses();
-  }
-
-  Future<void> _loadServiceStatuses() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    await Future.delayed(Duration(seconds: 1));
-
-    setState(() {
-      _services = [
-        ServiceStatus(
-          name: 'Messenger',
-          isOnline: true,
-          status: 'online',
-          message: 'All systems operational',
-        ),
-        ServiceStatus(
-          name: 'VPN',
-          isOnline: true,
-          status: 'online',
-          message: '3 servers available',
-        ),
-        ServiceStatus(
-          name: 'AI Chat',
-          isOnline: false,
-          status: 'offline',
-          message: 'Coming soon',
-        ),
-      ];
-      _isLoading = false;
-    });
-  }
+class DashboardScreen extends StatelessWidget {
+  final Function(int) onTabSwitch;
+  DashboardScreen({required this.onTabSwitch});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: RefreshIndicator(
-        onRefresh: _loadServiceStatuses,
-        color: Colors.blue,
-        backgroundColor: Theme.of(context).cardColor,
-        child: SafeArea(
-          child: SingleChildScrollView(
-            physics: AlwaysScrollableScrollPhysics(),
-            padding: EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 20),
-                
-                _buildStatusSection(),
-                
-                SizedBox(height: 30),
-                
-                Text(
-                  'Quick Actions',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // HEADER
+              Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle, 
+                      border: Border.all(color: Colors.blueAccent, width: 2)
+                    ),
+                    child: CircleAvatar(
+                      radius: 25, 
+                      backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=my_id")
+                    ),
                   ),
-                ),
-                
-                SizedBox(height: 16),
-                
-                DashboardCard(
-                  icon: '💬',
-                  title: 'Messenger',
-                  description: 'Secure private chats',
-                  color: Colors.blue,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MainApp(initialTab: 0),
+                  SizedBox(width: 15),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "System Admin", 
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7), 
+                          fontSize: 12
+                        )
                       ),
-                    );
-                  },
-                ),
-                
-                SizedBox(height: 16),
-                
-                DashboardCard(
-                  icon: '🔐',
-                  title: 'VPN',
-                  description: 'Browse anonymously',
-                  color: Colors.green,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MainApp(initialTab: 1),
+                      Text(
+                        "Dynaval81", 
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodyLarge?.color, 
+                          fontSize: 18, 
+                          fontWeight: FontWeight.bold
+                        )
                       ),
-                    );
-                  },
+                    ],
+                  ),
+                  Spacer(),
+                  _statusBadge(true), // Индикатор статуса всей системы
+                ],
+              ),
+              
+              SizedBox(height: 30),
+
+              // GRID OF SERVICES
+              GridView.count(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                crossAxisCount: 2,
+                crossAxisSpacing: 15,
+                mainAxisSpacing: 15,
+                childAspectRatio: 1.1,
+                children: [
+                  _buildServiceItem(context, "Messenger", Icons.chat_bubble_outline, Colors.blue, 1),
+                  _buildServiceItem(context, "Secure VPN", Icons.vpn_lock, Colors.greenAccent, 2),
+                  _buildServiceItem(context, "AI Studio", Icons.auto_awesome, Colors.purpleAccent, 3),
+                  _buildServiceItem(context, "System Logs", Icons.terminal, Colors.orangeAccent, 0),
+                ],
+              ),
+
+              SizedBox(height: 30),
+              Text(
+                "Performance", 
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyLarge?.color, 
+                  fontSize: 16, 
+                  fontWeight: FontWeight.bold
+                )
+              ),
+              SizedBox(height: 15),
+
+              // ЗАГЛУШКА ДЛЯ ГРАФИКА
+              Container(
+                height: 120,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor, 
+                  borderRadius: BorderRadius.circular(20)
                 ),
-                
-                SizedBox(height: 16),
-                
-                DashboardCard(
-                  icon: '🤖',
-                  title: 'AI Chat',
-                  description: 'Talk with AI assistant',
-                  color: Colors.purple,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MainApp(initialTab: 2),
-                      ),
-                    );
-                  },
+                child: Center(
+                  child: Icon(
+                    Icons.insights, 
+                    color: Theme.of(context).iconTheme.color?.withOpacity(0.3), 
+                    size: 50
+                  )
                 ),
-                
-                SizedBox(height: 16),
-                
-                DashboardCard(
-                  icon: '⚙️',
-                  title: 'Settings',
-                  description: 'Manage your account',
-                  color: Colors.grey,
-                  onTap: () {
-                    _showSettingsBottomSheet(context);
-                  },
-                ),
-                
-                SizedBox(height: 16),
-                
-                DashboardCard(
-                  icon: '⭐',
-                  title: 'Premium',
-                  description: 'Unlock all features',
-                  color: Colors.amber,
-                  onTap: () {
-                    _showPremiumDialog(context);
-                  },
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildStatusSection() {
+  Widget _statusBadge(bool online) {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
+        color: online 
+          ? Colors.green.withOpacity(0.1) 
+          : Colors.red.withOpacity(0.1), 
+        borderRadius: BorderRadius.circular(20)
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildStatusItem(
-            icon: Icons.message,
-            label: 'Messenger',
-            isOnline: _services.isNotEmpty ? _services[0].isOnline : false,
+          Container(
+            width: 8, 
+            height: 8, 
+            decoration: BoxDecoration(
+              color: online ? Colors.green : Colors.red, 
+              shape: BoxShape.circle
+            )
           ),
-          _buildStatusItem(
-            icon: Icons.vpn_lock,
-            label: 'VPN',
-            isOnline: _services.length > 1 ? _services[1].isOnline : false,
-          ),
-          _buildStatusItem(
-            icon: Icons.smart_toy,
-            label: 'AI Chat',
-            isOnline: _services.length > 2 ? _services[2].isOnline : false,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatusItem({required IconData icon, required String label, required bool isOnline}) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: isOnline ? Colors.green.withOpacity(0.2) : Colors.grey.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isOnline ? Colors.green.withOpacity(0.5) : Colors.grey.withOpacity(0.3),
-              width: 1,
-            ),
-          ),
-          child: Icon(
-            icon,
-            color: isOnline ? Colors.green : Colors.grey,
-            size: 24,
-          ),
-        ),
-        SizedBox(height: 8),
-        Text(
-          label,
-          style: TextStyle(
-            color: Theme.of(context).textTheme.bodyLarge?.color,
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        SizedBox(height: 4),
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          decoration: BoxDecoration(
-            color: isOnline ? Colors.green.withOpacity(0.2) : Colors.grey.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Text(
-            isOnline ? 'ONLINE' : 'OFFLINE',
-            style: TextStyle(
-              color: isOnline ? Colors.green : Colors.grey,
-              fontSize: 8,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _showSettingsBottomSheet(BuildContext context) {
-  final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-  
-  showModalBottomSheet(
-    context: context,
-    backgroundColor: Theme.of(context).cardColor,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    ),
-    builder: (context) => Container(
-      padding: EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+          SizedBox(width: 8),
           Text(
-            'Settings',
+            online ? "SYSTEM OK" : "ISSUES", 
             style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).textTheme.bodyLarge?.color,
-            ),
-          ),
-          SizedBox(height: 20),
-          
-          ListTile(
-            leading: Icon(
-              Icons.person,
-              color: Theme.of(context).iconTheme.color,
-            ),
-            title: Text(
-              'Profile',
-              style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
-            ),
-            onTap: () {},
-          ),
-          
-          ListTile(
-            leading: Icon(
-              Icons.notifications,
-              color: Theme.of(context).iconTheme.color,
-            ),
-            title: Text(
-              'Notifications',
-              style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
-            ),
-            onTap: () {},
-          ),
-          
-          // ⭐ ПЕРЕКЛЮЧАТЕЛЬ ТЕМЫ
-          ListTile(
-            leading: Icon(
-              themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
-              color: Theme.of(context).iconTheme.color,
-            ),
-            title: Text(
-              'Theme',
-              style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
-            ),
-            trailing: Switch(
-              value: themeProvider.isDarkMode,
-              onChanged: (value) {
-                themeProvider.toggleTheme();
-                Navigator.pop(context); // Закрыть Bottom Sheet
-              },
-            ),
-          ),
-          
-          ListTile(
-            leading: Icon(Icons.security, color: Theme.of(context).iconTheme.color),
-            title: Text(
-              'Privacy',
-              style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
-            ),
-            onTap: () {},
-          ),
-          
-          SizedBox(height: 20),
-          
-          ListTile(
-            leading: Icon(Icons.logout, color: Colors.red),
-            title: Text('Logout', style: TextStyle(color: Colors.red)),
-            onTap: () async {
-              try {
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.clear();
-                
-                Navigator.pop(context); // Закрыть Bottom Sheet
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (_) => RegisterScreen()),
-                  (route) => false, // Удалить весь стек навигации
-                );
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Logout error: $e'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            },
+              color: online ? Colors.green : Colors.red, 
+              fontSize: 10, 
+              fontWeight: FontWeight.bold
+            )
           ),
         ],
       ),
-    ),
-  );
-}
+    );
+  }
 
-  void _showPremiumDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Color(0xFF252541),
-        title: Text(
-          '⭐ Premium',
-          style: TextStyle(color: Colors.white),
+  Widget _buildServiceItem(BuildContext context, String title, IconData icon, Color color, int tabIndex) {
+    return InkWell(
+      onTap: () => onTabSwitch(tabIndex),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withOpacity(0.1)),
         ),
-        content: Text(
-          'Coming soon!\n\nUnlock unlimited VPN bandwidth, AI features, and more.',
-          style: TextStyle(color: Colors.white70),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 40),
+            SizedBox(height: 12),
+            Text(
+              title, 
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyLarge?.color, 
+                fontWeight: FontWeight.w600
+              )
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('OK'),
-          ),
-        ],
       ),
     );
   }

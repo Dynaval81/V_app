@@ -1,5 +1,14 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:math';
+
+class ChatMessage {
+  final String text;
+  final bool isUser;
+  final String? imageUrl;
+
+  ChatMessage({required this.text, required this.isUser, this.imageUrl});
+}
 
 class AIScreen extends StatefulWidget {
   @override
@@ -8,35 +17,43 @@ class AIScreen extends StatefulWidget {
 
 class _AIScreenState extends State<AIScreen> {
   final TextEditingController _textController = TextEditingController();
-  final List<Map<String, dynamic>> _messages = [];
+  final List<ChatMessage> _messages = [];
   final ScrollController _scrollController = ScrollController();
   bool _isTyping = false;
+  final Random _random = Random();
 
-  void _sendMessage() {
-    if (_textController.text.trim().isEmpty) return;
-    
+  void _handleSubmitted(String text) async {
+    if (text.isEmpty) return;
+    _textController.clear();
+
     setState(() {
-      _messages.add({"text": _textController.text, "isMe": true});
+      _messages.add(ChatMessage(text: text, isUser: true));
       _isTyping = true;
     });
-    
-    String userText = _textController.text;
-    _textController.clear();
     _scrollToBottom();
 
-    // Имитация ответа
-    Timer(Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _isTyping = false;
-          _messages.add({
-            "text": "I received your message: '$userText'. I'm currently in preview mode. Matrix integration coming in v0.2!",
-            "isMe": false
-          });
-        });
-        _scrollToBottom();
-      }
-    });
+    await Future.delayed(Duration(seconds: 2));
+
+    if (mounted) {
+      setState(() {
+        _isTyping = false;
+        // Если сообщение начинается с /draw, имитируем генерацию картинки
+        if (text.toLowerCase().startsWith('/draw')) {
+          _messages.add(ChatMessage(
+            text: "Generating: ${text.replaceFirst('/draw', '')}",
+            isUser: false,
+            imageUrl: "https://picsum.photos/seed/${_random.nextInt(1000)}/400/300", // Рандомная картинка
+          ));
+        } else {
+          _messages.add(ChatMessage(text: _generateAIResponse(text), isUser: false));
+        }
+      });
+      _scrollToBottom();
+    }
+  }
+
+  String _generateAIResponse(String userText) {
+    return "I received your message: '$userText'. I'm currently in preview mode. Matrix integration coming in v0.2!";
   }
 
   void _scrollToBottom() {
@@ -99,8 +116,7 @@ class _AIScreenState extends State<AIScreen> {
               padding: EdgeInsets.all(16),
               itemCount: _messages.length,
               itemBuilder: (context, index) {
-                final msg = _messages[index];
-                return _buildChatBubble(msg['text'], msg['isMe']);
+                return ChatMessageWidget(message: _messages[index]);
               },
             ),
           ),
@@ -120,50 +136,6 @@ class _AIScreenState extends State<AIScreen> {
             ),
           _buildInputArea(),
         ],
-      ),
-    );
-  }
-
-  Widget _buildChatBubble(String text, bool isMe) {
-    return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: EdgeInsets.symmetric(vertical: 5),
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
-        decoration: BoxDecoration(
-          gradient: isMe 
-            ? LinearGradient(
-                colors: [Colors.blueAccent, Colors.blue],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ) 
-            : LinearGradient(
-                colors: [
-                  Theme.of(context).cardColor,
-                  Theme.of(context).cardColor.withOpacity(0.8),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(16),
-            bottomLeft: Radius.circular(isMe ? 16 : 4),
-            bottomRight: Radius.circular(isMe ? 4 : 16),
-          ),
-          border: !isMe ? Border.all(
-            color: Theme.of(context).dividerColor.withOpacity(0.3),
-            width: 1,
-          ) : null,
-        ),
-        child: Text(
-          text, 
-          style: TextStyle(
-            color: isMe ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color, 
-            fontSize: 15
-          )
-        ),
       ),
     );
   }
@@ -210,13 +182,13 @@ class _AIScreenState extends State<AIScreen> {
                   ), 
                   border: InputBorder.none
                 ),
-                onSubmitted: (_) => _sendMessage(),
+                onSubmitted: _handleSubmitted,
               ),
             ),
           ),
           IconButton(
             icon: Icon(Icons.send, color: Colors.blueAccent), 
-            onPressed: _sendMessage
+            onPressed: () => _handleSubmitted(_textController.text)
           ),
         ],
       ),
@@ -263,4 +235,65 @@ class _AIScreenState extends State<AIScreen> {
       ),
     ],
   );
+}
+
+class ChatMessageWidget extends StatelessWidget {
+  final ChatMessage message;
+
+  ChatMessageWidget({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+      child: Row(
+        mainAxisAlignment: message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!message.isUser) 
+            CircleAvatar(
+              radius: 18, 
+              backgroundColor: Colors.purple.withOpacity(0.2), 
+              child: Icon(Icons.auto_awesome, size: 14, color: Colors.purpleAccent)
+            ),
+          SizedBox(width: 8),
+          Flexible(
+            child: Column(
+              crossAxisAlignment: message.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: message.isUser ? Colors.blueAccent : Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Text(
+                    message.text, 
+                    style: TextStyle(
+                      color: message.isUser ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color
+                    )
+                  ),
+                ),
+                // Если есть URL картинки — показываем её
+                if (message.imageUrl != null)
+                  Container(
+                    margin: EdgeInsets.only(top: 8),
+                    width: 250,
+                    height: 180,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      image: DecorationImage(
+                        image: NetworkImage(message.imageUrl!),
+                        fit: BoxFit.cover,
+                      ),
+                      border: Border.all(color: Colors.purpleAccent.withOpacity(0.5), width: 2),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
