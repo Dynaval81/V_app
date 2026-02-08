@@ -4,6 +4,7 @@ import 'tabs/vpn_screen.dart';
 import 'tabs/ai_screen.dart';
 import 'dashboard_screen.dart';
 import '../widgets/badged_icon.dart';
+import '../constants/app_colors.dart';
 
 class MainApp extends StatefulWidget {
   final int initialTab;
@@ -33,7 +34,7 @@ class _MainAppState extends State<MainApp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF1A1A2E),
+      backgroundColor: AppColors.primaryBackground,
       body: _screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -42,9 +43,9 @@ class _MainAppState extends State<MainApp> {
             _currentIndex = index;
           });
         },
-        backgroundColor: Color(0xFF252541),
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.white54,
+        backgroundColor: AppColors.cardBackground,
+        selectedItemColor: AppColors.primaryBlue,
+        unselectedItemColor: AppColors.disabledTextColor,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
         selectedFontSize: 12,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../constants/app_colors.dart';
 
 class VPNScreen extends StatefulWidget {
   @override
@@ -11,9 +12,9 @@ class _VPNScreenState extends State<VPNScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF1A1A2E),
+      backgroundColor: AppColors.primaryBackground,
       appBar: AppBar(
-        backgroundColor: Color(0xFF252541),
+        backgroundColor: AppColors.cardBackground,
         elevation: 0,
         title: Text('VPN'),
       ),
@@ -28,10 +29,10 @@ class _VPNScreenState extends State<VPNScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: _isConnected
-                    ? Colors.green.withOpacity(0.2)
-                    : Colors.grey.withOpacity(0.2),
+                    ? AppColors.accentGreen.withOpacity(0.2)
+                    : AppColors.disabledTextColor.withOpacity(0.2),
                 border: Border.all(
-                  color: _isConnected ? Colors.green : Colors.grey,
+                  color: _isConnected ? AppColors.accentGreen : AppColors.disabledTextColor,
                   width: 3,
                 ),
               ),
@@ -39,7 +40,7 @@ class _VPNScreenState extends State<VPNScreen> {
                 child: Icon(
                   _isConnected ? Icons.vpn_key : Icons.vpn_key_off,
                   size: 80,
-                  color: _isConnected ? Colors.green : Colors.grey,
+                  color: _isConnected ? AppColors.accentGreen : AppColors.disabledTextColor,
                 ),
               ),
             ),
@@ -51,7 +52,7 @@ class _VPNScreenState extends State<VPNScreen> {
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: AppColors.primaryText,
               ),
             ),
             
@@ -61,7 +62,7 @@ class _VPNScreenState extends State<VPNScreen> {
               _isConnected ? 'Your connection is secure' : 'Tap to connect',
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.white60,
+                color: AppColors.secondaryText,
               ),
             ),
             
@@ -75,7 +76,7 @@ class _VPNScreenState extends State<VPNScreen> {
                 });
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: _isConnected ? Colors.red : Colors.green,
+                backgroundColor: _isConnected ? AppColors.accentRed : AppColors.accentGreen,
                 padding: EdgeInsets.symmetric(horizontal: 60, vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
@@ -86,7 +87,7 @@ class _VPNScreenState extends State<VPNScreen> {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.primaryText,
                 ),
               ),
             ),
@@ -99,7 +100,7 @@ class _VPNScreenState extends State<VPNScreen> {
                 padding: EdgeInsets.all(16),
                 margin: EdgeInsets.symmetric(horizontal: 24),
                 decoration: BoxDecoration(
-                  color: Color(0xFF252541),
+                  color: AppColors.cardBackground,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -126,7 +127,7 @@ class _VPNScreenState extends State<VPNScreen> {
           label,
           style: TextStyle(
             fontSize: 14,
-            color: Colors.white60,
+            color: AppColors.secondaryText,
           ),
         ),
         Text(
@@ -134,7 +135,7 @@ class _VPNScreenState extends State<VPNScreen> {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: AppColors.primaryText,
           ),
         ),
       ],
