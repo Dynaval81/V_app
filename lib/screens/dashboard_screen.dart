@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/service_status.dart';
 import '../widgets/dashboard_card.dart';
-import '../widgets/theme_switch.dart';
 import 'main_app.dart';
 import 'auth/register_screen.dart';
-import '../constants/app_colors.dart';
+import '../providers/theme_provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   @override
@@ -57,11 +57,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: RefreshIndicator(
         onRefresh: _loadServiceStatuses,
-        color: AppColors.primaryBlue,
-        backgroundColor: AppColors.cardBackground,
+        color: Colors.blue,
+        backgroundColor: Theme.of(context).cardColor,
         child: SafeArea(
           child: SingleChildScrollView(
             physics: AlwaysScrollableScrollPhysics(),
@@ -80,7 +80,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
                 
@@ -170,7 +170,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -204,16 +204,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: isOnline ? AppColors.accentGreen.withOpacity(0.2) : AppColors.disabledTextColor.withOpacity(0.2),
+            color: isOnline ? Colors.green.withOpacity(0.2) : Colors.grey.withOpacity(0.2),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isOnline ? AppColors.accentGreen.withOpacity(0.5) : AppColors.disabledTextColor.withOpacity(0.3),
+              color: isOnline ? Colors.green.withOpacity(0.5) : Colors.grey.withOpacity(0.3),
               width: 1,
             ),
           ),
           child: Icon(
             icon,
-            color: isOnline ? AppColors.accentGreen : AppColors.disabledTextColor,
+            color: isOnline ? Colors.green : Colors.grey,
             size: 24,
           ),
         ),
@@ -221,7 +221,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Text(
           label,
           style: TextStyle(
-            color: AppColors.primaryText,
+            color: Theme.of(context).textTheme.bodyLarge?.color,
             fontSize: 12,
             fontWeight: FontWeight.w500,
           ),
@@ -230,13 +230,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Container(
           padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
-            color: isOnline ? AppColors.accentGreen.withOpacity(0.2) : AppColors.disabledTextColor.withOpacity(0.2),
+            color: isOnline ? Colors.green.withOpacity(0.2) : Colors.grey.withOpacity(0.2),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(
             isOnline ? 'ONLINE' : 'OFFLINE',
             style: TextStyle(
-              color: isOnline ? AppColors.accentGreen : AppColors.disabledTextColor,
+              color: isOnline ? Colors.green : Colors.grey,
               fontSize: 8,
               fontWeight: FontWeight.bold,
             ),
@@ -247,71 +247,112 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _showSettingsBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Color(0xFF252541),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Settings',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+  final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+  
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Theme.of(context).cardColor,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (context) => Container(
+      padding: EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Settings',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
             ),
-            SizedBox(height: 20),
-            ListTile(
-              leading: Icon(Icons.person, color: Colors.white),
-              title: Text('Profile', style: TextStyle(color: Colors.white)),
-              onTap: () {},
+          ),
+          SizedBox(height: 20),
+          
+          ListTile(
+            leading: Icon(
+              Icons.person,
+              color: Theme.of(context).iconTheme.color,
             ),
-            ListTile(
-              leading: Icon(Icons.notifications, color: Colors.white),
-              title: Text('Notifications', style: TextStyle(color: Colors.white)),
-              onTap: () {},
+            title: Text(
+              'Profile',
+              style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
             ),
-            ListTile(
-              leading: Icon(Icons.security, color: Colors.white),
-              title: Text('Privacy', style: TextStyle(color: Colors.white)),
-              onTap: () {},
+            onTap: () {},
+          ),
+          
+          ListTile(
+            leading: Icon(
+              Icons.notifications,
+              color: Theme.of(context).iconTheme.color,
             ),
-            ThemeSwitch(),
-            ListTile(
-              leading: Icon(Icons.logout, color: Colors.red),
-              title: Text('Logout', style: TextStyle(color: Colors.red)),
-              onTap: () async {
-                try {
-                  final prefs = await SharedPreferences.getInstance();
-                  await prefs.clear();
-                  
-                  Navigator.pop(context); // Закрыть Bottom Sheet
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => RegisterScreen()),
-                    (route) => false, // Удалить весь стек навигации
-                  );
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Logout error: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
+            title: Text(
+              'Notifications',
+              style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+            ),
+            onTap: () {},
+          ),
+          
+          // ⭐ ПЕРЕКЛЮЧАТЕЛЬ ТЕМЫ
+          ListTile(
+            leading: Icon(
+              themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+              color: Theme.of(context).iconTheme.color,
+            ),
+            title: Text(
+              'Theme',
+              style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+            ),
+            trailing: Switch(
+              value: themeProvider.isDarkMode,
+              onChanged: (value) {
+                themeProvider.toggleTheme();
+                Navigator.pop(context); // Закрыть Bottom Sheet
               },
             ),
-          ],
-        ),
+          ),
+          
+          ListTile(
+            leading: Icon(Icons.security, color: Theme.of(context).iconTheme.color),
+            title: Text(
+              'Privacy',
+              style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+            ),
+            onTap: () {},
+          ),
+          
+          SizedBox(height: 20),
+          
+          ListTile(
+            leading: Icon(Icons.logout, color: Colors.red),
+            title: Text('Logout', style: TextStyle(color: Colors.red)),
+            onTap: () async {
+              try {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.clear();
+                
+                Navigator.pop(context); // Закрыть Bottom Sheet
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => RegisterScreen()),
+                  (route) => false, // Удалить весь стек навигации
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Logout error: $e'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   void _showPremiumDialog(BuildContext context) {
     showDialog(

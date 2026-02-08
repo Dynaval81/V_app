@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../theme/theme_manager.dart';
+import '../providers/theme_provider.dart';
 import 'main_app.dart';
 import 'auth/register_screen.dart';
 
@@ -13,20 +13,15 @@ class AuthWrapper extends StatefulWidget {
 class _AuthWrapperState extends State<AuthWrapper> {
   bool _isLoading = true;
   bool _isAuthenticated = false;
-  late ThemeManager _themeManager;
 
   @override
   void initState() {
     super.initState();
-    _themeManager = Provider.of<ThemeManager>(context, listen: false);
     _initializeApp();
   }
 
   Future<void> _initializeApp() async {
     try {
-      // Load theme first
-      await _themeManager.loadTheme();
-      
       // Then check auth status
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token');
@@ -37,7 +32,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
         _isLoading = false;
       });
     } catch (e) {
-      print('Error initializing app: $e');
+      debugPrint('Error initializing app: $e');
       setState(() {
         _isAuthenticated = false;
         _isLoading = false;
@@ -49,7 +44,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        backgroundColor: Provider.of<ThemeManager>(context).isDarkMode 
+        backgroundColor: Provider.of<ThemeProvider>(context).isDarkMode 
           ? Color(0xFF1A1A2E) 
           : Color(0xFFF5F5F5),
         body: Center(
