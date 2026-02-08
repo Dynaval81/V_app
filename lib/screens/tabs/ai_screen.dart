@@ -241,24 +241,27 @@ class _AIScreenState extends State<AIScreen> with SingleTickerProviderStateMixin
           Expanded(
             flex: 1,
             child: Padding(
-              padding: EdgeInsets.all(12),
+              padding: EdgeInsets.all(8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     'Sample Image ${index + 1}',
                     style: TextStyle(
                       color: AppColors.primaryText,
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                      fontSize: 12,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 4),
+                  SizedBox(height: 2),
                   Text(
                     'AI generated',
                     style: TextStyle(
                       color: AppColors.hintTextColor,
-                      fontSize: 12,
+                      fontSize: 10,
                     ),
                   ),
                 ],

@@ -9,6 +9,10 @@ class ChatsScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.cardBackground,
         elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: AppColors.primaryText),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Text(
           'Chats',
           style: TextStyle(
@@ -74,20 +78,20 @@ class ChatsScreen extends StatelessWidget {
     final hasAvatar = index % 2 == 0;
     
     return ListTile(
-      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: CircleAvatar(
-        radius: 28,
+        radius: 24,
         backgroundColor: hasAvatar 
           ? AppColors.primaryBlue.withOpacity(0.2)
           : AppColors.accentGreen.withOpacity(0.2),
         child: hasAvatar
-          ? Icon(Icons.person, color: AppColors.primaryBlue, size: 28)
+          ? Icon(Icons.person, color: AppColors.primaryBlue, size: 24)
           : Text(
               names[index][0].toUpperCase(),
               style: TextStyle(
                 color: AppColors.accentGreen,
                 fontWeight: FontWeight.bold,
-                fontSize: 20,
+                fontSize: 18,
               ),
             ),
       ),
@@ -96,7 +100,7 @@ class ChatsScreen extends StatelessWidget {
         style: TextStyle(
           color: AppColors.primaryText,
           fontWeight: isUnread ? FontWeight.bold : FontWeight.normal,
-          fontSize: 16,
+          fontSize: 15,
         ),
       ),
       subtitle: Text(
@@ -104,7 +108,7 @@ class ChatsScreen extends StatelessWidget {
         style: TextStyle(
           color: AppColors.secondaryText,
           fontWeight: isUnread ? FontWeight.w500 : FontWeight.normal,
-          fontSize: 14,
+          fontSize: 13,
         ),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
@@ -117,13 +121,13 @@ class ChatsScreen extends StatelessWidget {
             times[index],
             style: TextStyle(
               color: isUnread ? AppColors.primaryBlue : AppColors.secondaryText,
-              fontSize: 12,
+              fontSize: 11,
             ),
           ),
           if (isUnread) ...[
             SizedBox(height: 4),
             Container(
-              padding: EdgeInsets.all(6),
+              padding: EdgeInsets.all(4),
               decoration: BoxDecoration(
                 color: AppColors.primaryBlue,
                 shape: BoxShape.circle,
@@ -132,7 +136,7 @@ class ChatsScreen extends StatelessWidget {
                 '${(index % 5) + 1}',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 10,
+                  fontSize: 9,
                   fontWeight: FontWeight.bold,
                 ),
               ),

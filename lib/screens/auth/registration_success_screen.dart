@@ -25,19 +25,23 @@ class RegistrationSuccessScreen extends StatelessWidget {
               SizedBox(height: 60),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
                     Icons.check_circle,
                     color: AppColors.accentGreen,
-                    size: 40,
+                    size: 32,
                   ),
-                  SizedBox(width: 16),
-                  Text(
-                    'Registration Successful',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primaryText,
+                  SizedBox(width: 12),
+                  Flexible(
+                    child: Text(
+                      'Registration Successful',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryText,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],

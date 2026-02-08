@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/service_status.dart';
 import '../widgets/dashboard_card.dart';
+import '../widgets/theme_switch.dart';
 import 'main_app.dart';
 import '../constants/app_colors.dart';
 
@@ -167,6 +168,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 
                 SizedBox(height: 16),
                 
+                Container(
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardBackground,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ThemeSwitch(),
+                ),
+                
+                SizedBox(height: 16),
+                
                 DashboardCard(
                   icon: '⭐',
                   title: 'Premium',
@@ -186,7 +198,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildStatusSection() {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(12),
@@ -200,15 +212,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Text(
                 'Services Status',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primaryText,
                 ),
               ),
               if (_isLoading)
                 SizedBox(
-                  width: 16,
-                  height: 16,
+                  width: 14,
+                  height: 14,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
                     valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
@@ -217,7 +229,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
           
-          SizedBox(height: 12),
+          SizedBox(height: 8),
           
           ...(_services.map((service) => _buildStatusRow(service)).toList()),
         ],
@@ -227,12 +239,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildStatusRow(ServiceStatus service) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
           Container(
-            width: 12,
-            height: 12,
+            width: 8,
+            height: 8,
             decoration: BoxDecoration(
               color: service.isOnline ? Colors.green : Colors.grey,
               shape: BoxShape.circle,
@@ -240,7 +252,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ? [
                       BoxShadow(
                         color: Colors.green.withOpacity(0.5),
-                        blurRadius: 4,
+                        blurRadius: 2,
                         spreadRadius: 1,
                       )
                     ]
@@ -248,7 +260,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           
-          SizedBox(width: 12),
+          SizedBox(width: 8),
           
           Expanded(
             child: Column(
@@ -257,17 +269,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Text(
                   service.name,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: AppColors.primaryText,
                   ),
                 ),
                 if (service.message != null)
                   Text(
                     service.message!,
                     style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white60,
+                      fontSize: 11,
+                      color: AppColors.secondaryText,
                     ),
                   ),
               ],
@@ -275,7 +287,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
               color: service.isOnline
                   ? Colors.green.withOpacity(0.2)
@@ -285,7 +297,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Text(
               service.status.toUpperCase(),
               style: TextStyle(
-                fontSize: 10,
+                fontSize: 9,
                 fontWeight: FontWeight.bold,
                 color: service.isOnline ? Colors.green : Colors.grey,
               ),
