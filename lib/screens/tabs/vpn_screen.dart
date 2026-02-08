@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../constants/app_colors.dart';
 
 class VPNScreen extends StatefulWidget {
   @override
@@ -12,11 +11,16 @@ class _VPNScreenState extends State<VPNScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.cardBackground,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
-        title: Text('VPN'),
+        title: Text(
+          'VPN',
+          style: TextStyle(
+            color: Theme.of(context).textTheme.bodyLarge?.color,
+          ),
+        ),
       ),
       body: Center(
         child: Column(
@@ -29,10 +33,10 @@ class _VPNScreenState extends State<VPNScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: _isConnected
-                    ? AppColors.accentGreen.withOpacity(0.2)
-                    : AppColors.disabledTextColor.withOpacity(0.2),
+                    ? Colors.green.withOpacity(0.2)
+                    : Colors.grey.withOpacity(0.2),
                 border: Border.all(
-                  color: _isConnected ? AppColors.accentGreen : AppColors.disabledTextColor,
+                  color: _isConnected ? Colors.green : Colors.grey,
                   width: 3,
                 ),
               ),
@@ -40,7 +44,7 @@ class _VPNScreenState extends State<VPNScreen> {
                 child: Icon(
                   _isConnected ? Icons.vpn_key : Icons.vpn_key_off,
                   size: 80,
-                  color: _isConnected ? AppColors.accentGreen : AppColors.disabledTextColor,
+                  color: _isConnected ? Colors.green : Colors.grey,
                 ),
               ),
             ),
@@ -52,7 +56,7 @@ class _VPNScreenState extends State<VPNScreen> {
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: AppColors.primaryText,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
               ),
             ),
             
@@ -62,7 +66,7 @@ class _VPNScreenState extends State<VPNScreen> {
               _isConnected ? 'Your connection is secure' : 'Tap to connect',
               style: TextStyle(
                 fontSize: 16,
-                color: AppColors.secondaryText,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
               ),
             ),
             
@@ -76,7 +80,7 @@ class _VPNScreenState extends State<VPNScreen> {
                 });
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: _isConnected ? AppColors.accentRed : AppColors.accentGreen,
+                backgroundColor: _isConnected ? Colors.red : Colors.green,
                 padding: EdgeInsets.symmetric(horizontal: 60, vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
@@ -87,7 +91,7 @@ class _VPNScreenState extends State<VPNScreen> {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.primaryText,
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -100,7 +104,7 @@ class _VPNScreenState extends State<VPNScreen> {
                 padding: EdgeInsets.all(16),
                 margin: EdgeInsets.symmetric(horizontal: 24),
                 decoration: BoxDecoration(
-                  color: AppColors.cardBackground,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -127,7 +131,7 @@ class _VPNScreenState extends State<VPNScreen> {
           label,
           style: TextStyle(
             fontSize: 14,
-            color: AppColors.secondaryText,
+            color: Theme.of(context).textTheme.bodyMedium?.color,
           ),
         ),
         Text(
@@ -135,7 +139,7 @@ class _VPNScreenState extends State<VPNScreen> {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: AppColors.primaryText,
+            color: Theme.of(context).textTheme.bodyLarge?.color,
           ),
         ),
       ],

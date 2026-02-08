@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../constants/app_colors.dart';
 
 class AIScreen extends StatefulWidget {
   @override
@@ -24,16 +23,21 @@ class _AIScreenState extends State<AIScreen> with SingleTickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.cardBackground,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
-        title: Text('AI Assistant'),
+        title: Text(
+          'AI Assistant',
+          style: TextStyle(
+            color: Theme.of(context).textTheme.bodyLarge?.color,
+          ),
+        ),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: AppColors.primaryBlue,
-          labelColor: AppColors.primaryBlue,
-          unselectedLabelColor: AppColors.disabledTextColor,
+          indicatorColor: Colors.blue,
+          labelColor: Colors.blue,
+          unselectedLabelColor: Theme.of(context).textTheme.bodyMedium?.color,
           tabs: [
             Tab(text: 'Chat', icon: Icon(Icons.chat)),
             Tab(text: 'Images', icon: Icon(Icons.image)),
@@ -76,7 +80,7 @@ class _AIScreenState extends State<AIScreen> with SingleTickerProviderStateMixin
         children: [
           if (!isUser) ...[
             CircleAvatar(
-              backgroundColor: AppColors.primaryBlue,
+              backgroundColor: Colors.blue,
               child: Icon(Icons.smart_toy, color: Colors.white),
             ),
             SizedBox(width: 12),
@@ -85,7 +89,7 @@ class _AIScreenState extends State<AIScreen> with SingleTickerProviderStateMixin
             child: Container(
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isUser ? AppColors.primaryBlue : AppColors.cardBackground,
+                color: isUser ? Colors.blue : Theme.of(context).cardColor,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
@@ -101,7 +105,7 @@ class _AIScreenState extends State<AIScreen> with SingleTickerProviderStateMixin
                       ? 'This is a sample user message about AI capabilities'
                       : 'I\'m your AI assistant! I can help you with various tasks. How can I assist you today?',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: isUser ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
                       fontSize: 16,
                     ),
                   ),
@@ -109,7 +113,7 @@ class _AIScreenState extends State<AIScreen> with SingleTickerProviderStateMixin
                   Text(
                     '12:3${index} PM',
                     style: TextStyle(
-                      color: AppColors.hintTextColor,
+                      color: isUser ? Colors.white70 : Colors.grey,
                       fontSize: 12,
                     ),
                   ),
@@ -120,7 +124,7 @@ class _AIScreenState extends State<AIScreen> with SingleTickerProviderStateMixin
           if (isUser) ...[
             SizedBox(width: 12),
             CircleAvatar(
-              backgroundColor: AppColors.accentGreen,
+              backgroundColor: Colors.green,
               child: Icon(Icons.person, color: Colors.white),
             ),
           ],
@@ -133,30 +137,30 @@ class _AIScreenState extends State<AIScreen> with SingleTickerProviderStateMixin
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        border: Border(top: BorderSide(color: AppColors.primaryBorder)),
+        color: Theme.of(context).cardColor,
+        border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
       ),
       child: Row(
         children: [
           Expanded(
             child: TextField(
-              style: TextStyle(color: AppColors.primaryText),
+              style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
               decoration: InputDecoration(
                 hintText: 'Type your message...',
-                hintStyle: TextStyle(color: AppColors.hintTextColor),
+                hintStyle: TextStyle(color: Colors.grey),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
-                fillColor: AppColors.surfaceBackground,
+                fillColor: Theme.of(context).scaffoldBackgroundColor,
                 contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               ),
             ),
           ),
           SizedBox(width: 8),
           CircleAvatar(
-            backgroundColor: AppColors.primaryBlue,
+            backgroundColor: Colors.blue,
             child: Icon(Icons.send, color: Colors.white),
           ),
         ],
@@ -173,7 +177,7 @@ class _AIScreenState extends State<AIScreen> with SingleTickerProviderStateMixin
           Text(
             'AI Image Generation',
             style: TextStyle(
-              color: AppColors.primaryText,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
               fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
@@ -182,7 +186,7 @@ class _AIScreenState extends State<AIScreen> with SingleTickerProviderStateMixin
           Text(
             'Create stunning images with AI',
             style: TextStyle(
-              color: AppColors.secondaryText,
+              color: Theme.of(context).textTheme.bodyMedium?.color,
               fontSize: 16,
             ),
           ),
@@ -208,9 +212,9 @@ class _AIScreenState extends State<AIScreen> with SingleTickerProviderStateMixin
   Widget _buildImageCard(int index) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.primaryBorder),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,7 +237,7 @@ class _AIScreenState extends State<AIScreen> with SingleTickerProviderStateMixin
                 child: Icon(
                   Icons.image,
                   size: 48,
-                  color: AppColors.hintTextColor,
+                  color: Colors.grey,
                 ),
               ),
             ),
@@ -249,7 +253,7 @@ class _AIScreenState extends State<AIScreen> with SingleTickerProviderStateMixin
                   Text(
                     'Sample Image ${index + 1}',
                     style: TextStyle(
-                      color: AppColors.primaryText,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                       fontWeight: FontWeight.bold,
                       fontSize: 11,
                     ),
@@ -260,7 +264,7 @@ class _AIScreenState extends State<AIScreen> with SingleTickerProviderStateMixin
                   Text(
                     'AI generated',
                     style: TextStyle(
-                      color: AppColors.hintTextColor,
+                      color: Colors.grey,
                       fontSize: 9,
                     ),
                   ),

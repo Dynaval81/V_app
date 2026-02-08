@@ -23,7 +23,7 @@ class DashboardCard extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Color(0xFF252541),
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: color.withOpacity(0.3)),
         ),
@@ -55,7 +55,7 @@ class DashboardCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                   ),
                   SizedBox(height: 4),
@@ -63,7 +63,7 @@ class DashboardCard extends StatelessWidget {
                     description,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.white70,
+                      color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
                     ),
                   ),
                 ],
@@ -72,7 +72,7 @@ class DashboardCard extends StatelessWidget {
             
             Icon(
               Icons.arrow_forward_ios,
-              color: Colors.white30,
+              color: Theme.of(context).iconTheme.color?.withOpacity(0.3),
               size: 16,
             ),
           ],

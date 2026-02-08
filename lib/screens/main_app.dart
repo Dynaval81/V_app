@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'tabs/chats_screen.dart';
 import 'tabs/vpn_screen.dart';
 import 'tabs/ai_screen.dart';
 import 'dashboard_screen.dart';
 import '../widgets/badged_icon.dart';
-import '../constants/app_colors.dart';
+import 'auth/register_screen.dart';
 
 class MainApp extends StatefulWidget {
   final int initialTab;
@@ -31,10 +32,130 @@ class _MainAppState extends State<MainApp> {
     DashboardScreen(),
   ];
 
+  Future<void> _showProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    final nickname = prefs.getString('user_nickname') ?? 'User';
+    final email = prefs.getString('user_email') ?? 'user@example.com';
+    final vtalkNumber = prefs.getString('vtalk_number') ?? 'VT-0000';
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Profile',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
+              ),
+            ),
+            SizedBox(height: 20),
+            CircleAvatar(
+              radius: 40,
+              backgroundColor: Colors.blue,
+              child: Text(
+                nickname[0].toUpperCase(),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+            Text(
+              nickname,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              email,
+              style: TextStyle(
+                fontSize: 14,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              vtalkNumber,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+              ),
+            ),
+            SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25),
+                ),
+              ),
+              child: Text(
+                'Close',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showSearch() async {
+    showSearch(
+      context: context,
+      delegate: CustomSearchDelegate(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        elevation: 0,
+        title: Text(
+          'Vtalk',
+          style: TextStyle(
+            color: Theme.of(context).textTheme.bodyLarge?.color,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.search,
+              color: Theme.of(context).iconTheme.color,
+            ),
+            onPressed: _showSearch,
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.account_circle,
+              color: Theme.of(context).iconTheme.color,
+            ),
+            onPressed: _showProfile,
+          ),
+        ],
+      ),
       body: _screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -43,9 +164,9 @@ class _MainAppState extends State<MainApp> {
             _currentIndex = index;
           });
         },
-        backgroundColor: AppColors.cardBackground,
-        selectedItemColor: AppColors.primaryBlue,
-        unselectedItemColor: AppColors.disabledTextColor,
+        backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
+        selectedItemColor: Theme.of(context).bottomNavigationBarTheme.selectedItemColor,
+        unselectedItemColor: Theme.of(context).bottomNavigationBarTheme.unselectedItemColor,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
         selectedFontSize: 12,
@@ -79,6 +200,70 @@ class _MainAppState extends State<MainApp> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class CustomSearchDelegate extends SearchDelegate<String> {
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    return [
+      IconButton(
+        icon: Icon(Icons.clear),
+        onPressed: () {
+          query = '';
+          showSuggestions(context);
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget buildLeading(BuildContext context) {
+    return IconButton(
+      icon: Icon(Icons.arrow_back),
+      onPressed: () {
+        close(context, '');
+      },
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    return Center(
+      child: Text(
+        'Search results for: $query',
+        style: TextStyle(
+          color: Theme.of(context).textTheme.bodyLarge?.color,
+          fontSize: 16,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    final suggestions = [
+      'Alice Johnson',
+      'Bob Smith',
+      'Charlie Brown',
+      'Settings',
+      'VPN Connection',
+      'AI Assistant',
+    ].where((suggestion) => suggestion.toLowerCase().contains(query.toLowerCase())).toList();
+
+    return ListView.builder(
+      itemCount: suggestions.length,
+      itemBuilder: (context, index) {
+        return ListTile(
+          leading: Icon(Icons.search),
+          title: Text(suggestions.elementAt(index)),
+          onTap: () {
+            query = suggestions.elementAt(index);
+            showResults(context);
+          },
+        );
+      },
     );
   }
 }
