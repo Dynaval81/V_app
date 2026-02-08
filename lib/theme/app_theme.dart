@@ -6,7 +6,6 @@ class AppTheme {
     return ThemeData(
       brightness: Brightness.dark,
       primarySwatch: Colors.blue,
-      backgroundColor: AppColors.primaryBackground,
       scaffoldBackgroundColor: AppColors.primaryBackground,
       cardColor: AppColors.cardBackground,
       appBarTheme: AppBarTheme(
@@ -49,7 +48,6 @@ class AppTheme {
     return ThemeData(
       brightness: Brightness.light,
       primarySwatch: Colors.blue,
-      backgroundColor: AppColors.lightPrimaryBackground,
       scaffoldBackgroundColor: AppColors.lightPrimaryBackground,
       cardColor: AppColors.lightCardBackground,
       appBarTheme: AppBarTheme(

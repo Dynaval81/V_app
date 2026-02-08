@@ -69,27 +69,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 SizedBox(height: 20),
                 
-                Text(
-                  'Welcome to Vtalk!',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                
-                SizedBox(height: 10),
-                
-                Text(
-                  'Choose where to start:',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white70,
-                  ),
-                ),
-                
-                SizedBox(height: 30),
-                
                 _buildStatusSection(),
                 
                 SizedBox(height: 30),

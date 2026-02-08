@@ -241,7 +241,7 @@ class _AIScreenState extends State<AIScreen> with SingleTickerProviderStateMixin
           Expanded(
             flex: 1,
             child: Padding(
-              padding: EdgeInsets.all(8),
+              padding: EdgeInsets.all(6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -251,17 +251,17 @@ class _AIScreenState extends State<AIScreen> with SingleTickerProviderStateMixin
                     style: TextStyle(
                       color: AppColors.primaryText,
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                      fontSize: 11,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 2),
+                  SizedBox(height: 1),
                   Text(
                     'AI generated',
                     style: TextStyle(
                       color: AppColors.hintTextColor,
-                      fontSize: 10,
+                      fontSize: 9,
                     ),
                   ),
                 ],
