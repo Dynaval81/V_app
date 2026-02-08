@@ -3,9 +3,15 @@ import '../utils/glass_kit.dart';
 import 'settings_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
-  final Function(int) onTabSwitch;
   final bool isDark;
-  DashboardScreen({required this.onTabSwitch, this.isDark = true});
+  final Function(int) onTabSwitch;
+  final Function(bool) onThemeToggle;
+
+  DashboardScreen({
+    required this.isDark,
+    required this.onTabSwitch,
+    required this.onThemeToggle,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +30,23 @@ class DashboardScreen extends StatelessWidget {
                     _glassBtn("MESSENGER", Icons.chat_bubble_outline, Colors.blueAccent, () => onTabSwitch(1)),
                     _glassBtn("VPN SERVICE", Icons.vpn_lock, Colors.greenAccent, () => onTabSwitch(2)),
                     _glassBtn("AI ASSISTANT", Icons.auto_awesome, Colors.purpleAccent, () => onTabSwitch(3)),
-                    _glassBtn("SETTINGS", Icons.settings_suggest, Colors.orangeAccent, () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsScreen()));
-                    }),
+                    ListTile(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SettingsScreen(
+                              isDark: isDark,
+                              onThemeToggle: onThemeToggle,
+                            ),
+                          ),
+                        );
+                      },
+                      leading: Icon(Icons.settings_suggest, color: Colors.orangeAccent, size: 28),
+                      title: Text("SETTINGS", style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.w600, letterSpacing: 1.5)),
+                      trailing: Icon(Icons.arrow_forward_ios, color: isDark ? Colors.white10 : Colors.black12, size: 16),
+                      contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                    ),
                   ],
                 ),
               ),

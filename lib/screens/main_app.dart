@@ -17,37 +17,24 @@ class MainApp extends StatefulWidget {
 }
 
 class _MainAppState extends State<MainApp> {
-  late int _currentIndex;
-  late List<Widget> _screens;
-  bool _isDark = true; // Глобальная переменная темы
+  int _currentIndex = 0;
+  bool _isDark = true; // Глобальное состояние темы
 
-  void initState() {
-    super.initState();
-    _currentIndex = widget.initialTab;
-    _screens = [
-      DashboardScreen(isDark: _isDark, onTabSwitch: (index) {
-        setState(() { _currentIndex = index; });
-      }), // index 0
-      ChatsScreen(isDark: _isDark), // index 1
-      VPNScreen(isDark: _isDark),  // index 2
-      AIScreen(isDark: _isDark),   // index 3
-    ];
+  void _updateTheme(bool value) {
+    setState(() => _isDark = value);
   }
 
-  void _toggleTheme(bool value) {
-    setState(() {
-      _isDark = value;
-      // Обновляем все экраны с новой темой
-      _screens = [
-        DashboardScreen(isDark: _isDark, onTabSwitch: (index) {
-          setState(() { _currentIndex = index; });
-        }),
-        ChatsScreen(isDark: _isDark),
-        VPNScreen(isDark: _isDark),
-        AIScreen(isDark: _isDark),
-      ];
-    });
-  }
+  // ПРАВИЛЬНЫЙ ПОРЯДОК ВКЛАДОК
+  List<Widget> get _screens => [
+    ChatsScreen(isDark: _isDark),      // 0. Мессенджер (Первый)
+    VPNScreen(isDark: _isDark),       // 1. VPN
+    AIScreen(isDark: _isDark),        // 2. Vtalk AI
+    DashboardScreen(                  // 3. Dashboard (Последний)
+      isDark: _isDark, 
+      onTabSwitch: (i) => setState(() => _currentIndex = i),
+      onThemeToggle: _updateTheme,    // Передаем функцию смены темы
+    ),
+  ];
 
   void _changeTab(int index) {
     setState(() {
@@ -159,10 +146,10 @@ class _MainAppState extends State<MainApp> {
         selectedItemColor: Colors.blueAccent,
         unselectedItemColor: Colors.white54,
         items: [
-          BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: 'Chats'),
           BottomNavigationBarItem(icon: Icon(Icons.vpn_lock), label: 'VPN'),
-          BottomNavigationBarItem(icon: Icon(Icons.auto_awesome), label: 'AI'),
+          BottomNavigationBarItem(icon: Icon(Icons.auto_awesome), label: 'Vtalk AI'),
+          BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Dashboard'),
         ],
       ),
     );

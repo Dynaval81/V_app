@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import '../utils/glass_kit.dart';
 
-class SettingsScreen extends StatefulWidget {
-  @override
-  _SettingsScreenState createState() => _SettingsScreenState();
-}
+class SettingsScreen extends StatelessWidget {
+  final bool isDark;
+  final Function(bool) onThemeToggle;
 
-class _SettingsScreenState extends State<SettingsScreen> {
-  bool isDark = true; // Здесь в реальном приложении должен быть провайдер темы
+  SettingsScreen({
+    required this.isDark,
+    required this.onThemeToggle,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +32,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: [
                       _buildSettingItem("Dark Mode", Icons.dark_mode, trailing: Switch(
                         value: isDark,
-                        onChanged: (v) => setState(() => isDark = v),
+                        onChanged: (val) {
+                          onThemeToggle(val); // Меняем глобально!
+                        },
                         activeColor: Colors.blueAccent,
                       )),
                       _buildSettingItem("Profile Settings", Icons.person_outline),

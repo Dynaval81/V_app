@@ -25,7 +25,6 @@ class _AIScreenState extends State<AIScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _isTyping = false;
   final Random _random = Random();
-  bool isDark = true;
 
   void _handleSubmitted(String text) async {
     if (text.isEmpty) return;
@@ -88,17 +87,14 @@ class _AIScreenState extends State<AIScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              _buildAppBar("AI Studio"),
+              _buildAppBar("Vtalk AI"),
               Expanded(
                 child: ListView.builder(
                   controller: _scrollController,
                   padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   itemCount: _messages.length,
                   itemBuilder: (context, index) {
-                    return Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8),
-                      child: ChatMessageWidget(message: _messages[index], isDark: widget.isDark),
-                    );
+                    return _buildAiBubble(_messages[index].text, _messages[index].isUser);
                   },
                 ),
               ),
@@ -224,64 +220,20 @@ class _AIScreenState extends State<AIScreen> {
       ),
     ],
   );
-}
 
-class ChatMessageWidget extends StatelessWidget {
-  final ChatMessage message;
-  final bool isDark;
-
-  ChatMessageWidget({required this.message, required this.isDark});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-      child: Row(
-        mainAxisAlignment: message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (!message.isUser) 
-            CircleAvatar(
-              radius: 18, 
-              backgroundColor: Colors.purple.withOpacity(0.2), 
-              child: Icon(Icons.auto_awesome, size: 14, color: Colors.purpleAccent)
-            ),
-          SizedBox(width: 8),
-          Flexible(
-            child: Column(
-              crossAxisAlignment: message.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-              children: [
-                GlassKit.liquidGlass(
-                  radius: 15,
-                  child: Container(
-                    padding: EdgeInsets.all(12),
-                    child: Text(
-                      message.text, 
-                      style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black
-                      )
-                    ),
-                  ),
-                ),
-                // Если есть URL картинки — показываем её
-                if (message.imageUrl != null)
-                  Container(
-                    margin: EdgeInsets.only(top: 8),
-                    width: 250,
-                    height: 180,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
-                      image: DecorationImage(
-                        image: NetworkImage(message.imageUrl!),
-                        fit: BoxFit.cover,
-                      ),
-                      border: Border.all(color: Colors.purpleAccent.withOpacity(0.5), width: 2),
-                    ),
-                  ),
-              ],
-            ),
+  Widget _buildAiBubble(String text, bool isUser) {
+    return Align(
+      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8), // Здесь фикс ширины
+        child: GlassKit.liquidGlass(
+          radius: 15,
+          child: Container(
+            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75), // Не шире 75% экрана
+            padding: EdgeInsets.all(16),
+            child: Text(text, style: TextStyle(color: widget.isDark ? Colors.white : Colors.black)),
           ),
-        ],
+        ),
       ),
     );
   }

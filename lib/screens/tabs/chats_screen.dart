@@ -11,76 +11,36 @@ class ChatsScreen extends StatelessWidget {
       body: Container(
         decoration: GlassKit.mainBackground(isDark),
         child: SafeArea(
-          child: CustomScrollView(
-            slivers: [
-              // ЗАКРЕПЛЕННАЯ ШАПКА
-              SliverAppBar(
-                backgroundColor: Colors.transparent,
-                pinned: true, 
-                expandedHeight: 70,
-                elevation: 0,
-                flexibleSpace: GlassKit.liquidGlass( // Шапка тоже стеклянная
-                  radius: 0,
-                  child: FlexibleSpaceBar(
-                    titlePadding: EdgeInsets.only(left: 20, bottom: 16),
-                    title: Text("Vtalk", style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
-                  ),
-                ),
-                actions: [
-                  IconButton(icon: Icon(Icons.search, color: isDark ? Colors.white : Colors.black), onPressed: () {}),
-                  Padding(
-                    padding: EdgeInsets.only(right: 16),
-                    child: CircleAvatar(radius: 16, backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=me")),
-                  ),
-                ],
-              ),
-
-              // ПОИСК (теперь он тут)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: GlassKit.liquidGlass(
-                    radius: 12,
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: "Search messages...",
-                        hintStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
-                        prefixIcon: Icon(Icons.search, color: isDark ? Colors.white38 : Colors.black38),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(vertical: 12),
+          bottom: false,
+          child: Column(
+            children: [
+              // ФИКСИРОВАННАЯ ШАПКА (Интерактивная)
+              _buildHeader(context),
+              
+              Expanded(
+                child: CustomScrollView(
+                  slivers: [
+                    // СТАТУСЫ (Уезжают при скролле)
+                    SliverToBoxAdapter(
+                      child: Container(
+                        height: 100,
+                        margin: EdgeInsets.symmetric(vertical: 10),
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          padding: EdgeInsets.symmetric(horizontal: 15),
+                          itemCount: 10,
+                          itemBuilder: (context, index) => _statusItem(index),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              ),
-
-              // СТАТУСЫ (уезжают)
-              SliverToBoxAdapter(
-                child: Container(
-                  height: 100,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: 10,
-                    itemBuilder: (context, index) => _statusItem(index, isDark),
-                  ),
-                ),
-              ),
-
-              // СПИСОК ЧАТОВ (без боксов, просто список)
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => Column(
-                    children: [
-                      ListTile(
-                        leading: CircleAvatar(backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=$index")),
-                        title: Text("User $index", style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
-                        subtitle: Text("Latest message text here...", style: TextStyle(color: isDark ? Colors.white54 : Colors.black54)),
-                        trailing: Text("12:00", style: TextStyle(color: isDark ? Colors.white24 : Colors.black26, fontSize: 11)),
+                    // СПИСОК ЧАТОВ
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) => _chatTile(index),
+                        childCount: 20,
                       ),
-                      Divider(color: Colors.white.withOpacity(0.05), indent: 70), // Тонкая линия вместо бокса
-                    ],
-                  ),
-                  childCount: 20,
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -90,15 +50,45 @@ class ChatsScreen extends StatelessWidget {
     );
   }
 
-  Widget _statusItem(int i, bool isDark) {
+  Widget _buildHeader(BuildContext context) {
+    return GlassKit.liquidGlass(
+      radius: 0, // На всю ширину сверху
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text("Vtalk", style: TextStyle(color: isDark ? Colors.white : Colors.black, fontSize: 24, fontWeight: FontWeight.bold)),
+            Row(
+              children: [
+                IconButton(icon: Icon(Icons.search, color: isDark ? Colors.white : Colors.black), onPressed: () {}),
+                CircleAvatar(radius: 18, backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=me")),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _chatTile(int i) {
+    return ListTile(
+      leading: CircleAvatar(radius: 25, backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=u$i")),
+      title: Text("User $i", style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.w600)),
+      subtitle: Text("Encrypted message...", style: TextStyle(color: isDark ? Colors.white54 : Colors.black54)),
+      trailing: Text("12:00", style: TextStyle(color: isDark ? Colors.white24 : Colors.black26, fontSize: 11)),
+    );
+  }
+
+  Widget _statusItem(int i) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 10),
       child: Column(
         children: [
           CircleAvatar(
             radius: 30,
-            backgroundColor: i == 0 ? Colors.blue : Colors.greenAccent.withOpacity(0.5),
-            child: CircleAvatar(radius: 27, backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=s$i")),
+            backgroundColor: i == 0 ? Colors.blueAccent : Colors.white10,
+            child: CircleAvatar(radius: 27, backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=$i")),
           ),
           SizedBox(height: 5),
           Text(i == 0 ? "You" : "User $i", style: TextStyle(color: isDark ? Colors.white70 : Colors.black87, fontSize: 10)),
