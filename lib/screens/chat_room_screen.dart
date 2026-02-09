@@ -17,9 +17,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
 
-  // Маппинг кодов на локальные пути к GIF (только доступные файлы)
+  // Маппинг кодов на локальные пути к GIF (полная карта всех 35+ файлов)
   final Map<String, String> _emojiAssets = {
-    ':smile:': 'assets/emojis/smiley.gif', // Используем smiley.gif (174 байта)
+    ':smile:': 'assets/emojis/smiley.gif',
+    ':smiley:': 'assets/emojis/smiley.gif',
     ':cool:': 'assets/emojis/cool.gif',
     ':shock:': 'assets/emojis/shocked.gif',
     ':tongue:': 'assets/emojis/tongue.gif',
@@ -31,9 +32,26 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     ':cry:': 'assets/emojis/cry.gif',
     ':laugh:': 'assets/emojis/laugh.gif',
     ':evil:': 'assets/emojis/evil.gif',
+    ':afro:': 'assets/emojis/afro.gif',
+    ':angel:': 'assets/emojis/angel.gif',
+    ':azn:': 'assets/emojis/azn.gif',
+    ':bang:': 'assets/emojis/bang.gif',
+    ':blank:': 'assets/emojis/blank.gif',
+    ':buenpost:': 'assets/emojis/buenpost.gif',
+    ':cheesy:': 'assets/emojis/cheesy.gif',
+    ':embarrassed:': 'assets/emojis/embarrassed.gif',
+    ':huh:': 'assets/emojis/huh.gif',
+    ':lipsrsealed:': 'assets/emojis/lipsrsealed.gif',
+    ':mario:': 'assets/emojis/mario.gif',
+    ':pacman:': 'assets/emojis/pacman.gif',
+    ':police:': 'assets/emojis/police.gif',
+    ':rolleyes:': 'assets/emojis/rolleyes.gif',
+    ':sad2:': 'assets/emojis/sad2.gif',
+    ':shrug:': 'assets/emojis/shrug.gif',
+    ':undecided:': 'assets/emojis/undecided.gif',
   };
 
-  // Демо сообщения со смайлами (обновлено под доступные)
+  // Демо сообщения со смайлами (обновлено под все доступные)
   final List<Map<String, dynamic>> _messages = [
     {'text': 'Привет! Посмотри на наши новые GIF :smile:', 'isMe': false, 'time': '12:30'},
     {'text': 'Это работает мгновенно через Assets! :cool:', 'isMe': true, 'time': '12:31'},
@@ -41,6 +59,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     {'text': 'Да! И они работают прямо в сообщениях :wink:', 'isMe': true, 'time': '12:33'},
     {'text': 'Это просто супер! :grin: :laugh:', 'isMe': false, 'time': '12:34'},
     {'text': 'Давай добавим еще эмодзи :heart:', 'isMe': true, 'time': '12:35'},
+    {'text': 'Новые смайлы: :angel: :mario: :pacman:', 'isMe': false, 'time': '12:36'},
+    {'text': 'Реакции: :cry: :angry: :evil:', 'isMe': true, 'time': '12:37'},
+    {'text': 'Фантики: :afro: :police: :shrug:', 'isMe': false, 'time': '12:38'},
     {'text': 'Отличная идея! :sad:', 'isMe': false, 'time': '12:36'},
     {'text': 'Иногда я бываю :angry:', 'isMe': true, 'time': '12:37'},
     {'text': 'Но потом :cry:', 'isMe': false, 'time': '12:38'},
@@ -74,22 +95,20 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   }
 
   void _sendMessage() {
-    if (_messageController.text.trim().isEmpty) return;
+    final text = _messageController.text.trim();
+    if (text.isEmpty) return;
 
     setState(() {
       _messages.add({
-        'text': _messageController.text,
+        'text': text,
         'isMe': true,
-        'time': DateTime.now().toString().substring(11, 16),
+        'time': DateTime.now().hour.toString().padLeft(2, '0') + ':' + 
+               DateTime.now().minute.toString().padLeft(2, '0'),
       });
     });
 
     _messageController.clear();
-    _focusNode.unfocus();
-    
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToBottom();
-    });
+    _scrollToBottom();
   }
 
   @override
@@ -213,7 +232,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
   }
 
-  // ДВИЖОК СМАЙЛОВ - локальные GIF с отладкой
+  // ДВИЖОК СМАЙЛОВ - исправленный парсер с правильным split
   Widget _parseText(String text, bool isDark) {
     if (text.isEmpty) {
       return Text(
@@ -223,57 +242,20 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     }
 
     List<InlineSpan> children = [];
-    RegExp emojiRegex = RegExp(r':(\w+):');
-    List<String> parts = text.split(emojiRegex);
     
-    for (int i = 0; i < parts.length; i++) {
-      String part = parts[i];
-      
-      if (part.isNotEmpty && !part.startsWith(':')) {
-        // Обычный текст
-        children.add(TextSpan(
-          text: part,
-          style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
-            fontSize: 16,
-          ),
-        ));
-      } else if (part.startsWith(':') && part.endsWith(':')) {
-        // Это может быть смайл
-        String emojiCode = part;
-        if (_emojiAssets.containsKey(emojiCode)) {
-          print('Trying to load: ${_emojiAssets[emojiCode]}'); // Отладка
-          children.add(WidgetSpan(
-            alignment: PlaceholderAlignment.middle,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 1),
-              child: Image.asset(
-                _emojiAssets[emojiCode]!,
-                width: 24, 
-                height: 24,
-                errorBuilder: (context, error, stackTrace) {
-                  print('Asset not found: ${_emojiAssets[emojiCode]}'); // Отладка
-                  return Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: const Icon(
-                      Icons.broken_image, 
-                      size: 16, 
-                      color: Colors.grey
-                    ),
-                  );
-                },
-              ),
-            ),
-          ));
-        } else {
-          // Неизвестный код, выводим как текст
+    // Используем allMatches вместо split для правильного разбора
+    RegExp emojiRegex = RegExp(r':(\w+):');
+    Iterable<Match> matches = emojiRegex.allMatches(text);
+    
+    int lastEnd = 0;
+    
+    for (Match match in matches) {
+      // Добавляем текст до смайла
+      if (match.start > lastEnd) {
+        String textBefore = text.substring(lastEnd, match.start);
+        if (textBefore.isNotEmpty) {
           children.add(TextSpan(
-            text: emojiCode,
+            text: textBefore,
             style: TextStyle(
               color: isDark ? Colors.white : Colors.black,
               fontSize: 16,
@@ -281,6 +263,65 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           ));
         }
       }
+      
+      // Добавляем смайл
+      String emojiCode = ':${match.group(1)}:';
+      
+      if (_emojiAssets.containsKey(emojiCode)) {
+        String assetPath = _emojiAssets[emojiCode]!;
+        
+        children.add(WidgetSpan(
+          alignment: PlaceholderAlignment.middle,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2),
+            child: Image.asset(
+              assetPath,
+              width: 24, // Увеличили с 16 до 24 (в 1.5 раза)
+              height: 24, // Увеличили с 16 до 24 (в 1.5 раза)
+              fit: BoxFit.contain, // Масштабируем GIF до размера контейнера
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Icon(
+                    Icons.broken_image, 
+                    size: 16, // Увеличили иконку
+                    color: Colors.red
+                  ),
+                );
+              },
+            ),
+          ),
+        ));
+      } else {
+        // Неизвестный код, выводим как текст с предупреждением
+        children.add(TextSpan(
+          text: emojiCode,
+          style: TextStyle(
+            color: Colors.grey.withOpacity(0.7), // Серый цвет для неизвестных кодов
+            fontSize: 16,
+            fontStyle: FontStyle.italic, // Курсив для неизвестных
+          ),
+        ));
+      }
+      
+      lastEnd = match.end;
+    }
+    
+    // Добавляем оставшийся текст после последнего смайла
+    if (lastEnd < text.length) {
+      String textAfter = text.substring(lastEnd);
+      children.add(TextSpan(
+        text: textAfter,
+        style: TextStyle(
+          color: isDark ? Colors.white : Colors.black,
+          fontSize: 16,
+        ),
+      ));
     }
 
     return RichText(text: TextSpan(children: children));
@@ -330,10 +371,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true, // Добавляем прокрутку
       builder: (context) => GlassKit.liquidGlass(
         radius: 30,
         isDark: isDark,
         child: Container(
+          height: MediaQuery.of(context).size.height * 0.6, // Ограничиваем высоту до 60% экрана
           padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -347,33 +390,67 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _emojiAssets.entries.map((entry) {
-                  return GestureDetector(
-                    onTap: () {
-                      _messageController.text += ' ${entry.key}';
-                      Navigator.pop(context);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        entry.key.replaceAll(':', ''),
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: isDark ? Colors.white : Colors.black,
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _emojiAssets.entries.map((entry) {
+                      return GestureDetector(
+                        onTap: () {
+                          _messageController.text += ' ${entry.key}';
+                          Navigator.pop(context);
+                          // Фокусируемся обратно на поле ввода
+                          _focusNode.requestFocus();
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Показываем сам смайл
+                              Image.asset(
+                                entry.value,
+                                width: 30, // Увеличили с 20 до 30 (в 1.5 раза)
+                                height: 30, // Увеличили с 20 до 30 (в 1.5 раза)
+                                fit: BoxFit.contain, // Масштабируем GIF до размера контейнера
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    width: 30,
+                                    height: 30,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.withOpacity(0.3),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: const Icon(
+                                      Icons.emoji_emotions, 
+                                      size: 18, // Увеличили иконку
+                                      color: Colors.grey
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 6), // Увеличили отступ
+                              // Показываем код под смайлом
+                              Text(
+                                entry.key.replaceAll(':', ''),
+                                style: TextStyle(
+                                  color: isDark ? Colors.white70 : Colors.black54,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ),
-                  );
-                }).toList(),
+                      );
+                    }).toList(),
+                  ),
+                ),
               ),
-              const SizedBox(height: 16),
             ],
           ),
         ),

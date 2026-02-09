@@ -5,7 +5,6 @@ import 'tabs/chats_screen.dart';
 import 'tabs/vpn_screen.dart';
 import 'tabs/ai_screen.dart';
 import 'dashboard_screen.dart';
-import '../widgets/badged_icon.dart';
 import '../constants/app_constants.dart';
 import '../theme_provider.dart';
 

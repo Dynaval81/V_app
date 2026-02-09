@@ -1,38 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../constants/app_colors.dart';
-import '../theme/theme_manager.dart';
+import '../theme_provider.dart';
 
-class ThemeSwitch extends StatefulWidget {
-  @override
-  _ThemeSwitchState createState() => _ThemeSwitchState();
-}
-
-class _ThemeSwitchState extends State<ThemeSwitch> {
-  final ThemeManager _themeManager = ThemeManager();
-
+class ThemeSwitch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _themeManager,
-      builder: (context, child) {
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
         return SwitchListTile(
           title: Text(
             'Dark Mode',
             style: TextStyle(
-              color: _themeManager.isDarkMode ? AppColors.primaryText : AppColors.lightPrimaryText,
+              color: themeProvider.isDarkMode ? AppColors.primaryText : AppColors.lightPrimaryText,
               fontSize: 16,
             ),
           ),
           subtitle: Text(
             'Switch between light and dark themes',
             style: TextStyle(
-              color: _themeManager.isDarkMode ? AppColors.secondaryText : AppColors.lightSecondaryText,
+              color: themeProvider.isDarkMode ? AppColors.secondaryText : AppColors.lightSecondaryText,
               fontSize: 12,
             ),
           ),
-          value: _themeManager.isDarkMode,
+          value: themeProvider.isDarkMode,
           onChanged: (value) {
-            _themeManager.setTheme(value);
+            themeProvider.toggleTheme();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(value ? 'Dark mode enabled' : 'Light mode enabled'),
@@ -42,8 +35,8 @@ class _ThemeSwitchState extends State<ThemeSwitch> {
           },
           activeColor: AppColors.primaryBlue,
           secondary: Icon(
-            _themeManager.isDarkMode ? Icons.dark_mode : Icons.light_mode,
-            color: _themeManager.isDarkMode ? AppColors.primaryText : AppColors.lightPrimaryText,
+            themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+            color: themeProvider.isDarkMode ? AppColors.primaryText : AppColors.lightPrimaryText,
           ),
         );
       },
