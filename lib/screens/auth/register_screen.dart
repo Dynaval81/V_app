@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../constants/app_constants.dart';
 import 'login_screen.dart';
 import 'registration_success_screen.dart';
 
@@ -13,7 +14,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nicknameController = TextEditingController();
+  final _secureStorage = FlutterSecureStorage();
   bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _nicknameController.dispose();
+    super.dispose();
+  }
 
   Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
@@ -24,17 +34,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
         await Future.delayed(Duration(seconds: 2));
         
         // ИСПРАВЛЕНО: 4-значный номер
-        final vtalkNumber = '${1000 + (DateTime.now().millisecondsSinceEpoch % 9000)}';
+        final vtalkNumber = '${AppConstants.vtalkNumberMin + (DateTime.now().millisecondsSinceEpoch % (AppConstants.vtalkNumberMax - AppConstants.vtalkNumberMin + 1))}';
         
-        // Сохраняем данные пользователя
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('auth_token', 'mock_token_${DateTime.now().millisecondsSinceEpoch}');
-        await prefs.setString('user_id', DateTime.now().millisecondsSinceEpoch.toString());
-        await prefs.setString('user_email', _emailController.text);
-        await prefs.setString('user_nickname', _nicknameController.text.isEmpty 
+        // Сохраняем данные пользователя в secure storage
+        final token = 'mock_token_${DateTime.now().millisecondsSinceEpoch}';
+        final userId = DateTime.now().millisecondsSinceEpoch.toString();
+        final nickname = _nicknameController.text.isEmpty 
             ? _emailController.text.split('@')[0] 
-            : _nicknameController.text);
-        await prefs.setString('vtalk_number', vtalkNumber);
+            : _nicknameController.text;
+        
+        await Future.wait([
+          _secureStorage.write(key: AppConstants.authTokenKey, value: token),
+          _secureStorage.write(key: AppConstants.userIdKey, value: userId),
+          _secureStorage.write(key: AppConstants.userEmailKey, value: _emailController.text),
+          _secureStorage.write(key: AppConstants.userNicknameKey, value: nickname),
+          _secureStorage.write(key: AppConstants.vtalkNumberKey, value: vtalkNumber),
+        ]);
         
         if (!mounted) return;
         
@@ -114,9 +129,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Please enter email';
                   }
-                  final emailRegex = RegExp(
-                    r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-                  );
+                  final emailRegex = RegExp(AppConstants.emailRegexPattern);
                   if (!emailRegex.hasMatch(value)) {
                     return 'Please enter a valid email';
                   }
@@ -145,8 +158,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Please enter password';
                   }
-                  if (value.length < 6) {
-                    return 'Password must be at least 6 characters';
+                  if (value.length < AppConstants.passwordMinLength) {
+                    return 'Password must be at least ${AppConstants.passwordMinLength} characters';
                   }
                   return null;
                 },
@@ -170,11 +183,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 validator: (value) {
                   if (value != null && value.isNotEmpty) {
-                    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value)) {
+                    if (!RegExp(AppConstants.nicknameRegexPattern).hasMatch(value)) {
                       return 'Only letters, numbers and underscore';
                     }
-                    if (value.length < 3) {
-                      return 'Minimum 3 characters';
+                    if (value.length < AppConstants.nicknameMinLength) {
+                      return 'Minimum ${AppConstants.nicknameMinLength} characters';
                     }
                   }
                   return null;

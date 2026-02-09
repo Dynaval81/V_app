@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'dart:async';
 import '../../utils/glass_kit.dart';
+import '../../theme_provider.dart';
+import '../../constants/app_constants.dart';
 
 class VPNScreen extends StatefulWidget {
-  final bool isDark;
-  VPNScreen({this.isDark = true});
+  const VPNScreen({super.key});
   
   @override
   _VPNScreenState createState() => _VPNScreenState();
@@ -44,11 +46,13 @@ class _VPNScreenState extends State<VPNScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
+    
     return Scaffold(
       body: Container(
         width: double.infinity,  // Растягиваем на всю ширину
         height: double.infinity, // Растягиваем на всю высоту
-        decoration: GlassKit.mainBackground(widget.isDark),
+        decoration: GlassKit.mainBackground(isDark),
         child: SafeArea(
           child: SingleChildScrollView(
             physics: BouncingScrollPhysics(),
@@ -107,8 +111,8 @@ class _VPNScreenState extends State<VPNScreen> {
                       padding: EdgeInsets.all(16),
                       child: Column(
                         children: [
-                          _row("IP Address", isConnecting ? "..." : "45.134.144.10"),
-                          Divider(color: widget.isDark ? Colors.white24 : Colors.black26),
+                          _row("IP Address", isConnecting ? "..." : AppConstants.mockVpnIp),
+                          Divider(color: isDark ? Colors.white24 : Colors.black26),
                           _row("Uptime", _formatTime(_secondsActive)),
                         ],
                       ),
@@ -131,38 +135,58 @@ class _VPNScreenState extends State<VPNScreen> {
   }
 
   Widget _buildAppBar(String title) {
-    return Padding(
-      padding: EdgeInsets.all(20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title, style: TextStyle(color: widget.isDark ? Colors.white : Colors.black, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2)),
-          CircleAvatar(radius: 22, backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=vpn")),
-        ],
-      ),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        final isDark = themeProvider.isDarkMode;
+        
+        return Padding(
+          padding: EdgeInsets.all(20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(title, style: TextStyle(color: isDark ? Colors.white : Colors.black, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2)),
+              CircleAvatar(radius: 22, backgroundImage: NetworkImage("${AppConstants.defaultAvatarUrl}?u=vpn")),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Widget _row(String l, String v) => Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween, 
-    children: [
-      Text(l, style: TextStyle(color: widget.isDark ? Colors.white70 : Colors.black54)), 
-      Text(v, style: TextStyle(color: widget.isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.bold))
-    ]
-  );
+  Widget _row(String l, String v) {
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        final isDark = themeProvider.isDarkMode;
+        
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween, 
+          children: [
+            Text(l, style: TextStyle(color: isDark ? Colors.white70 : Colors.black54)), 
+            Text(v, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.bold))
+          ]
+        );
+      },
+    );
+  }
   
   Widget _glassTile(IconData i, String t, String v, VoidCallback? onTap) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      child: GlassKit.liquidGlass(
-        child: ListTile(
-          leading: Icon(i, color: Colors.blue), 
-          title: Text(t, style: TextStyle(color: widget.isDark ? Colors.white70 : Colors.black54, fontSize: 12)), 
-          subtitle: Text(v, style: TextStyle(color: widget.isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
-          trailing: onTap != null ? Icon(Icons.keyboard_arrow_down, color: widget.isDark ? Colors.white38 : Colors.black38) : null,
-          onTap: onTap,
-        )
-      ),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        final isDark = themeProvider.isDarkMode;
+        
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          child: GlassKit.liquidGlass(
+            child: ListTile(
+              leading: Icon(i, color: Colors.blue), 
+              title: Text(t, style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 12)), 
+              subtitle: Text(v, style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
+              trailing: onTap != null ? Icon(Icons.keyboard_arrow_down, color: isDark ? Colors.white38 : Colors.black38) : null,
+              onTap: onTap,
+            )
+          ),
+        );
+      },
     );
   }
   
@@ -190,12 +214,18 @@ class _VPNScreenState extends State<VPNScreen> {
   }
 
   Widget _modeOption(String mode) {
-    return ListTile(
-      title: Text(mode, style: TextStyle(color: widget.isDark ? Colors.white : Colors.black)),
-      trailing: selectedMode == mode ? Icon(Icons.check, color: Colors.blue) : null,
-      onTap: () {
-        setState(() => selectedMode = mode);
-        Navigator.pop(context);
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        final isDark = themeProvider.isDarkMode;
+        
+        return ListTile(
+          title: Text(mode, style: TextStyle(color: isDark ? Colors.white : Colors.black)),
+          trailing: selectedMode == mode ? Icon(Icons.check, color: Colors.blue) : null,
+          onTap: () {
+            setState(() => selectedMode = mode);
+            Navigator.pop(context);
+          },
+        );
       },
     );
   }

@@ -49,7 +49,9 @@ class _ChatScreenState extends State<ChatScreen> {
               radius: 18,
               backgroundColor: Colors.purple,
               child: Text(
-                widget.chatName[0].toUpperCase(),
+                widget.chatName.isNotEmpty 
+                    ? widget.chatName[0].toUpperCase()
+                    : '?',
                 style: TextStyle(color: Colors.white),
               ),
             ),

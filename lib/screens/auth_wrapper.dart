@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../providers/theme_provider.dart';
 import 'main_app.dart';
 import 'auth/register_screen.dart';
@@ -13,6 +13,7 @@ class AuthWrapper extends StatefulWidget {
 class _AuthWrapperState extends State<AuthWrapper> {
   bool _isLoading = true;
   bool _isAuthenticated = false;
+  final _secureStorage = FlutterSecureStorage();
 
   @override
   void initState() {
@@ -22,17 +23,21 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   Future<void> _initializeApp() async {
     try {
-      // Then check auth status
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('auth_token');
-      final userId = prefs.getString('user_id');
+      // Используем secure storage для проверки токена
+      final token = await _secureStorage.read(key: 'auth_token');
+      final userId = await _secureStorage.read(key: 'user_id');
+      
+      if (!mounted) return;
       
       setState(() {
-        _isAuthenticated = token != null && userId != null;
+        _isAuthenticated = token != null && token.isNotEmpty && userId != null;
         _isLoading = false;
       });
     } catch (e) {
       debugPrint('Error initializing app: $e');
+      
+      if (!mounted) return;
+      
       setState(() {
         _isAuthenticated = false;
         _isLoading = false;
