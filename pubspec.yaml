@@ -59,8 +59,14 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  #   - assets/emojis/smile.gif
+  #   - assets/emojis/cool.gif
+  #   - assets/emojis/shock.gif
+  #   - assets/emojis/tongue.gif
+  #   - assets/emojis/heart.gif
+  #   - assets/emojis/thumbsup.gif
+  #   - assets/emojis/fire.gif
+  #   - assets/emojis/star.gif
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
