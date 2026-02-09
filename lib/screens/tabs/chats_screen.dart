@@ -52,18 +52,20 @@ class _ChatsScreenState extends State<ChatsScreen> {
               SliverAppBar(
                 pinned: true,
                 automaticallyImplyLeading: false,
-                backgroundColor: Colors.transparent,
+                backgroundColor: Colors.transparent, // Фон прозрачный, чтобы работал Blur
                 elevation: 0,
                 // Динамическая плотность стекла
                 flexibleSpace: GlassKit.liquidGlass(
                   radius: 0,
-                  opacity: 0.05 + _appBarDensity, 
+                  isDark: isDark, // Передаем текущую тему!
+                  opacity: _appBarDensity > 0.1 ? 0.4 : 0.0, // Резкое появление плотности, как в Telegram
                   child: Container(),
                 ),
                 title: Row(
                   children: [
                     const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
                     const SizedBox(width: 8),
+                    // Название плавно исчезает, оставляя лого
                     Opacity(
                       opacity: _titleOpacity,
                       child: Text("VTALK", style: TextStyle(
@@ -76,7 +78,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
                   ],
                 ),
                 actions: [
-                  if (_titleOpacity < 0.2)
+                  // Лупа только когда название скрыто
+                  if (_titleOpacity < 0.3)
                     IconButton(
                       icon: const Icon(Icons.search), 
                       onPressed: () => _showSearch(context, isDark),

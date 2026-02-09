@@ -34,6 +34,7 @@ dependencies:
   shared_preferences: ^2.2.2
   flutter_secure_storage: ^9.0.0
   provider: ^6.1.2
+  flutter_svg: ^2.0.9
 
 dev_dependencies:
   flutter_test:
@@ -58,15 +59,8 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - assets/emojis/smile.gif
-  #   - assets/emojis/cool.gif
-  #   - assets/emojis/shock.gif
-  #   - assets/emojis/tongue.gif
-  #   - assets/emojis/heart.gif
-  #   - assets/emojis/thumbsup.gif
-  #   - assets/emojis/fire.gif
-  #   - assets/emojis/star.gif
+  assets:
+    - assets/emojis/ # Эта строчка подключит ВСЕ файлы из этой папки разом
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

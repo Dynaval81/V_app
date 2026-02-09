@@ -17,27 +17,34 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
 
-  // Маппинг кодов на нативные эмодзи (временный fallback)
+  // Маппинг кодов на локальные пути к GIF (только доступные файлы)
   final Map<String, String> _emojiAssets = {
-    ':smile:': '😊',
-    ':cool:': '😎',
-    ':shock:': '😮',
-    ':tongue:': '😛',
-    ':heart:': '❤️',
-    ':thumbsup:': '👍',
-    ':fire:': '🔥',
-    ':star:': '⭐',
+    ':smile:': 'assets/emojis/smiley.gif', // Используем smiley.gif (174 байта)
+    ':cool:': 'assets/emojis/cool.gif',
+    ':shock:': 'assets/emojis/shocked.gif',
+    ':tongue:': 'assets/emojis/tongue.gif',
+    ':heart:': 'assets/emojis/kiss.gif',
+    ':sad:': 'assets/emojis/sad.gif',
+    ':angry:': 'assets/emojis/angry.gif',
+    ':grin:': 'assets/emojis/grin.gif',
+    ':wink:': 'assets/emojis/wink.gif',
+    ':cry:': 'assets/emojis/cry.gif',
+    ':laugh:': 'assets/emojis/laugh.gif',
+    ':evil:': 'assets/emojis/evil.gif',
   };
 
-  // Демо сообщения со смайлами
+  // Демо сообщения со смайлами (обновлено под доступные)
   final List<Map<String, dynamic>> _messages = [
     {'text': 'Привет! Посмотри на наши новые GIF :smile:', 'isMe': false, 'time': '12:30'},
     {'text': 'Это работает мгновенно через Assets! :cool:', 'isMe': true, 'time': '12:31'},
     {'text': 'Никаких лагов :shock', 'isMe': false, 'time': '12:32'},
-    {'text': 'Да! И они работают прямо в сообщениях :thumbsup:', 'isMe': true, 'time': '12:33'},
-    {'text': 'Это просто супер! :fire: :star:', 'isMe': false, 'time': '12:34'},
+    {'text': 'Да! И они работают прямо в сообщениях :wink:', 'isMe': true, 'time': '12:33'},
+    {'text': 'Это просто супер! :grin: :laugh:', 'isMe': false, 'time': '12:34'},
     {'text': 'Давай добавим еще эмодзи :heart:', 'isMe': true, 'time': '12:35'},
-    {'text': 'Отличная идея! :tongue:', 'isMe': false, 'time': '12:36'},
+    {'text': 'Отличная идея! :sad:', 'isMe': false, 'time': '12:36'},
+    {'text': 'Иногда я бываю :angry:', 'isMe': true, 'time': '12:37'},
+    {'text': 'Но потом :cry:', 'isMe': false, 'time': '12:38'},
+    {'text': 'И снова :smile:', 'isMe': true, 'time': '12:39'},
   ];
 
   @override
@@ -132,6 +139,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   Widget _buildHeader(BuildContext context, bool isDark) {
     return GlassKit.liquidGlass(
       radius: 0,
+      isDark: isDark,
       opacity: 0.1,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
@@ -183,6 +191,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           Flexible(
             child: GlassKit.liquidGlass(
               radius: 18,
+              isDark: isDark,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 child: _parseText(text, isDark),
@@ -204,7 +213,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
   }
 
-  // ДВИЖОК СМАЙЛОВ - нативные эмодзи как fallback
+  // ДВИЖОК СМАЙЛОВ - локальные GIF с отладкой
   Widget _parseText(String text, bool isDark) {
     if (text.isEmpty) {
       return Text(
@@ -233,13 +242,31 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         // Это может быть смайл
         String emojiCode = part;
         if (_emojiAssets.containsKey(emojiCode)) {
+          print('Trying to load: ${_emojiAssets[emojiCode]}'); // Отладка
           children.add(WidgetSpan(
             alignment: PlaceholderAlignment.middle,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 1),
-              child: Text(
+              child: Image.asset(
                 _emojiAssets[emojiCode]!,
-                style: const TextStyle(fontSize: 18),
+                width: 24, 
+                height: 24,
+                errorBuilder: (context, error, stackTrace) {
+                  print('Asset not found: ${_emojiAssets[emojiCode]}'); // Отладка
+                  return Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Icon(
+                      Icons.broken_image, 
+                      size: 16, 
+                      color: Colors.grey
+                    ),
+                  );
+                },
               ),
             ),
           ));
@@ -264,6 +291,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       padding: const EdgeInsets.all(16.0),
       child: GlassKit.liquidGlass(
         radius: 30,
+        isDark: isDark,
         child: Row(
           children: [
             const SizedBox(width: 15),
@@ -304,6 +332,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) => GlassKit.liquidGlass(
         radius: 30,
+        isDark: isDark,
         child: Container(
           padding: const EdgeInsets.all(16),
           child: Column(

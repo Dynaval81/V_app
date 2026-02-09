@@ -2,22 +2,28 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 
 class GlassKit {
-  static Widget liquidGlass({required Widget child, double radius = 20, double opacity = 0.1}) {
+  static Widget liquidGlass({
+    required Widget child, 
+    double radius = 20, 
+    double? opacity,
+    bool isDark = true
+  }) {
+    // Выбираем базовый цвет стекла в зависимости от темы
+    Color glassColor = isDark 
+        ? Colors.black.withOpacity(opacity ?? 0.2) 
+        : Colors.white.withOpacity(opacity ?? 0.2);
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
         child: Container(
           decoration: BoxDecoration(
+            color: glassColor, // Теперь цвет не будет спорить с темой
             borderRadius: BorderRadius.circular(radius),
-            border: Border.all(color: Colors.white.withOpacity(0.15), width: 1.2),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white.withOpacity(opacity + 0.05),
-                Colors.white.withOpacity(opacity),
-              ],
+            border: Border.all(
+              color: isDark ? Colors.white10 : Colors.black12, 
+              width: 1.0
             ),
           ),
           child: child,
