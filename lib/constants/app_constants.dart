@@ -1,6 +1,7 @@
 class AppConstants {
   // API и сеть
   static const String defaultAvatarUrl = 'https://i.pravatar.cc/150';
+  static const String avatarUrl = 'https://i.pravatar.cc/150'; // Добавляем avatarUrl для совместимости
   static const String mockVpnIp = '45.134.144.10';
   static const Duration apiTimeout = Duration(seconds: 30);
   

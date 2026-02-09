@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'theme_provider.dart';
-import 'screens/tabs/chats_screen.dart';
+import 'screens/chats_screen_working.dart';
 import 'screens/tabs/vpn_screen.dart';
 import 'screens/tabs/ai_screen.dart';
-import 'screens/dashboard_screen.dart';
+import 'screens/dashboard_screen_working.dart';
+import 'screens/chat_room_screen_working.dart';
 
 void main() {
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        // Сюда потом добавишь AuthProvider и ChatProvider
       ],
       child: const VtalkApp(),
     ),
@@ -29,6 +30,25 @@ class VtalkApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           theme: themeProvider.currentTheme,
           home: const MainScreen(),
+          onGenerateRoute: (settings) {
+            switch (settings.name) {
+              case '/chat':
+                return CupertinoPageRoute(
+                  builder: (_) => ChatRoomScreen(chatId: 1),
+                  title: 'Chat',
+                );
+              case '/settings':
+                return CupertinoPageRoute(
+                  builder: (_) => DashboardScreen(onTabSwitch: (index) {}),
+                  title: 'Settings',
+                );
+              default:
+                return CupertinoPageRoute(
+                  builder: (_) => const MainScreen(),
+                  title: 'Vtalk',
+                );
+            }
+          },
         );
       },
     );
@@ -51,18 +71,9 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  // Тот самый ПОРЯДОК, который ты просил
-  late final List<Widget> _screens = [
-    const ChatsScreen(),      // 0 - Мессенджер (Первый)
-    const VPNScreen(),        // 1 - VPN
-    const AIScreen(),         // 2 - Vtalk AI
-    DashboardScreen(onTabSwitch: _switchTab),   // 3 - Dashboard (Последний)
-  ];
-
   @override
   void initState() {
     super.initState();
-    // Инициализируем тему при старте
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ThemeProvider>(context, listen: false).initializeTheme();
     });
@@ -71,10 +82,15 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Убираем appBar отсюда, он в каждом экране свой для Liquid Glass
-      body: IndexedStack( // Используем IndexedStack, чтобы экраны не перезагружались
+      backgroundColor: Colors.transparent,
+      body: IndexedStack(
         index: _currentIndex,
-        children: _screens,
+        children: [
+          const ChatsScreen(),
+          const VPNScreen(),
+          const AIScreen(),
+          DashboardScreen(onTabSwitch: _switchTab),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
