@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../utils/glass_kit.dart';
 import '../../theme_provider.dart';
 import '../../constants/app_constants.dart';
+import '../../widgets/vtalk_header.dart';
 import '../chat_room_screen.dart';
 import '../account_settings_screen.dart';
 
@@ -15,34 +16,19 @@ class ChatsScreen extends StatefulWidget {
 }
 
 class _ChatsScreenState extends State<ChatsScreen> {
-  final ScrollController _innerScrollController = ScrollController();
-  double _appBarOpacity = 0.0;
+  final ScrollController _scrollController = ScrollController();
   // Simple in-memory storage for newly created chats/groups in this session
   final List<Map<String, dynamic>> _customChats = [];
 
   @override
-  void initState() {
-    super.initState();
-    _innerScrollController.addListener(_onInnerScroll);
-  }
-
-  void _onInnerScroll() {
-    double offset = _innerScrollController.offset;
-    setState(() {
-      _appBarOpacity = (offset / 80).clamp(0.0, 0.4);
-    });
-  }
-
-  @override
   void dispose() {
-    _innerScrollController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDark = themeProvider.isDarkMode;
+    final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
 
     return Scaffold(
       floatingActionButton: FloatingActionButton(
@@ -52,52 +38,27 @@ class _ChatsScreenState extends State<ChatsScreen> {
       body: Container(
         decoration: GlassKit.mainBackground(isDark),
         child: SafeArea(
-          child: NestedScrollView(
-            headerSliverBuilder: (context, innerBoxIsScrolled) => [
-              SliverAppBar(
-                pinned: true,
-                automaticallyImplyLeading: false,
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                flexibleSpace: _appBarOpacity > 0.05
-                    ? GlassKit.liquidGlass(
-                        radius: 0,
-                        isDark: isDark,
-                        opacity: _appBarOpacity,
-                        child: Container(),
-                      )
-                    : Container(),
-                title: Row(
-                  children: [
-                    const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
-                    const SizedBox(width: 8),
-                    const Expanded(
-                      child: Text("VTALK", style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2,
-                        fontSize: 20
-                      )),
-                    ),
-                  ],
-                ),
+          child: CustomScrollView(
+            controller: _scrollController,
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              VtalkHeader(
+                title: 'VTALK',
+                showScrollAnimation: false,
                 actions: [
-                  IconButton(
-                    icon: const Icon(Icons.search), 
-                    onPressed: () => _showSearch(context, isDark),
-                    color: isDark ? Colors.white : Colors.black,
-                  ),
                   GestureDetector(
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
                     ),
-                    child: CircleAvatar(
-                      radius: 18,
-                      backgroundImage: NetworkImage("${AppConstants.defaultAvatarUrl}?u=me"),
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 16),
+                      child: CircleAvatar(
+                        radius: 18,
+                        backgroundImage: CachedNetworkImageProvider("${AppConstants.defaultAvatarUrl}?u=me"),
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 16),
                 ],
               ),
               SliverToBoxAdapter(
@@ -121,20 +82,20 @@ class _ChatsScreenState extends State<ChatsScreen> {
                   ),
                 ),
               ),
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    if (index < _customChats.length) {
+                      final chat = _customChats[index];
+                      return _buildCustomChatTile(chat, isDark);
+                    }
+                    final generatedIndex = index - _customChats.length;
+                    return _buildChatTile(generatedIndex, isDark);
+                  },
+                  childCount: _customChats.length + 20,
+                ),
+              ),
             ],
-            body: ListView.builder(
-              controller: _innerScrollController,
-              physics: const BouncingScrollPhysics(),
-              itemCount: _customChats.length + 20,
-              itemBuilder: (context, index) {
-                if (index < _customChats.length) {
-                  final chat = _customChats[index];
-                  return _buildCustomChatTile(chat, isDark);
-                }
-                final generatedIndex = index - _customChats.length;
-                return _buildChatTile(generatedIndex, isDark);
-              },
-            ),
           ),
         ),
       ),
