@@ -373,8 +373,9 @@ class _ChatsScreenState extends State<ChatsScreen> {
 
   void _showCreateChatForm({required bool isGroup}) {
     final TextEditingController nameCtrl = TextEditingController();
-    final TextEditingController contactCtrl = TextEditingController(); // For searching contact
+    final TextEditingController searchCtrl = TextEditingController();
     final Set<String> selectedParticipants = {};
+    String? selectedContact; // For 1-on-1 chats
     final List<String> availableContacts = [
       'Alice Johnson',
       'Bob Smith',
@@ -393,6 +394,25 @@ class _ChatsScreenState extends State<ChatsScreen> {
         final isDark = Provider.of<ThemeProvider>(dialogContext).isDarkMode;
         return StatefulBuilder(
           builder: (context, setDialogState) {
+            // For 1-on-1 chats, filter contacts based on search
+            final filteredContacts = !isGroup
+                ? availableContacts
+                    .where((contact) =>
+                        contact.toLowerCase().contains(searchCtrl.text.toLowerCase()) ||
+                        '@${contact.toLowerCase().replaceAll(' ', '')}' == searchCtrl.text.toLowerCase() ||
+                        searchCtrl.text.isEmpty)
+                    .toList()
+                : [];
+
+            // Check if search matches any contact
+            final foundContact = !isGroup && searchCtrl.text.isNotEmpty
+                ? availableContacts.firstWhere(
+                    (contact) =>
+                        contact.toLowerCase().startsWith(searchCtrl.text.toLowerCase()) ||
+                        '@${contact.toLowerCase().replaceAll(' ', '')}' == searchCtrl.text.toLowerCase(),
+                    orElse: () => '')
+                : '';
+
             return Dialog(
               backgroundColor: Colors.transparent,
               child: GlassKit.liquidGlass(
@@ -433,50 +453,109 @@ class _ChatsScreenState extends State<ChatsScreen> {
                       Divider(color: isDark ? Colors.white12 : Colors.black12),
                       const SizedBox(height: 16),
 
-                      // Name field
-                      TextField(
-                        controller: nameCtrl,
-                        style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                        decoration: InputDecoration(
-                          labelText: isGroup ? 'Group Name' : 'Chat Name',
-                          labelStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
-                          prefixIcon: Icon(isGroup ? Icons.group : Icons.person, color: Colors.blueAccent),
-                          filled: true,
-                          fillColor: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                          hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
+                      // Name field (only for groups)
+                      if (isGroup)
+                        Column(
+                          children: [
+                            TextField(
+                              controller: nameCtrl,
+                              style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                              decoration: InputDecoration(
+                                labelText: 'Group Name',
+                                labelStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
+                                prefixIcon: Icon(Icons.group, color: Colors.blueAccent),
+                                filled: true,
+                                fillColor: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 16),
 
                       // Contact search field (only for 1-on-1 chats)
                       if (!isGroup)
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'Find Contact',
-                              style: TextStyle(
-                                color: isDark ? Colors.white : Colors.black,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
                             TextField(
-                              controller: contactCtrl,
+                              controller: searchCtrl,
                               style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                              onChanged: (_) => setDialogState(() {}),
                               decoration: InputDecoration(
-                                labelText: 'Search @nick or VT-number',
+                                labelText: 'Search contact',
                                 labelStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
                                 prefixIcon: Icon(Icons.search, color: Colors.blueAccent),
                                 filled: true,
                                 fillColor: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                                hintText: '@username or VT-123456',
+                                hintText: '@username or name',
                                 hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
                               ),
                             ),
+                            const SizedBox(height: 16),
+
+                            // Search results or "not found" message
+                            if (searchCtrl.text.isNotEmpty)
+                              foundContact.isNotEmpty
+                                  ? Container(
+                                      padding: const EdgeInsets.all(14),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blueAccent.withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 22,
+                                            backgroundImage: NetworkImage(
+                                              "${AppConstants.defaultAvatarUrl}?u=${foundContact.toLowerCase().replaceAll(' ', '')}",
+                                            ),
+                                          ),
+                                          const SizedBox(width: 14),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  foundContact,
+                                                  style: TextStyle(
+                                                    color: isDark ? Colors.white : Colors.black,
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  '@${foundContact.toLowerCase().replaceAll(' ', '')}',
+                                                  style: TextStyle(
+                                                    color: isDark ? Colors.white54 : Colors.black54,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  : Container(
+                                      padding: const EdgeInsets.all(14),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red.withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                                      ),
+                                      child: Text(
+                                        'нет такого пользователя',
+                                        style: TextStyle(
+                                          color: Colors.red.shade400,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
                             const SizedBox(height: 16),
                           ],
                         ),
@@ -613,45 +692,55 @@ class _ChatsScreenState extends State<ChatsScreen> {
                           const SizedBox(width: 12),
                           ElevatedButton.icon(
                             onPressed: () {
-                              final name = nameCtrl.text.trim();
-                              if (name.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Please enter a name')),
-                                );
-                                return;
-                              }
-                              if (!isGroup) {
-                                final contact = contactCtrl.text.trim();
-                                if (contact.isEmpty) {
+                              if (isGroup) {
+                                final name = nameCtrl.text.trim();
+                                if (name.isEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Please enter a contact @nick or VT-number')),
+                                    const SnackBar(content: Text('Please enter a group name')),
                                   );
                                   return;
                                 }
-                              }
-                              if (isGroup && selectedParticipants.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Please select at least one participant')),
-                                );
-                                return;
-                              }
-                              setState(() {
-                                _customChats.insert(0, {
-                                  'id': DateTime.now().millisecondsSinceEpoch.remainder(1000000),
-                                  'name': name,
-                                  'isGroup': isGroup,
-                                  'isOnline': true,
-                                  'unread': 0,
-                                  if (!isGroup) 'contact': contactCtrl.text.trim(),
-                                  if (isGroup) 'participants': List<String>.from(selectedParticipants),
+                                if (selectedParticipants.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Please select at least one participant')),
+                                  );
+                                  return;
+                                }
+                                setState(() {
+                                  _customChats.insert(0, {
+                                    'id': DateTime.now().millisecondsSinceEpoch.remainder(1000000),
+                                    'name': name,
+                                    'isGroup': true,
+                                    'isOnline': true,
+                                    'unread': 0,
+                                    'participants': List<String>.from(selectedParticipants),
+                                  });
                                 });
-                              });
+                              } else {
+                                // 1-on-1 chat
+                                if (foundContact.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Please select a valid contact')),
+                                  );
+                                  return;
+                                }
+                                setState(() {
+                                  _customChats.insert(0, {
+                                    'id': DateTime.now().millisecondsSinceEpoch.remainder(1000000),
+                                    'name': foundContact,
+                                    'isGroup': false,
+                                    'isOnline': true,
+                                    'unread': 0,
+                                    'contact': foundContact,
+                                  });
+                                });
+                              }
                               Navigator.pop(context);
                             },
                             icon: const Icon(Icons.done),
                             label: Text(isGroup ? 'Create Group' : 'Create Chat'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blueAccent,
+                              backgroundColor: foundContact.isNotEmpty || isGroup ? Colors.blueAccent : Colors.grey,
                               foregroundColor: Colors.white,
                             ),
                           ),
