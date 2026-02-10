@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:math';
 import '../../utils/glass_kit.dart';
 import '../../theme_provider.dart';
+import '../../constants/app_constants.dart';
 import '../../widgets/vtalk_header.dart';
 import '../account_settings_screen.dart';
 
@@ -76,8 +77,8 @@ class _AIScreenState extends State<AIScreen> {
   }
 
   // Adapter to allow passing controller to CustomScrollView (compat)
-  ScrollController? _scroll_controller_compat({required ScrollController _scroll_controller}) {
-    return _scroll_controller;
+  ScrollController? _scroll_controller_compat({required ScrollController scrollController}) {
+    return scrollController;
   }
 
   @override
@@ -97,7 +98,7 @@ class _AIScreenState extends State<AIScreen> {
         decoration: GlassKit.mainBackground(isDark),
         child: SafeArea(
           child: CustomScrollView(
-            controller: _scroll_controller_compat(_scroll_controller: _scrollController),
+            controller: _scroll_controller_compat(scrollController: _scrollController),
             physics: const BouncingScrollPhysics(),
             slivers: [
               VtalkHeader(
