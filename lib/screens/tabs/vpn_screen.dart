@@ -71,7 +71,7 @@ class _VPNScreenState extends State<VPNScreen> {
                       MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
                     ),
                     child: Container(
-                      margin: const EdgeInsets.only(right: 12),
+                      margin: const EdgeInsets.only(right: 16),
                       child: CircleAvatar(
                         radius: 18,
                         backgroundImage: NetworkImage("${AppConstants.defaultAvatarUrl}?u=me"),
