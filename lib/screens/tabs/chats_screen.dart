@@ -4,7 +4,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../utils/glass_kit.dart';
 import '../../theme_provider.dart';
 import '../../constants/app_constants.dart';
-import '../../widgets/vtalk_header.dart';
 import '../chat_room_screen.dart';
 import '../account_settings_screen.dart';
 

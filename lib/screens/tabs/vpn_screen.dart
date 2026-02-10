@@ -4,8 +4,6 @@ import 'dart:async';
 import '../../utils/glass_kit.dart';
 import '../../theme_provider.dart';
 import '../../constants/app_constants.dart';
-import '../../widgets/vtalk_unified_app_bar.dart';
-import '../../widgets/vtalk_header.dart';
 import '../account_settings_screen.dart';
 
 class VPNScreen extends StatefulWidget {
