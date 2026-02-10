@@ -21,8 +21,8 @@ class VtalkHeader extends StatefulWidget {
   _VtalkHeaderState createState() => _VtalkHeaderState();
 }
 
-class _VtalkHeaderState extends State<VtalkHeader> 
-    with SingleTickerProviderStateMixin {
+class _VtalkHeaderState extends State<VtalkHeader>
+  with TickerProviderStateMixin {
   late AnimationController _avatarController;
   late AnimationController _titleController;
   late Animation<double> _scaleAnimation;
@@ -139,35 +139,37 @@ class _VtalkHeaderState extends State<VtalkHeader>
       ),
         actions: widget.actions ?? [],
       // ✅ Заменили небезопасное распаковывание на безопасное
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(0),
-        child: ScaleTransition(
-          scale: _scaleAnimation,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: GestureDetector(
-              onTapDown: (_) => _animateAvatar(),
-              onTapUp: (_) => _avatarController.reverse(),
-              onTapCancel: () => _avatarController.reverse(),
-              onTap: () => Navigator.pushNamed(context, '/settings'),
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isDark ? Colors.white24 : Colors.black12,
-                    width: 2,
+      bottom: widget.showScrollAnimation
+          ? PreferredSize(
+              preferredSize: const Size.fromHeight(0),
+              child: ScaleTransition(
+                scale: _scaleAnimation,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: GestureDetector(
+                    onTapDown: (_) => _animateAvatar(),
+                    onTapUp: (_) => _avatarController.reverse(),
+                    onTapCancel: () => _avatarController.reverse(),
+                    onTap: () => Navigator.pushNamed(context, '/settings'),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isDark ? Colors.white24 : Colors.black12,
+                          width: 2,
+                        ),
+                      ),
+                      child: CircleAvatar(
+                        radius: 16,
+                        backgroundColor: Colors.blue.withOpacity(0.7),
+                        child: const Icon(Icons.person, color: Colors.white),
+                      ),
+                    ),
                   ),
                 ),
-                child: CircleAvatar(
-                  radius: 16,
-                  backgroundColor: Colors.blue.withOpacity(0.7),  // ✅ Избегаем NetworkImage в быстро перерисовываемом контексте
-                  child: const Icon(Icons.person, color: Colors.white),
-                ),
               ),
-            ),
-          ),
-        ),
-      ),
+            )
+          : null,
     );
   }
 }
