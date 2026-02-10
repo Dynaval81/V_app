@@ -55,6 +55,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
         child: SafeArea(
           child: CustomScrollView(
             controller: _scrollController,
+            physics: const BouncingScrollPhysics(),
             slivers: [
               SliverAppBar(
                 pinned: true,
@@ -62,12 +63,14 @@ class _ChatsScreenState extends State<ChatsScreen> {
                 backgroundColor: Colors.transparent, // Фон прозрачный, чтобы работал Blur
                 elevation: 0,
                 // Динамическая плотность стекла
-                flexibleSpace: GlassKit.liquidGlass(
-                  radius: 0,
-                  isDark: isDark, // Передаем текущую тему!
-                  opacity: _appBarDensity > 0.1 ? 0.4 : 0.0, // Резкое появление плотности, как в Telegram
-                  child: Container(),
-                ),
+                flexibleSpace: _appBarDensity > 0.05
+                    ? GlassKit.liquidGlass(
+                        radius: 0,
+                        isDark: isDark,
+                        opacity: (_appBarDensity * 0.5).clamp(0.0, 0.4),
+                        child: Container(),
+                      )
+                    : Container(),
                 title: Row(
                   children: [
                     const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
