@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:math';
 import '../../utils/glass_kit.dart';
 import '../../theme_provider.dart';
-import '../../widgets/vtalk_unified_app_bar.dart';
+import '../../widgets/vtalk_header.dart';
 import '../account_settings_screen.dart';
 
 class ChatMessage {
@@ -75,6 +75,11 @@ class _AIScreenState extends State<AIScreen> {
     });
   }
 
+  // Adapter to allow passing controller to CustomScrollView (compat)
+  ScrollController? _scroll_controller_compat({required ScrollController _scroll_controller}) {
+    return _scroll_controller;
+  }
+
   @override
   void dispose() {
     _textController.dispose();
@@ -88,54 +93,80 @@ class _AIScreenState extends State<AIScreen> {
     
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: VtalkUnifiedAppBar(
-        title: 'Vtalk AI',
-        isDark: isDark,
-        onAvatarTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
-        ),
-      ),
       body: Container(
         decoration: GlassKit.mainBackground(isDark),
         child: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  itemCount: _messages.length,
-                  itemBuilder: (context, index) {
-                    return _buildAiBubble(_messages[index].text, _messages[index].isUser);
-                  },
-                ),
+          child: CustomScrollView(
+            controller: _scroll_controller_compat(_scroll_controller: _scrollController),
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              VtalkHeader(
+                title: 'Vtalk AI',
+                showScrollAnimation: false,
+                actions: [
+                  GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
+                    ),
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 16),
+                      child: CircleAvatar(
+                        radius: 18,
+                        backgroundImage: NetworkImage("${AppConstants.defaultAvatarUrl}?u=me"),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              if (_isTyping)
-                Padding(
-                  padding: EdgeInsets.only(left: 20, bottom: 10),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
-        final isDark = themeProvider.isDarkMode;
-        
-        return Text(
-          "AI is thinking...", 
-          style: TextStyle(
-            color: isDark ? Colors.white54 : Colors.black54, 
-            fontSize: 12
-          )
-        );
-      },
-    ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: Text(
+                          'Чем я могу тебе помочь?',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : Colors.black,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      // Actions grid
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        alignment: WrapAlignment.center,
+                        children: [
+                          _aiTile(Icons.image, 'Создать изображение', Colors.purpleAccent, () => _onAction('create_image')),
+                          _aiTile(Icons.photo_library, 'Редактировать фото', Colors.orangeAccent, () => _onAction('edit_photo')),
+                          _aiTile(Icons.text_snippet, 'Улучшить текст', Colors.teal, () => _onAction('improve_text')),
+                          _aiTile(Icons.translate, 'Перевести текст', Colors.indigo, () => _onAction('translate')),
+                          _aiTile(Icons.help_outline, 'Объяснить', Colors.green, () => _onAction('explain')),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      // small note
+                      Center(
+                        child: Text(
+                          'Выберите действие выше или напишите внизу',
+                          style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 13),
+                        ),
+                      ),
+                      const SizedBox(height: 200),
+                    ],
                   ),
                 ),
-              _buildInputArea(),
+              ),
             ],
           ),
         ),
       ),
+      bottomNavigationBar: _buildChatStyleInput(isDark),
     );
   }
 
@@ -232,6 +263,85 @@ class _AIScreenState extends State<AIScreen> {
           ],
         );
       },
+    );
+  }
+
+  Widget _aiTile(IconData icon, String label, Color color, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircleAvatar(radius: 28, backgroundColor: color.withOpacity(0.12), child: Icon(icon, color: color, size: 26)),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: Provider.of<ThemeProvider>(context, listen: false).isDarkMode ? Colors.white70 : Colors.black87),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _onAction(String key) {
+    switch (key) {
+      case 'create_image':
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Выбрано: Создать изображение')));
+        break;
+      case 'edit_photo':
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Выбрано: Редактировать фото')));
+        break;
+      case 'improve_text':
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Выбрано: Улучшить текст')));
+        break;
+      case 'translate':
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Выбрано: Перевести текст')));
+        break;
+      case 'explain':
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Выбрано: Объяснить')));
+        break;
+    }
+  }
+
+  Widget _buildChatStyleInput(bool isDark) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: GlassKit.liquidGlass(
+          radius: 25,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: Icon(Icons.auto_awesome, color: Colors.blueAccent),
+                  onPressed: _showAIActionMenu,
+                ),
+                Expanded(
+                  child: TextField(
+                    controller: _textController,
+                    style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                    decoration: InputDecoration(
+                      hintText: 'Напишите сообщение или опишите задачу',
+                      hintStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
+                      border: InputBorder.none,
+                    ),
+                    onSubmitted: _handleSubmitted,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.send, color: Colors.blueAccent),
+                  onPressed: () => _handleSubmitted(_textController.text),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
