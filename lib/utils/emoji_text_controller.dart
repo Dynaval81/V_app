@@ -34,7 +34,6 @@ class EmojiTextEditingController extends TextEditingController {
         width: 22,
         height: 22,
         fit: BoxFit.contain,
-        colorFilter: const ColorFilter.mode(Color(0xFFFFFFFF), BlendMode.srcIn),
       );
     } else {
       return Image.asset(

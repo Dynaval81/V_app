@@ -19,122 +19,111 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
   
-  // Variant selection
-  String _emojiVariant = 'original'; // 'original', 'v1', 'v2'
+  // Selected emoji group
+  String _selectedGroup = 'Original'; // 'Original', 'Variant 1', 'Variant 2'
 
-  // Original set emoji assets
-  final Map<String, String> _emojiAssetsOriginal = {
-    ':smile:': 'assets/emojis/smiley.gif',
-    ':cool:': 'assets/emojis/cool.gif',
-    ':shock:': 'assets/emojis/shocked.gif',
-    ':tongue:': 'assets/emojis/tongue.gif',
-    ':heart:': 'assets/emojis/kiss.gif',
-    ':sad:': 'assets/emojis/sad.gif',
-    ':angry:': 'assets/emojis/angry.gif',
-    ':grin:': 'assets/emojis/grin.gif',
-    ':wink:': 'assets/emojis/wink.gif',
-    ':cry:': 'assets/emojis/cry.gif',
-    ':laugh:': 'assets/emojis/laugh.gif',
-    ':evil:': 'assets/emojis/evil.gif',
-    ':afro:': 'assets/emojis/afro.gif',
-    ':angel:': 'assets/emojis/angel.gif',
-    ':azn:': 'assets/emojis/azn.gif',
-    ':bang:': 'assets/emojis/bang.gif',
-    ':blank:': 'assets/emojis/blank.gif',
-    ':buenpost:': 'assets/emojis/buenpost.gif',
-    ':cheesy:': 'assets/emojis/cheesy.gif',
-    ':embarrassed:': 'assets/emojis/embarrassed.gif',
-    ':huh:': 'assets/emojis/huh.gif',
-    ':kiss:': 'assets/emojis/kiss.gif',
-    ':lipssealed:': 'assets/emojis/lipsrsealed.gif',
-    ':mario:': 'assets/emojis/mario.gif',
-    ':pacman:': 'assets/emojis/pacman.gif',
-    ':police:': 'assets/emojis/police.gif',
-    ':rolleyes:': 'assets/emojis/rolleyes.gif',
-    ':sad2:': 'assets/emojis/sad2.gif',
-    ':shrug:': 'assets/emojis/shrug.gif',
-    ':undecided:': 'assets/emojis/undecided.gif',
+  // Unified emoji collection grouped by variant
+  final Map<String, Map<String, String>> _emojiGroups = {
+    'Original': {
+      ':smile:': 'assets/emojis/smiley.gif',
+      ':cool:': 'assets/emojis/cool.gif',
+      ':shock:': 'assets/emojis/shocked.gif',
+      ':tongue:': 'assets/emojis/tongue.gif',
+      ':heart:': 'assets/emojis/kiss.gif',
+      ':sad:': 'assets/emojis/sad.gif',
+      ':angry:': 'assets/emojis/angry.gif',
+      ':grin:': 'assets/emojis/grin.gif',
+      ':wink:': 'assets/emojis/wink.gif',
+      ':cry:': 'assets/emojis/cry.gif',
+      ':laugh:': 'assets/emojis/laugh.gif',
+      ':evil:': 'assets/emojis/evil.gif',
+      ':afro:': 'assets/emojis/afro.gif',
+      ':angel:': 'assets/emojis/angel.gif',
+      ':azn:': 'assets/emojis/azn.gif',
+      ':bang:': 'assets/emojis/bang.gif',
+      ':blank:': 'assets/emojis/blank.gif',
+      ':buenpost:': 'assets/emojis/buenpost.gif',
+      ':cheesy:': 'assets/emojis/cheesy.gif',
+      ':embarrassed:': 'assets/emojis/embarrassed.gif',
+      ':huh:': 'assets/emojis/huh.gif',
+      ':kiss:': 'assets/emojis/kiss.gif',
+      ':lipssealed:': 'assets/emojis/lipsrsealed.gif',
+      ':mario:': 'assets/emojis/mario.gif',
+      ':pacman:': 'assets/emojis/pacman.gif',
+      ':police:': 'assets/emojis/police.gif',
+      ':rolleyes:': 'assets/emojis/rolleyes.gif',
+      ':sad2:': 'assets/emojis/sad2.gif',
+      ':shrug:': 'assets/emojis/shrug.gif',
+      ':undecided:': 'assets/emojis/undecided.gif',
+    },
+    'Variant 1': {
+      ':smile:': 'assets/emojis_v1/smile.gif',
+      ':cool:': 'assets/emojis_v1/cool.gif',
+      ':shock:': 'assets/emojis_v1/surprised.gif',
+      ':tongue:': 'assets/emojis_v1/tongueout.gif',
+      ':heart:': 'assets/emojis_v1/kiss.gif',
+      ':sad:': 'assets/emojis_v1/sad.gif',
+      ':angry:': 'assets/emojis_v1/mad.gif',
+      ':grin:': 'assets/emojis_v1/laughing.gif',
+      ':wink:': 'assets/emojis_v1/winkblink.gif',
+      ':cry:': 'assets/emojis_v1/crying.gif',
+      ':laugh:': 'assets/emojis_v1/laughing.gif',
+      ':evil:': 'assets/emojis_v1/devil.gif',
+      ':afro:': 'assets/emojis_v1/angel.gif',
+      ':angel:': 'assets/emojis_v1/angel.gif',
+      ':azn:': 'assets/emojis_v1/smile.gif',
+      ':bang:': 'assets/emojis_v1/scream.gif',
+      ':blank:': 'assets/emojis_v1/nothingtosay.gif',
+      ':buenpost:': 'assets/emojis_v1/thumbsup.gif',
+      ':cheesy:': 'assets/emojis_v1/laughing.gif',
+      ':embarrassed:': 'assets/emojis_v1/blushing.gif',
+      ':huh:': 'assets/emojis_v1/surprised.gif',
+      ':kiss:': 'assets/emojis_v1/kiss.gif',
+      ':lipssealed:': 'assets/emojis_v1/shutup.gif',
+      ':mario:': 'assets/emojis_v1/thumbsup.gif',
+      ':pacman:': 'assets/emojis_v1/smile.gif',
+      ':police:': 'assets/emojis_v1/cool.gif',
+      ':rolleyes:': 'assets/emojis_v1/nothingtosay.gif',
+      ':sad2:': 'assets/emojis_v1/crying.gif',
+      ':shrug:': 'assets/emojis_v1/nothingtosay.gif',
+      ':undecided:': 'assets/emojis_v1/question.gif',
+    },
+    'Variant 2': {
+      ':smile:': 'assets/emojis_v2/icon_e_smile.svg',
+      ':cool:': 'assets/emojis_v2/icon_cool.svg',
+      ':shock:': 'assets/emojis_v2/icon_e_surprised.svg',
+      ':tongue:': 'assets/emojis_v2/icon_razz.svg',
+      ':heart:': 'assets/emojis_v2/icon_lol.svg',
+      ':sad:': 'assets/emojis_v2/icon_e_sad.svg',
+      ':angry:': 'assets/emojis_v2/icon_mad.svg',
+      ':grin:': 'assets/emojis_v2/icon_biggrin.svg',
+      ':wink:': 'assets/emojis_v2/icon_e_wink.svg',
+      ':cry:': 'assets/emojis_v2/icon_e_sad.svg',
+      ':laugh:': 'assets/emojis_v2/icon_lol.svg',
+      ':evil:': 'assets/emojis_v2/icon_evil.svg',
+      ':afro:': 'assets/emojis_v2/icon_angel.svg',
+      ':angel:': 'assets/emojis_v2/icon_angel.svg',
+      ':azn:': 'assets/emojis_v2/icon_e_geek.svg',
+      ':bang:': 'assets/emojis_v2/icon_exclaim.svg',
+      ':blank:': 'assets/emojis_v2/icon_neutral.svg',
+      ':buenpost:': 'assets/emojis_v2/icon_thumbup.svg',
+      ':cheesy:': 'assets/emojis_v2/icon_lol.svg',
+      ':embarrassed:': 'assets/emojis_v2/icon_redface.svg',
+      ':huh:': 'assets/emojis_v2/icon_eh.svg',
+      ':kiss:': 'assets/emojis_v2/icon_kiss.svg',
+      ':lipssealed:': 'assets/emojis_v2/icon_shh.svg',
+      ':mario:': 'assets/emojis_v2/icon_thumbup.svg',
+      ':pacman:': 'assets/emojis_v2/icon_lol.svg',
+      ':police:': 'assets/emojis_v2/icon_cool.svg',
+      ':rolleyes:': 'assets/emojis_v2/icon_rolleyes.svg',
+      ':sad2:': 'assets/emojis_v2/icon_e_sad.svg',
+      ':shrug:': 'assets/emojis_v2/icon_shrug.svg',
+      ':undecided:': 'assets/emojis_v2/icon_question.svg',
+    },
   };
 
-  // V1 set emoji assets
-  final Map<String, String> _emojiAssetsV1 = {
-    ':smile:': 'assets/emojis_v1/smile.gif',
-    ':cool:': 'assets/emojis_v1/cool.gif',
-    ':shock:': 'assets/emojis_v1/surprised.gif',
-    ':tongue:': 'assets/emojis_v1/tongueout.gif',
-    ':heart:': 'assets/emojis_v1/kiss.gif',
-    ':sad:': 'assets/emojis_v1/sad.gif',
-    ':angry:': 'assets/emojis_v1/mad.gif',
-    ':grin:': 'assets/emojis_v1/laughing.gif',
-    ':wink:': 'assets/emojis_v1/winkblink.gif',
-    ':cry:': 'assets/emojis_v1/crying.gif',
-    ':laugh:': 'assets/emojis_v1/laughing.gif',
-    ':evil:': 'assets/emojis_v1/devil.gif',
-    ':afro:': 'assets/emojis_v1/angel.gif',
-    ':angel:': 'assets/emojis_v1/angel.gif',
-    ':azn:': 'assets/emojis_v1/smile.gif',
-    ':bang:': 'assets/emojis_v1/scream.gif',
-    ':blank:': 'assets/emojis_v1/nothingtosay.gif',
-    ':buenpost:': 'assets/emojis_v1/thumbsup.gif',
-    ':cheesy:': 'assets/emojis_v1/laughing.gif',
-    ':embarrassed:': 'assets/emojis_v1/blushing.gif',
-    ':huh:': 'assets/emojis_v1/surprised.gif',
-    ':kiss:': 'assets/emojis_v1/kiss.gif',
-    ':lipssealed:': 'assets/emojis_v1/shutup.gif',
-    ':mario:': 'assets/emojis_v1/thumbsup.gif',
-    ':pacman:': 'assets/emojis_v1/smile.gif',
-    ':police:': 'assets/emojis_v1/cool.gif',
-    ':rolleyes:': 'assets/emojis_v1/nothingtosay.gif',
-    ':sad2:': 'assets/emojis_v1/crying.gif',
-    ':shrug:': 'assets/emojis_v1/nothingtosay.gif',
-    ':undecided:': 'assets/emojis_v1/question.gif',
-  };
-
-  // V2 set emoji assets (SVG)
-  final Map<String, String> _emojiAssetsV2 = {
-    ':smile:': 'assets/emojis_v2/icon_e_smile.svg',
-    ':cool:': 'assets/emojis_v2/icon_cool.svg',
-    ':shock:': 'assets/emojis_v2/icon_e_surprised.svg',
-    ':tongue:': 'assets/emojis_v2/icon_razz.svg',
-    ':heart:': 'assets/emojis_v2/icon_lol.svg',
-    ':sad:': 'assets/emojis_v2/icon_e_sad.svg',
-    ':angry:': 'assets/emojis_v2/icon_mad.svg',
-    ':grin:': 'assets/emojis_v2/icon_biggrin.svg',
-    ':wink:': 'assets/emojis_v2/icon_e_wink.svg',
-    ':cry:': 'assets/emojis_v2/icon_e_sad.svg',
-    ':laugh:': 'assets/emojis_v2/icon_lol.svg',
-    ':evil:': 'assets/emojis_v2/icon_evil.svg',
-    ':afro:': 'assets/emojis_v2/icon_angel.svg',
-    ':angel:': 'assets/emojis_v2/icon_angel.svg',
-    ':azn:': 'assets/emojis_v2/icon_e_geek.svg',
-    ':bang:': 'assets/emojis_v2/icon_exclaim.svg',
-    ':blank:': 'assets/emojis_v2/icon_neutral.svg',
-    ':buenpost:': 'assets/emojis_v2/icon_thumbup.svg',
-    ':cheesy:': 'assets/emojis_v2/icon_lol.svg',
-    ':embarrassed:': 'assets/emojis_v2/icon_redface.svg',
-    ':huh:': 'assets/emojis_v2/icon_eh.svg',
-    ':kiss:': 'assets/emojis_v2/icon_kiss.svg',
-    ':lipssealed:': 'assets/emojis_v2/icon_shh.svg',
-    ':mario:': 'assets/emojis_v2/icon_thumbup.svg',
-    ':pacman:': 'assets/emojis_v2/icon_lol.svg',
-    ':police:': 'assets/emojis_v2/icon_cool.svg',
-    ':rolleyes:': 'assets/emojis_v2/icon_rolleyes.svg',
-    ':sad2:': 'assets/emojis_v2/icon_e_sad.svg',
-    ':shrug:': 'assets/emojis_v2/icon_shrug.svg',
-    ':undecided:': 'assets/emojis_v2/icon_question.svg',
-  };
-
-  // Get active emoji map based on current variant
-  Map<String, String> get _currentEmojiAssets {
-    switch (_emojiVariant) {
-      case 'v1':
-        return _emojiAssetsV1;
-      case 'v2':
-        return _emojiAssetsV2;
-      default:
-        return _emojiAssetsOriginal;
-    }
-  }
+  // Get current group's emoji assets
+  Map<String, String> get _currentGroupEmojis => _emojiGroups[_selectedGroup] ?? _emojiGroups['Original']!;
 
   final List<Map<String, dynamic>> _messages = [
     {'text': 'Привет! Посмотри на наши новые GIF :smile:', 'isMe': false, 'time': '12:30'},
@@ -145,7 +134,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   void initState() {
     super.initState();
     _messageController = EmojiTextEditingController(
-      emojiAssets: _currentEmojiAssets,
+      emojiAssets: _currentGroupEmojis,
       isDark: false, // Will be updated in build method
     );
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
@@ -194,7 +183,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         width: width,
         height: height,
         fit: BoxFit.contain,
-        colorFilter: const ColorFilter.mode(Color(0xFFFFFFFF), BlendMode.srcIn),
       );
     } else {
       return Image.asset(
@@ -222,7 +210,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       }
 
       final code = ':${match.group(1)}:';
-      final asset = _currentEmojiAssets[code];
+      final asset = _currentGroupEmojis[code];
       if (asset != null) {
         spans.add(WidgetSpan(
           alignment: PlaceholderAlignment.middle,
@@ -271,17 +259,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Variant selector tabs
+                // Group selector tabs
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
-                    children: [
-                      _buildVariantButton(isDark, 'Original', 'original', setModalState),
-                      const SizedBox(width: 8),
-                      _buildVariantButton(isDark, 'Variant 1', 'v1', setModalState),
-                      const SizedBox(width: 8),
-                      _buildVariantButton(isDark, 'Variant 2', 'v2', setModalState),
-                    ],
+                    children: _emojiGroups.keys.map((groupName) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: _buildGroupTab(isDark, groupName, setModalState),
+                      );
+                    }).toList(),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -293,7 +280,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     child: Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: _currentEmojiAssets.entries.map((e) {
+                      children: _currentGroupEmojis.entries.map((e) {
                         final code = e.key;
                         final asset = e.value;
                         return GestureDetector(
@@ -327,13 +314,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     );
   }
 
-  Widget _buildVariantButton(bool isDark, String label, String variant, Function setModalState) {
-    final isActive = _emojiVariant == variant;
+  Widget _buildGroupTab(bool isDark, String groupName, Function setModalState) {
+    final isActive = _selectedGroup == groupName;
     return GestureDetector(
       onTap: () {
         setState(() {
-          _emojiVariant = variant;
-          _messageController.emojiAssets = _currentEmojiAssets;
+          _selectedGroup = groupName;
+          _messageController.emojiAssets = _currentGroupEmojis;
         });
         setModalState(() {});
       },
@@ -348,7 +335,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           ),
         ),
         child: Text(
-          label,
+          groupName,
           style: TextStyle(
             color: isActive ? Colors.white : (isDark ? Colors.white70 : Colors.black54),
             fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
