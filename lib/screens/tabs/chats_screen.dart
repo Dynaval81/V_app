@@ -113,36 +113,6 @@ class _ChatsScreenState extends State<ChatsScreen> {
                   const SizedBox(width: 16),
                 ],
               ),
-              SliverToBoxAdapter(
-                child: ValueListenableBuilder<double>(
-                  valueListenable: _searchOpacity,
-                  builder: (context, opacity, _) {
-                    final searchVisible = (1.0 - opacity).clamp(0.0, 1.0);
-                    return Opacity(
-                      opacity: searchVisible,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
-                            border: Border.all(color: isDark ? Colors.white12 : Colors.black12, width: 1),
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: TextField(
-                            style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                            decoration: InputDecoration(
-                              hintText: "Search chats...",
-                              hintStyle: TextStyle(color: isDark ? Colors.white24 : Colors.black26),
-                              prefixIcon: Icon(Icons.search, color: isDark ? Colors.white38 : Colors.black38),
-                              border: InputBorder.none,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
               SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
