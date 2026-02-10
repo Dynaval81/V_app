@@ -5,6 +5,7 @@ import '../../utils/glass_kit.dart';
 import '../../theme_provider.dart';
 import '../../constants/app_constants.dart';
 import '../../widgets/vtalk_unified_app_bar.dart';
+import '../../widgets/vtalk_header.dart';
 import '../account_settings_screen.dart';
 
 class VPNScreen extends StatefulWidget {
@@ -52,92 +53,99 @@ class _VPNScreenState extends State<VPNScreen> {
     
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: VtalkUnifiedAppBar(
-        title: 'VTALK VPN',
-        isDark: isDark,
-        onAvatarTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
-        ),
-      ),
       body: Container(
         width: double.infinity,
         height: double.infinity,
         decoration: GlassKit.mainBackground(isDark),
         child: SafeArea(
-          child: SingleChildScrollView(
+          child: CustomScrollView(
             physics: const BouncingScrollPhysics(),
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
+            slivers: [
+              VtalkHeader(
+                title: 'VTALK VPN',
+                showScrollAnimation: false,
+                actions: [
+                  // keep avatar action consistent
+                  IconButton(
+                    icon: Icon(Icons.more_vert, color: isDark ? Colors.white70 : Colors.black54),
+                    onPressed: () {},
+                  ),
+                ],
+              ),
+              SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
 
-                // Кнопка подключения
-                GestureDetector(
-                  onTap: isConnecting ? null : toggleConnection,
-                  child: Center(
-                    child: AnimatedContainer(
-                      duration: Duration(milliseconds: 300),
-                      width: 180, 
-                      height: 180,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.transparent,
-                        border: Border.all(
-                          color: isConnecting 
-                            ? Colors.orange 
-                            : (isConnected ? Colors.green : Colors.blue), 
-                          width: 3
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: (isConnected ? Colors.green : Colors.blue).withOpacity(0.2), 
-                            blurRadius: 30, 
-                            spreadRadius: 10
-                          )
-                        ],
-                      ),
-                      child: GlassKit.liquidGlass(
-                        radius: 90,
-                        child: isConnecting 
-                          ? Center(child: CircularProgressIndicator(color: Colors.orange)) 
-                          : Icon(
-                              Icons.power_settings_new, 
-                              size: 70, 
-                              color: isConnected ? Colors.green : Colors.blue
+                    // Кнопка подключения
+                    GestureDetector(
+                      onTap: isConnecting ? null : toggleConnection,
+                      child: Center(
+                        child: AnimatedContainer(
+                          duration: Duration(milliseconds: 300),
+                          width: 180, 
+                          height: 180,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.transparent,
+                            border: Border.all(
+                              color: isConnecting 
+                                ? Colors.orange 
+                                : (isConnected ? Colors.green : Colors.blue), 
+                              width: 3
                             ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: (isConnected ? Colors.green : Colors.blue).withOpacity(0.2), 
+                                blurRadius: 30, 
+                                spreadRadius: 10
+                              )
+                            ],
+                          ),
+                          child: GlassKit.liquidGlass(
+                            radius: 90,
+                            child: isConnecting 
+                              ? Center(child: CircularProgressIndicator(color: Colors.orange)) 
+                              : Icon(
+                                  Icons.power_settings_new, 
+                                  size: 70, 
+                                  color: isConnected ? Colors.green : Colors.blue
+                                ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                    
+                    SizedBox(height: 30),
+                    
+                    // Инфо-панель (появляется при коннекте)
+                    if (isConnected || isConnecting)
+                      GlassKit.liquidGlass(
+                        radius: 15,
+                        child: Container(
+                          width: MediaQuery.of(context).size.width * 0.85,
+                          padding: EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              _row("IP Address", isConnecting ? "..." : AppConstants.mockVpnIp),
+                              Divider(color: isDark ? Colors.white24 : Colors.black26),
+                              _row("Uptime", _formatTime(_secondsActive)),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                    SizedBox(height: 20),
+
+                    // Настройки туннелирования
+                    _glassTile(Icons.alt_route, "Tunneling Mode", selectedMode, () => _showModePicker()),
+                    _glassTile(Icons.public, "Location", "Frankfurt, Germany", null),
+                    
+                    SizedBox(height: 20),
+                  ],
                 ),
-                
-                SizedBox(height: 30),
-                
-                // Инфо-панель (появляется при коннекте)
-                if (isConnected || isConnecting)
-                  GlassKit.liquidGlass(
-                    radius: 15,
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.85,
-                      padding: EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          _row("IP Address", isConnecting ? "..." : AppConstants.mockVpnIp),
-                          Divider(color: isDark ? Colors.white24 : Colors.black26),
-                          _row("Uptime", _formatTime(_secondsActive)),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                SizedBox(height: 20),
-
-                // Настройки туннелирования
-                _glassTile(Icons.alt_route, "Tunneling Mode", selectedMode, () => _showModePicker()),
-                _glassTile(Icons.public, "Location", "Frankfurt, Germany", null),
-                
-                SizedBox(height: 20),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
