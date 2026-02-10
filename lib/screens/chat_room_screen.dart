@@ -320,6 +320,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   // Helper function to render emoji - currently not used but kept for future enhancements
   // Robust emoji parsing with support for [retro] prefix
+  // ignore: unused_element
   InlineSpan? _buildTextWithEmojis(String text, bool isDark) {
     final List<InlineSpan> spans = [];
     // Match both [retro]:code: and :code: patterns
