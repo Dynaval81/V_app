@@ -25,7 +25,6 @@ class ChatRoomScreen extends StatefulWidget {
 
 class _ChatRoomScreenState extends State<ChatRoomScreen> {
   late EmojiTextEditingController _messageController;
-  final ScrollController _messagesScrollController = ScrollController(); // FOR MESSAGES LISTVIEW
   final FocusNode _focusNode = FocusNode();
   final ValueNotifier<double> _headerOpacity = ValueNotifier(0.0);
   double _lastOffset = 0.0;
@@ -146,7 +145,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       retroAssets: _retroEmojis,
       isDark: false,
     );
-    _messagesScrollController.addListener(_onScroll);
     _focusNode.addListener(_onFocusChange);
     
     // Устанавливаем начальную прозрачность (более высокую для видимости при открытии)
@@ -165,36 +163,21 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   }
 
   void _onScroll() {
-    if (!_messagesScrollController.hasClients) return;
-    final offset = _messagesScrollController.offset;
-    // Только обновлять при значимых изменениях (debounce: >5px)
-    if ((offset - _lastOffset).abs() > 5.0) {
-      _lastOffset = offset;
-      // Шапка становится прозрачнее при скролле ВНИЗ
-      final newOpacity = (1.0 - (offset / 100).clamp(0.0, 1.0)).clamp(0.3, 1.0);
-      if ((newOpacity - _headerOpacity.value).abs() > 0.05) {
-        _headerOpacity.value = newOpacity;
-      }
-    }
+    // Note: With SliverList in CustomScrollView, scroll events happen naturally
+    // This method can be used for future scroll-based UI updates if needed
   }
 
   @override
   void dispose() {
     _messageController.dispose();
-    _messagesScrollController.dispose();
     _focusNode.dispose();
     _headerOpacity.dispose();
     super.dispose();
   }
 
   void _scrollToBottom() {
-    if (_messagesScrollController.hasClients && _messagesScrollController.positions.isNotEmpty) {
-      _messagesScrollController.animateTo(
-        _messagesScrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOut,
-      );
-    }
+    // With SliverList in CustomScrollView, the scroll happens automatically
+    // This is a placeholder for future enhancements
   }
 
   void _startVideoCall() {
@@ -233,18 +216,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     _messageController.clear();
     _focusNode.requestFocus();
     
-    // Прокручиваем к новому сообщению с задержкой для рендеринга
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (_messagesScrollController.hasClients && _messagesScrollController.positions.isNotEmpty) {
-          _messagesScrollController.animateTo(
-            _messagesScrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
-        }
-      });
-    });
+    // Note: With SliverList in CustomScrollView, the new message appears automatically at bottom
   }
 
   void _replyToMessage(MessageModel message) {
@@ -643,83 +615,89 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                   ],
                 ),
                 
-                // Messages
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: Stack(
-                          children: [
-                            // Плавающая дата
-                            VTalkFloatingDateHeader(
-                              date: DateTime.now(),
-                              isVisible: _headerOpacity.value > 0.5,
-                            ),
-                            
-                            // Список сообщений
-                            ListView.builder(
-                              controller: _messagesScrollController,
-                              padding: const EdgeInsets.all(16),
-                              physics: const BouncingScrollPhysics(),
-                              itemCount: _messages.length,
-                              itemBuilder: (context, index) {
-                                final message = _messages[index];
-                                
-                                // URL превью
-                                if (message.urls != null && message.urls!.isNotEmpty) {
-                                  return Column(
-                                    crossAxisAlignment: message.isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                                    children: [
-                                      VTalkUrlPreview(
-                                        url: message.urls!.first,
-                                        title: 'Flutter.dev',
-                                        description: 'Flutter - Build beautiful native apps',
-                                        imageUrl: 'https://flutter.dev/images/flutter-logo-sharing.png',
-                                      ),
-                                      const SizedBox(height: 8),
-                                      VTalkMessageBubble(
-                                        text: message.text,
-                                        isMe: message.isMe,
-                                        time: message.formattedTime,
-                                        reactions: message.reactions,
-                                        replyTo: message.replyTo?.toJson(),
-                                        onReply: () => _replyToMessage(message),
-                                        onReact: () => _showReactionPicker(message),
-                                        onDelete: () => _deleteMessage(message),
-                                      ),
-                                    ],
-                                  );
-                                }
-                                
-                                return VTalkMessageBubble(
-                                  text: message.text,
-                                  isMe: message.isMe,
-                                  time: message.formattedTime,
-                                  reactions: message.reactions,
-                                  replyTo: message.replyTo?.toJson(),
-                                  onReply: () => _replyToMessage(message),
-                                  onReact: () => _showReactionPicker(message),
-                                  onDelete: () => _deleteMessage(message),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      
-                      // Input field - теперь внутри Column для правильного resize
-                      VTalkCompactInput(
-                        controller: _messageController,
-                        focusNode: _focusNode,
-                        onSend: _sendMessage,
-                        onEmojiTap: () => _showEmojiPicker(isDark),
-                        onAttachTap: () => _showAttachmentMenu(context, isDark),
-                        onCameraTap: () => _openCamera(context),
-                        onMicTap: () => _startAudioRecording(),
-                      ),
-                    ],
+                // Messages - using SliverList for proper sliver hierarchy
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final message = _messages[index];
+                        
+                        // URL превью
+                        if (message.urls != null && message.urls!.isNotEmpty) {
+                          return Column(
+                            crossAxisAlignment: message.isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                            children: [
+                              VTalkUrlPreview(
+                                url: message.urls!.first,
+                                title: 'Flutter.dev',
+                                description: 'Flutter - Build beautiful native apps',
+                                imageUrl: 'https://flutter.dev/images/flutter-logo-sharing.png',
+                              ),
+                              const SizedBox(height: 8),
+                              VTalkMessageBubble(
+                                text: message.text,
+                                isMe: message.isMe,
+                                time: message.formattedTime,
+                                reactions: message.reactions,
+                                replyTo: message.replyTo?.toJson(),
+                                onReply: () => _replyToMessage(message),
+                                onReact: () => _showReactionPicker(message),
+                                onDelete: () => _deleteMessage(message),
+                              ),
+                              const SizedBox(height: 12),
+                            ],
+                          );
+                        }
+                        
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: VTalkMessageBubble(
+                            text: message.text,
+                            isMe: message.isMe,
+                            time: message.formattedTime,
+                            reactions: message.reactions,
+                            replyTo: message.replyTo?.toJson(),
+                            onReply: () => _replyToMessage(message),
+                            onReact: () => _showReactionPicker(message),
+                            onDelete: () => _deleteMessage(message),
+                          ),
+                        );
+                      },
+                      childCount: _messages.length,
+                    ),
                   ),
+                ),
+                
+                // Плавающая дата (floating helper)
+                SliverToBoxAdapter(
+                  child: ValueListenableBuilder<double>(
+                    valueListenable: _headerOpacity,
+                    builder: (context, opacity, _) {
+                      return VTalkFloatingDateHeader(
+                        date: DateTime.now(),
+                        isVisible: opacity > 0.5,
+                      );
+                    },
+                  ),
+                ),
+                
+                // Input field at bottom - fixed with SliverToBoxAdapter
+                SliverToBoxAdapter(
+                  child: VTalkCompactInput(
+                    controller: _messageController,
+                    focusNode: _focusNode,
+                    onSend: _sendMessage,
+                    onEmojiTap: () => _showEmojiPicker(isDark),
+                    onAttachTap: () => _showAttachmentMenu(context, isDark),
+                    onCameraTap: () => _openCamera(context),
+                    onMicTap: () => _startAudioRecording(),
+                  ),
+                ),
+                
+                // Safe area padding at bottom for keyboard
+                SliverToBoxAdapter(
+                  child: SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
                 ),
             ],
           ),
