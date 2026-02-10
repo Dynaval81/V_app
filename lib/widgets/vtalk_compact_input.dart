@@ -69,7 +69,7 @@ class VTalkCompactInput extends StatelessWidget {
                     ),
                     // Иконки ВНУТРИ поля
                     prefixIcon: Padding(
-                      padding: const EdgeInsets.only(left: 4),
+                      padding: const EdgeInsets.only(left: 8),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -77,30 +77,30 @@ class VTalkCompactInput extends StatelessWidget {
                           GestureDetector(
                             onTap: onEmojiTap,
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
                               child: Icon(
                                 Icons.emoji_emotions_outlined,
-                                color: isDark ? Colors.white.withValues(alpha: 0.6) : Colors.black.withValues(alpha: 0.54),
-                                size: 18,
+                                color: isDark ? Colors.white.withValues(alpha: 0.7) : Colors.black.withValues(alpha: 0.6),
+                                size: 24,
                               ),
                             ),
                           ),
                           // Разделитель
                           Container(
                             width: 1,
-                            height: 20,
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            height: 24,
+                            margin: const EdgeInsets.symmetric(horizontal: 6),
                             color: isDark ? Colors.white.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.2),
                           ),
                           // Прикрепление
                           GestureDetector(
                             onTap: () => _showAttachmentMenu(context, isDark),
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
                               child: Icon(
                                 Icons.add_circle_outline,
-                                color: isDark ? Colors.white.withValues(alpha: 0.6) : Colors.black.withValues(alpha: 0.54),
-                                size: 18,
+                                color: isDark ? Colors.white.withValues(alpha: 0.7) : Colors.black.withValues(alpha: 0.6),
+                                size: 24,
                               ),
                             ),
                           ),
@@ -108,13 +108,13 @@ class VTalkCompactInput extends StatelessWidget {
                       ),
                     ),
                     suffixIcon: Padding(
-                      padding: const EdgeInsets.only(right: 4),
+                      padding: const EdgeInsets.only(right: 8),
                       child: GestureDetector(
                         onTap: isMicMode ? onMicTap : onSend,
                         child: Icon(
                           isMicMode ? Icons.mic : Icons.send,
                           color: Colors.blue,
-                          size: 18,
+                          size: 24,
                         ),
                       ),
                     ),
@@ -220,13 +220,6 @@ class VTalkCompactInput extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
               ],
             ),
           ),

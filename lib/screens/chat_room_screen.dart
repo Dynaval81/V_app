@@ -164,18 +164,22 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   void _scrollToBottom() {
     if (_customScrollController.hasClients) {
-      // Scroll to the very bottom to show input field + keyboard space
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        try {
-          _customScrollController.animateTo(
-            _customScrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
-        } catch (e) {
-          // Ignore overflow errors during rapid scrolling
-        }
-      });
+      // Only scroll if keyboard is not visible
+      // This prevents the input field from jumping up when keyboard appears
+      final viewInsets = MediaQuery.of(context).viewInsets;
+      if (viewInsets.bottom == 0) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          try {
+            _customScrollController.animateTo(
+              _customScrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+            );
+          } catch (e) {
+            // Ignore overflow errors during rapid scrolling
+          }
+        });
+      }
     }
   }
 
