@@ -271,12 +271,11 @@ class _ChatsScreenState extends State<ChatsScreen> {
   }
 
   void _showCreateMenu() {
-    final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
-    
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) {
+      builder: (BuildContext context) {
+        final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
         return SafeArea(
           child: GlassKit.liquidGlass(
             isDark: isDark,
@@ -391,7 +390,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
       context: context,
       useSafeArea: true,
       builder: (dialogContext) {
-        final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
+        final isDark = Provider.of<ThemeProvider>(dialogContext).isDarkMode;
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return Dialog(
