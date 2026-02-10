@@ -17,7 +17,8 @@ class ChatsScreen extends StatefulWidget {
 
 class _ChatsScreenState extends State<ChatsScreen> {
   final ScrollController _scrollController = ScrollController();
-  final ValueNotifier<double> _scrollOffset = ValueNotifier(0.0);
+  final ValueNotifier<double> _searchOpacity = ValueNotifier(0.0);
+  double _lastOffset = 0.0;
   // Simple in-memory storage for newly created chats/groups in this session
   final List<Map<String, dynamic>> _customChats = [];
 
@@ -28,13 +29,21 @@ class _ChatsScreenState extends State<ChatsScreen> {
   }
 
   void _onScroll() {
-    _scrollOffset.value = _scrollController.offset;
+    final offset = _scrollController.offset;
+    // Только обновлять при значимых изменениях (debounce: >5px)
+    if ((offset - _lastOffset).abs() > 5.0) {
+      _lastOffset = offset;
+      final newOpacity = (offset / 80).clamp(0.0, 1.0);
+      if ((newOpacity - _searchOpacity.value).abs() > 0.05) {
+        _searchOpacity.value = newOpacity;
+      }
+    }
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
-    _scrollOffset.dispose();
+    _searchOpacity.dispose();
     super.dispose();
   }
 
@@ -57,36 +66,28 @@ class _ChatsScreenState extends State<ChatsScreen> {
               SliverAppBar(
                 pinned: true,
                 automaticallyImplyLeading: false,
-                backgroundColor: Colors.transparent,
+                backgroundColor: isDark 
+                  ? Colors.white.withValues(alpha: 0.12)
+                  : Colors.black.withValues(alpha: 0.08),
                 elevation: 0,
                 title: Row(
                   children: [
                     const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
                     const SizedBox(width: 8),
-                    Expanded(
-                      child: ValueListenableBuilder<double>(
-                        valueListenable: _scrollOffset,
-                        builder: (context, offset, _) {
-                          final opacity = (1.0 - (offset / 80)).clamp(0.0, 1.0);
-                          return Opacity(
-                            opacity: opacity,
-                            child: const Text("VTALK", style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 2,
-                              fontSize: 20
-                            )),
-                          );
-                        },
-                      ),
+                    const Expanded(
+                      child: Text("VTALK", style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 2,
+                        fontSize: 20
+                      )),
                     ),
                   ],
                 ),
                 actions: [
                   ValueListenableBuilder<double>(
-                    valueListenable: _scrollOffset,
-                    builder: (context, offset, _) {
-                      final opacity = (offset / 80).clamp(0.0, 1.0);
+                    valueListenable: _searchOpacity,
+                    builder: (context, opacity, _) {
                       return Opacity(
                         opacity: opacity,
                         child: IconButton(
