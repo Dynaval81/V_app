@@ -68,18 +68,6 @@ class _ChatsScreenState extends State<ChatsScreen> {
                 automaticallyImplyLeading: false,
                 backgroundColor: Colors.transparent,
                 elevation: 0,
-                flexibleSpace: ValueListenableBuilder<double>(
-                  valueListenable: _searchOpacity,
-                  builder: (context, opacity, _) {
-                    return GlassKit.liquidGlass(
-                      radius: 0,
-                      isDark: isDark,
-                      opacity: opacity * 0.4,
-                      useBlur: true,
-                      child: Container(),
-                    );
-                  },
-                ),
                 title: Row(
                   children: [
                     const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
@@ -98,13 +86,10 @@ class _ChatsScreenState extends State<ChatsScreen> {
                   ValueListenableBuilder<double>(
                     valueListenable: _searchOpacity,
                     builder: (context, opacity, _) {
-                      return Opacity(
-                        opacity: opacity,
-                        child: IconButton(
-                          icon: const Icon(Icons.search), 
-                          onPressed: () => _showSearch(context, isDark),
-                          color: isDark ? Colors.white : Colors.black,
-                        ),
+                      return IconButton(
+                        icon: const Icon(Icons.search), 
+                        onPressed: () => _showSearch(context, isDark),
+                        color: isDark ? Colors.white : Colors.black.withOpacity(opacity),
                       );
                     },
                   ),
