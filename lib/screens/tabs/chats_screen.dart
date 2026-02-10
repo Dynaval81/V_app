@@ -15,24 +15,8 @@ class ChatsScreen extends StatefulWidget {
 
 class _ChatsScreenState extends State<ChatsScreen> {
   final ScrollController _scrollController = ScrollController();
-  double _appBarDensity = 0.0;
-  double _titleOpacity = 1.0;
   // Simple in-memory storage for newly created chats/groups in this session
   final List<Map<String, dynamic>> _customChats = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-  }
-
-  void _onScroll() {
-    double offset = _scrollController.offset;
-    setState(() {
-      _appBarDensity = (offset / 100).clamp(0.0, 0.7);
-      _titleOpacity = (1.0 - (offset / 60)).clamp(0.0, 1.0);
-    });
-  }
 
   @override
   void dispose() {
@@ -53,83 +37,72 @@ class _ChatsScreenState extends State<ChatsScreen> {
       body: Container(
         decoration: GlassKit.mainBackground(isDark),
         child: SafeArea(
-          child: CustomScrollView(
-            controller: _scrollController,
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              SliverAppBar(
-                pinned: true,
-                automaticallyImplyLeading: false,
-                backgroundColor: Colors.transparent, // Фон прозрачный, чтобы работал Blur
-                elevation: 0,
-                // Динамическая плотность стекла
-                flexibleSpace: _appBarDensity > 0.05
-                    ? GlassKit.liquidGlass(
-                        radius: 0,
-                        isDark: isDark,
-                        opacity: (_appBarDensity * 0.5).clamp(0.0, 0.4),
-                        child: Container(),
-                      )
-                    : Container(),
-                title: Row(
+          child: Column(
+            children: [
+              // Header (AppBar replacement - static, no scroll dynamics)
+              Container(
+                color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
                   children: [
                     const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
                     const SizedBox(width: 8),
-                    // Название плавно исчезает, оставляя лого
-                    Opacity(
-                      opacity: _titleOpacity,
+                    const Expanded(
                       child: Text("VTALK", style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black,
+                        color: Colors.white,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 2,
                         fontSize: 20
                       )),
                     ),
-                  ],
-                ),
-                actions: [
-                  // Лупа только когда название скрыто
-                  if (_titleOpacity < 0.3)
                     IconButton(
                       icon: const Icon(Icons.search), 
                       onPressed: () => _showSearch(context, isDark),
                       color: isDark ? Colors.white : Colors.black,
                     ),
-                  GestureDetector(
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
+                      ),
+                      child: CircleAvatar(
+                        radius: 18,
+                        backgroundImage: NetworkImage("${AppConstants.defaultAvatarUrl}?u=me"),
+                      ),
                     ),
-                    child: CircleAvatar(
-                      radius: 18,
-                      backgroundImage: NetworkImage("${AppConstants.defaultAvatarUrl}?u=me"),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                ],
+                    const SizedBox(width: 16),
+                  ],
+                ),
               ),
 
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: GlassKit.liquidGlass(
-                    radius: 15,
-                    child: TextField(
-                      style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                      decoration: InputDecoration(
-                        hintText: "Search chats...",
-                        hintStyle: TextStyle(color: isDark ? Colors.white24 : Colors.black26),
-                        prefixIcon: Icon(Icons.search, color: isDark ? Colors.white38 : Colors.black38),
-                        border: InputBorder.none,
-                      ),
+              // Search field
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
+                    border: Border.all(color: isDark ? Colors.white12 : Colors.black12, width: 1),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: TextField(
+                    style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                    decoration: InputDecoration(
+                      hintText: "Search chats...",
+                      hintStyle: TextStyle(color: isDark ? Colors.white24 : Colors.black26),
+                      prefixIcon: Icon(Icons.search, color: isDark ? Colors.white38 : Colors.black38),
+                      border: InputBorder.none,
                     ),
                   ),
                 ),
               ),
 
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
+              // Chat list (ListView for smooth scrolling)
+              Expanded(
+                child: ListView.builder(
+                  controller: _scrollController,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: _customChats.length + 20,
+                  itemBuilder: (context, index) {
                     if (index < _customChats.length) {
                       final chat = _customChats[index];
                       return _buildCustomChatTile(chat, isDark);
@@ -137,7 +110,6 @@ class _ChatsScreenState extends State<ChatsScreen> {
                     final generatedIndex = index - _customChats.length;
                     return _buildChatTile(generatedIndex, isDark);
                   },
-                  childCount: _customChats.length + 20,
                 ),
               ),
             ],
