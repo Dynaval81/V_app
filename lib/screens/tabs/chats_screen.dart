@@ -4,6 +4,7 @@ import '../../utils/glass_kit.dart';
 import '../../theme_provider.dart';
 import '../../constants/app_constants.dart';
 import '../chat_room_screen.dart';
+import '../account_settings_screen.dart';
 
 class ChatsScreen extends StatefulWidget {
   const ChatsScreen({super.key});
@@ -91,9 +92,15 @@ class _ChatsScreenState extends State<ChatsScreen> {
                       onPressed: () => _showSearch(context, isDark),
                       color: isDark ? Colors.white : Colors.black,
                     ),
-                  CircleAvatar(
-                    radius: 18, 
-                    backgroundImage: NetworkImage("${AppConstants.defaultAvatarUrl}?u=me")
+                  GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
+                    ),
+                    child: CircleAvatar(
+                      radius: 18,
+                      backgroundImage: NetworkImage("${AppConstants.defaultAvatarUrl}?u=me"),
+                    ),
                   ),
                   const SizedBox(width: 16),
                 ],
