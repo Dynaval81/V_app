@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import '../constants/emoji_sizes.dart';
-import '../screens/chat_room_screen.dart';
 
 class EmojiRenderer {
   static Widget render(String code, double size, {String? semanticLabel}) {

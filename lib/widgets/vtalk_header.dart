@@ -26,7 +26,6 @@ class _VtalkHeaderState extends State<VtalkHeader>
   late AnimationController _avatarController;
   late AnimationController _titleController;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _opacityAnimation;
   
   @override
   void initState() {
@@ -46,14 +45,6 @@ class _VtalkHeaderState extends State<VtalkHeader>
     ).animate(CurvedAnimation(
       parent: _avatarController, 
       curve: Curves.elasticOut,
-    ));
-    
-    _opacityAnimation = Tween<double>(
-      begin: 1.0, 
-      end: 0.0,
-    ).animate(CurvedAnimation(
-      parent: _titleController, 
-      curve: Curves.easeInOutCubic,
     ));
   }
   
@@ -122,54 +113,63 @@ class _VtalkHeaderState extends State<VtalkHeader>
         radius: 0,
         isDark: isDark,
         opacity: appBarOpacity,
+        useBlur: true,  // ✅ Явно включаем блюр для заголовка
         child: Container(),
       ),
       title: Row(
         children: [
           const Icon(Icons.blur_on, color: Colors.blueAccent, size: 30),
           const SizedBox(width: 8),
-          Opacity(
-            opacity: titleOpacity,
-            child: Text(
-              widget.title.toUpperCase(), 
-              style: TextStyle(
-                color: isDark ? Colors.white : Colors.black,
-                fontWeight: FontWeight.w900, // Изменили с black на w900
-                letterSpacing: 2,
-                fontSize: 18,
+          Flexible(  // ✅ Добавили Flexible чтобы текст не переполнял
+            child: Opacity(
+              opacity: titleOpacity,
+              child: Text(
+                widget.title.toUpperCase(), 
+                style: TextStyle(
+                  color: isDark ? Colors.white : Colors.black,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2,
+                  fontSize: 18,
+                ),
+                overflow: TextOverflow.ellipsis,  // ✅ Защита от overflow
               ),
             ),
           ),
         ],
       ),
-      actions: [
-        if (widget.actions != null) ...widget.actions!,
-        const SizedBox(width: 8),
-        ScaleTransition(
+      actions: widget.actions != null  // ✅ Безопасная проверка null
+          ? [...?widget.actions]
+          : [],  // ✅ Возвращаем пустой список вместо ошибки
+      // ✅ Заменили небезопасное распаковывание на безопасное
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(0),
+        child: ScaleTransition(
           scale: _scaleAnimation,
-          child: GestureDetector(
-            onTapDown: (_) => _animateAvatar(),
-            onTapUp: (_) => _avatarController.reverse(),
-            onTapCancel: () => _avatarController.reverse(),
-            onTap: () => Navigator.pushNamed(context, '/settings'),
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isDark ? Colors.white24 : Colors.black12,
-                  width: 2,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: GestureDetector(
+              onTapDown: (_) => _animateAvatar(),
+              onTapUp: (_) => _avatarController.reverse(),
+              onTapCancel: () => _avatarController.reverse(),
+              onTap: () => Navigator.pushNamed(context, '/settings'),
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isDark ? Colors.white24 : Colors.black12,
+                    width: 2,
+                  ),
                 ),
-              ),
-              child: CircleAvatar(
-                radius: 16,
-                backgroundImage: const NetworkImage("https://i.pravatar.cc/150?u=me"),
-                backgroundColor: Colors.transparent,
+                child: CircleAvatar(
+                  radius: 16,
+                  backgroundColor: Colors.blue.withOpacity(0.7),  // ✅ Избегаем NetworkImage в быстро перерисовываемом контексте
+                  child: const Icon(Icons.person, color: Colors.white),
+                ),
               ),
             ),
           ),
         ),
-        const SizedBox(width: 16),
-      ],
+      ),
     );
   }
 }

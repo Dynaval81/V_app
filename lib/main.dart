@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'theme_provider.dart';
-import 'screens/chats_screen_working.dart';
+import 'screens/tabs/chats_screen.dart';
 import 'screens/tabs/vpn_screen.dart';
 import 'screens/tabs/ai_screen.dart';
-import 'screens/dashboard_screen_working.dart';
-import 'screens/chat_room_screen_working.dart';
+import 'screens/dashboard_screen.dart';
+import 'screens/chat_room_screen.dart';
 
 void main() {
   runApp(

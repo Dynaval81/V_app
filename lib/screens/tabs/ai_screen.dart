@@ -4,6 +4,8 @@ import 'dart:async';
 import 'dart:math';
 import '../../utils/glass_kit.dart';
 import '../../theme_provider.dart';
+import '../../widgets/vtalk_unified_app_bar.dart';
+import '../account_settings_screen.dart';
 
 class ChatMessage {
   final String text;
@@ -85,16 +87,24 @@ class _AIScreenState extends State<AIScreen> {
     final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
     
     return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: VtalkUnifiedAppBar(
+        title: 'Vtalk AI',
+        isDark: isDark,
+        onAvatarTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
+        ),
+      ),
       body: Container(
         decoration: GlassKit.mainBackground(isDark),
         child: SafeArea(
           child: Column(
             children: [
-              _buildAppBar("Vtalk AI"),
               Expanded(
                 child: ListView.builder(
                   controller: _scrollController,
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   itemCount: _messages.length,
                   itemBuilder: (context, index) {
                     return _buildAiBubble(_messages[index].text, _messages[index].isUser);
@@ -126,31 +136,6 @@ class _AIScreenState extends State<AIScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildAppBar(String title) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
-        final isDark = themeProvider.isDarkMode;
-        
-        return Padding(
-          padding: EdgeInsets.all(20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: TextStyle(color: isDark ? Colors.white : Colors.black, fontSize: 24, fontWeight: FontWeight.bold)),
-                  Text("always online", style: TextStyle(color: Colors.greenAccent, fontSize: 12)),
-                ],
-              ),
-              CircleAvatar(radius: 22, backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=ai")),
-            ],
-          ),
-        );
-      },
     );
   }
 

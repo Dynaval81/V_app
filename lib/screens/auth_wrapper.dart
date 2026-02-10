@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../providers/theme_provider.dart';
+import '../theme_provider.dart';  // ✅ Исправлено: правильный путь
 import 'main_app.dart';
 import 'auth/register_screen.dart';
 

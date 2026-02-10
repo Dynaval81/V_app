@@ -4,6 +4,8 @@ import 'dart:async';
 import '../../utils/glass_kit.dart';
 import '../../theme_provider.dart';
 import '../../constants/app_constants.dart';
+import '../../widgets/vtalk_unified_app_bar.dart';
+import '../account_settings_screen.dart';
 
 class VPNScreen extends StatefulWidget {
   const VPNScreen({super.key});
@@ -49,17 +51,25 @@ class _VPNScreenState extends State<VPNScreen> {
     final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
     
     return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: VtalkUnifiedAppBar(
+        title: 'VTALK VPN',
+        isDark: isDark,
+        onAvatarTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
+        ),
+      ),
       body: Container(
-        width: double.infinity,  // Растягиваем на всю ширину
-        height: double.infinity, // Растягиваем на всю высоту
+        width: double.infinity,
+        height: double.infinity,
         decoration: GlassKit.mainBackground(isDark),
         child: SafeArea(
           child: SingleChildScrollView(
-            physics: BouncingScrollPhysics(),
+            physics: const BouncingScrollPhysics(),
             child: Column(
               children: [
-                _buildAppBar("VTALK VPN"),
-                SizedBox(height: 40),
+                const SizedBox(height: 20),
 
                 // Кнопка подключения
                 GestureDetector(
@@ -131,25 +141,6 @@ class _VPNScreenState extends State<VPNScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildAppBar(String title) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
-        final isDark = themeProvider.isDarkMode;
-        
-        return Padding(
-          padding: EdgeInsets.all(20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(title, style: TextStyle(color: isDark ? Colors.white : Colors.black, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2)),
-              CircleAvatar(radius: 22, backgroundImage: NetworkImage("${AppConstants.defaultAvatarUrl}?u=vpn")),
-            ],
-          ),
-        );
-      },
     );
   }
 

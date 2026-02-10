@@ -16,7 +16,7 @@ class EmojiPreviewOverlay extends StatefulWidget {
 class _EmojiPreviewOverlayState extends State<EmojiPreviewOverlay> 
     with TickerProviderStateMixin {
   OverlayEntry? _overlayEntry;
-  String? _currentEmoji;
+  // Removed unused field: String? _currentEmoji;
   late AnimationController _previewController;
   late Animation<double> _fadeAnimation;
   Timer? _hideTimer;
@@ -50,8 +50,6 @@ class _EmojiPreviewOverlayState extends State<EmojiPreviewOverlay>
     if (_overlayEntry != null) {
       _removeOverlay();
     }
-    
-    _currentEmoji = emojiCode;
     
     _overlayEntry = OverlayEntry(
       builder: (context) => Positioned(

@@ -6,7 +6,8 @@ class GlassKit {
     required Widget child, 
     double radius = 20, 
     double? opacity,
-    bool isDark = true
+    bool isDark = true,
+    bool useBlur = true,  // ✅ Новый параметр для контроля блюра
   }) {
     // Выбираем базовый цвет стекла в зависимости от темы
     Color glassColor = isDark 
@@ -16,7 +17,9 @@ class GlassKit {
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        filter: useBlur 
+          ? ImageFilter.blur(sigmaX: 12, sigmaY: 12)
+          : ImageFilter.blur(sigmaX: 0, sigmaY: 0),  // ✅ Отключаем блюр для производительности
         child: Container(
           decoration: BoxDecoration(
             color: glassColor, // Теперь цвет не будет спорить с темой

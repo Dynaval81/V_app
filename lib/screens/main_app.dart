@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'tabs/chats_screen.dart';
 import 'tabs/vpn_screen.dart';
 import 'tabs/ai_screen.dart';
 import 'dashboard_screen.dart';
-import '../constants/app_constants.dart';
 import '../theme_provider.dart';
 
 class MainApp extends StatefulWidget {
@@ -19,7 +17,6 @@ class MainApp extends StatefulWidget {
 
 class _MainAppState extends State<MainApp> {
   int _currentIndex = 0;
-  final _secureStorage = FlutterSecureStorage();
 
   @override
   void initState() {
@@ -41,97 +38,6 @@ class _MainAppState extends State<MainApp> {
     setState(() {
       _currentIndex = index;
     });
-  }
-
-  Future<void> _showProfile() async {
-    final nickname = await _secureStorage.read(key: AppConstants.userNicknameKey) ?? 'User';
-    final email = await _secureStorage.read(key: AppConstants.userEmailKey) ?? 'user@example.com';
-    final vtalkNumber = await _secureStorage.read(key: AppConstants.vtalkNumberKey) ?? 'VT-0000';
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Theme.of(context).cardColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Profile',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-              ),
-            ),
-            SizedBox(height: 20),
-            CircleAvatar(
-              radius: 40,
-              backgroundColor: Colors.blue,
-              child: Text(
-                nickname.isNotEmpty ? nickname[0].toUpperCase() : '?',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-            Text(
-              nickname,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              email,
-              style: TextStyle(
-                fontSize: 14,
-                color: Theme.of(context).textTheme.bodyMedium?.color,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              vtalkNumber,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue,
-              ),
-            ),
-            SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25),
-                ),
-              ),
-              child: Text(
-                'Close',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _showSearch() async {
-    showSearch(
-      context: context,
-      delegate: CustomSearchDelegate(),
-    );
   }
 
   @override
