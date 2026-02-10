@@ -141,7 +141,11 @@ class _ChatsScreenState extends State<ChatsScreen> {
     return ListTile(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => ChatRoomScreen(chatId: chat['id'] as int, chatName: chat['name'] as String)),
+        MaterialPageRoute(builder: (context) => ChatRoomScreen(
+          chatId: chat['id'] as int, 
+          chatName: chat['name'] as String,
+          isGroupChat: false, // Личные чаты
+        )),
       ),
       leading: Stack(
         children: [
@@ -184,7 +188,11 @@ class _ChatsScreenState extends State<ChatsScreen> {
     return ListTile(
       onTap: () => Navigator.push(
         context, 
-        MaterialPageRoute(builder: (context) => ChatRoomScreen(chatId: i, chatName: chatName))
+        MaterialPageRoute(builder: (context) => ChatRoomScreen(
+          chatId: i, 
+          chatName: chatName,
+          isGroupChat: isGroup, // Групповые чаты
+        )),
       ),
       leading: Stack(
         children: [

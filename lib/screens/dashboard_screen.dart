@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../theme_provider.dart';
 import '../utils/glass_kit.dart';
-import '../widgets/vtalk_unified_app_bar.dart';
+import '../constants/app_constants.dart';
 import './account_settings_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -17,6 +18,9 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
+  final ScrollController _scrollController = ScrollController();
+  final ValueNotifier<double> _searchOpacity = ValueNotifier(0.0);
+  double _lastOffset = 0.0;
 
   @override
   void initState() {
@@ -26,11 +30,26 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
       vsync: this,
     );
     _animationController.forward();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    final offset = _scrollController.offset;
+    // Только обновлять при значимых изменениях (debounce: >5px)
+    if ((offset - _lastOffset).abs() > 5.0) {
+      _lastOffset = offset;
+      final newOpacity = (offset / 80).clamp(0.0, 1.0);
+      if ((newOpacity - _searchOpacity.value).abs() > 0.05) {
+        _searchOpacity.value = newOpacity;
+      }
+    }
   }
 
   @override
   void dispose() {
     _animationController.dispose();
+    _scrollController.dispose();
+    _searchOpacity.dispose();
     super.dispose();
   }
 
@@ -182,201 +201,228 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
     
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: VtalkUnifiedAppBar(
-        title: 'Dashboard',
-        isDark: isDark,
-        onAvatarTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
-        ),
-      ),
       body: Container(
         decoration: GlassKit.mainBackground(isDark),
         child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-            children: [
-              // ✨ Enhanced Header - Removed (now using appBar)
-              const SizedBox(height: 12),
-
-              // 📊 Stats Row
-              Row(
-                children: [
-                  _buildStatCard(
-                    label: 'Chats',
-                    value: '24',
-                    icon: Icons.chat_bubble_outline,
-                    color: Colors.blue,
-                    isDark: isDark,
+          child: CustomScrollView(
+            controller: _scrollController,
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              SliverAppBar(
+                pinned: true,
+                automaticallyImplyLeading: false,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                flexibleSpace: GlassKit.liquidGlass(
+                  radius: 0,
+                  isDark: isDark,
+                  opacity: 0.3,
+                  useBlur: true,
+                  child: Container(),
+                ),
+                title: Row(
+                  children: [
+                    const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text("VTALK", style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 2,
+                        fontSize: 20
+                      )),
+                    ),
+                  ],
+                ),
+                actions: [
+                  ValueListenableBuilder<double>(
+                    valueListenable: _searchOpacity,
+                    builder: (context, opacity, _) {
+                      return IconButton(
+                        icon: const Icon(Icons.search), 
+                        onPressed: () => _showSearch(context, isDark),
+                        color: isDark ? Colors.white : Colors.black.withOpacity(opacity),
+                      );
+                    },
                   ),
-                  const SizedBox(width: 8),
-                  _buildStatCard(
-                    label: 'Online',
-                    value: '12',
-                    icon: Icons.person_add,
-                    color: Colors.green,
-                    isDark: isDark,
+                  GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
+                    ),
+                    child: CircleAvatar(
+                      radius: 18,
+                      backgroundImage: CachedNetworkImageProvider("${AppConstants.defaultAvatarUrl}?u=me"),
+                    ),
                   ),
-                  const SizedBox(width: 8),
-                  _buildStatCard(
-                    label: 'Storage',
-                    value: '2.4GB',
-                    icon: Icons.storage,
-                    color: Colors.purple,
-                    isDark: isDark,
-                  ),
+                  const SizedBox(width: 16),
                 ],
               ),
-
-              const SizedBox(height: 32),
-
-              // 🔐 Status Section
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Text(
-                  'Status',
-                  style: TextStyle(
-                    color: isDark ? Colors.white : Colors.black,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
+                      border: Border.all(color: isDark ? Colors.white12 : Colors.black12, width: 1),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: TextField(
+                      style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                      decoration: InputDecoration(
+                        hintText: "Search dashboard...",
+                        hintStyle: TextStyle(color: isDark ? Colors.white24 : Colors.black26),
+                        prefixIcon: Icon(Icons.search, color: isDark ? Colors.white38 : Colors.black38),
+                        border: InputBorder.none,
+                      ),
+                    ),
                   ),
                 ),
               ),
-
-              GlassKit.liquidGlass(
-                radius: 16,
-                isDark: isDark,
-                opacity: 0.08,
-                useBlur: false,
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  child: Column(
                     children: [
-                      Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.green.withOpacity(0.5),
-                              blurRadius: 8,
-                              spreadRadius: 1,
-                            ),
-                          ],
+                      // 📊 Stats Row
+                      Row(
+                        children: [
+                          _buildStatCard(
+                            label: 'Chats',
+                            value: '24',
+                            icon: Icons.chat_bubble_outline,
+                            color: Colors.blue,
+                            isDark: isDark,
+                          ),
+                          const SizedBox(width: 8),
+                          _buildStatCard(
+                            label: 'Online',
+                            value: '12',
+                            icon: Icons.person_add,
+                            color: Colors.green,
+                            isDark: isDark,
+                          ),
+                          const SizedBox(width: 8),
+                          _buildStatCard(
+                            label: 'Storage',
+                            value: '2.4GB',
+                            icon: Icons.storage,
+                            color: Colors.purple,
+                            isDark: isDark,
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // 🔐 Status Section
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: Text(
+                          'Status',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : Colors.black,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.5,
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'VPN Connection',
-                              style: TextStyle(
-                                color: isDark ? Colors.white : Colors.black,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.3,
+
+                      GlassKit.liquidGlass(
+                        radius: 16,
+                        isDark: isDark,
+                        opacity: 0.08,
+                        useBlur: false,
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 12,
+                                height: 12,
+                                decoration: BoxDecoration(
+                                  color: Colors.green,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.green.withOpacity(0.5),
+                                      blurRadius: 8,
+                                      spreadRadius: 1,
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Connected • Moscow, RU',
-                              style: TextStyle(
-                                color: isDark ? Colors.white60 : Colors.black45,
-                                fontSize: 12,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'VPN Connection',
+                                      style: TextStyle(
+                                        color: isDark ? Colors.white : Colors.black,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 0.3,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Connected • Moscow, RU',
+                                      style: TextStyle(
+                                        color: isDark ? Colors.white60 : Colors.black45,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                              Icon(Icons.check_circle, color: Colors.green, size: 20),
+                            ],
+                          ),
                         ),
                       ),
-                      Icon(Icons.check_circle, color: Colors.green, size: 20),
+
+                      const SizedBox(height: 32),
+
+                      // 🎯 Quick Actions
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: Text(
+                          'Quick Access',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : Colors.black,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+
+                      _buildAirItem(
+                        icon: Icons.vpn_lock_rounded,
+                        title: 'Vtalk VPN',
+                        subtitle: 'Secure & Anonymous Connection',
+                        color: Colors.blue,
+                        isDark: isDark,
+                        onTap: () => widget.onTabSwitch(1),
+                      ),
+
+                      _buildAirItem(
+                        icon: Icons.psychology_rounded,
+                        title: 'AI Assistant',
+                        subtitle: 'Your Personal AI Companion',
+                        color: Colors.purple,
+                        isDark: isDark,
+                        onTap: () => widget.onTabSwitch(2),
+                      ),
+
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
               ),
-
-              const SizedBox(height: 32),
-
-              // 🎯 Quick Actions
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Text(
-                  'Quick Access',
-                  style: TextStyle(
-                    color: isDark ? Colors.white : Colors.black,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-
-              _buildAirItem(
-                icon: Icons.vpn_lock_rounded,
-                title: 'Vtalk VPN',
-                subtitle: 'Secure & Anonymous Connection',
-                color: Colors.blue,
-                isDark: isDark,
-                onTap: () => widget.onTabSwitch(1),
-              ),
-
-              _buildAirItem(
-                icon: Icons.psychology_rounded,
-                title: 'AI Assistant',
-                subtitle: 'Smart conversations & help',
-                color: Colors.purple,
-                isDark: isDark,
-                onTap: () => widget.onTabSwitch(2),
-              ),
-
-              _buildAirItem(
-                icon: Icons.message_rounded,
-                title: 'Chats',
-                subtitle: 'Back to your conversations',
-                color: Colors.cyan,
-                isDark: isDark,
-                onTap: () => widget.onTabSwitch(0),
-              ),
-
-              const SizedBox(height: 32),
-
-              // ℹ️ About Section
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Text(
-                  'App Info',
-                  style: TextStyle(
-                    color: isDark ? Colors.white : Colors.black,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-
-              _buildAirItem(
-                icon: Icons.help_outline,
-                title: 'Help & Support',
-                subtitle: 'FAQ and contact information',
-                color: Colors.orange,
-                isDark: isDark,
-                onTap: () => _showAboutDialog(context, isDark),
-              ),
-
-              _buildAirItem(
-                icon: Icons.info_outline,
-                title: 'About Vtalk',
-                subtitle: 'Version 0.5 • Mercury Edition',
-                color: Colors.teal,
-                isDark: isDark,
-                onTap: () => _showAboutDialog(context, isDark),
-              ),
-
-              const SizedBox(height: 40),
             ],
           ),
         ),
@@ -384,126 +430,84 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
     );
   }
 
-  void _showAboutDialog(BuildContext context, bool isDark) {
-    showDialog(
+  void _showSearch(BuildContext context, bool isDark) {
+    showSearch(
       context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        child: GlassKit.liquidGlass(
-          radius: 24,
-          isDark: isDark,
-          opacity: 0.15,
-          useBlur: true,
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'About Vtalk',
-                        style: TextStyle(
-                          color: isDark ? Colors.white : Colors.black,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: Icon(
-                          Icons.close_rounded,
-                          color: isDark ? Colors.white60 : Colors.black45,
-                          size: 24,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'VTalk v0.5 • Mercury Edition',
-                    style: TextStyle(
-                      color: isDark ? Colors.white70 : Colors.black54,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'A modern messaging app with emoji support, VPN integration, and AI-powered features.',
-                    style: TextStyle(
-                      color: isDark ? Colors.white60 : Colors.black45,
-                      fontSize: 13,
-                      height: 1.6,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    '✨ Features',
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ...[
-                    '✅ Emoji System with GIF Support',
-                    '✅ VPN Integration',
-                    '✅ AI Assistant',
-                    '✅ Dark/Light Theme',
-                    '✅ Mercury Design System',
-                    '✅ Real-time Messaging',
-                  ].map((feature) => Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: Text(
-                      feature,
-                      style: TextStyle(
-                        color: isDark ? Colors.white60 : Colors.black45,
-                        fontSize: 12,
-                        height: 1.5,
-                      ),
-                    ),
-                  )),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: GlassKit.liquidGlass(
-                            radius: 12,
-                            isDark: isDark,
-                            opacity: 0.15,
-                            useBlur: false,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              alignment: Alignment.center,
-                              child: Text(
-                                'Close',
-                                style: TextStyle(
-                                  color: Colors.blue,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
+      delegate: DashboardSearchDelegate(isDark: isDark),
+    );
+  }
+}
+
+// Делегат для поиска в дашборде
+class DashboardSearchDelegate extends SearchDelegate<String> {
+  final bool isDark;
+
+  DashboardSearchDelegate({required this.isDark});
+
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    return [
+      IconButton(
+        icon: Icon(Icons.clear, color: isDark ? Colors.white : Colors.black),
+        onPressed: () {
+          query = '';
+          showSuggestions(context);
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget buildLeading(BuildContext context) {
+    return IconButton(
+      icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
+      onPressed: () {
+        close(context, '');
+      },
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    return Center(
+      child: Text(
+        'Search results for: $query',
+        style: TextStyle(
+          color: isDark ? Colors.white : Colors.black,
+          fontSize: 16,
         ),
       ),
+    );
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    final suggestions = [
+      'VPN Settings',
+      'AI Assistant',
+      'Storage Management',
+      'Account Settings',
+      'Help & Support',
+      'Chat History',
+    ].where((suggestion) => suggestion.toLowerCase().contains(query.toLowerCase())).toList();
+
+    return ListView.builder(
+      itemCount: suggestions.length,
+      itemBuilder: (context, index) {
+        return ListTile(
+          leading: Icon(Icons.search, color: isDark ? Colors.blue : Colors.blue),
+          title: Text(
+            suggestions.elementAt(index),
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black,
+            ),
+          ),
+          onTap: () {
+            query = suggestions.elementAt(index);
+            showResults(context);
+          },
+        );
+      },
     );
   }
 }

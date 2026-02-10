@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../utils/glass_kit.dart';
 import '../utils/emoji_text_controller.dart';
 import '../theme_provider.dart';
+import '../constants/app_constants.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final int chatId;
   final String? chatName;
-  const ChatRoomScreen({Key? key, required this.chatId, this.chatName}) : super(key: key);
+  final bool isGroupChat; // Добавляем параметр для определения типа чата
+  const ChatRoomScreen({Key? key, required this.chatId, this.chatName, this.isGroupChat = false}) : super(key: key);
 
   @override
   State<ChatRoomScreen> createState() => _ChatRoomScreenState();
@@ -19,6 +22,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   late EmojiTextEditingController _messageController;
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
+  final ValueNotifier<double> _headerOpacity = ValueNotifier(0.0);
+  double _lastOffset = 0.0;
   
   // Primary emoji collection (Main set - all 40 SVG icons from set 2)
   final Map<String, String> _primaryEmojis = {
@@ -111,7 +116,20 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       retroAssets: _retroEmojis,
       isDark: false,
     );
+    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+  }
+
+  void _onScroll() {
+    final offset = _scrollController.offset;
+    // Только обновлять при значимых изменениях (debounce: >5px)
+    if ((offset - _lastOffset).abs() > 5.0) {
+      _lastOffset = offset;
+      final newOpacity = (offset / 100).clamp(0.0, 1.0);
+      if ((newOpacity - _headerOpacity.value).abs() > 0.05) {
+        _headerOpacity.value = newOpacity;
+      }
+    }
   }
 
   @override
@@ -119,6 +137,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     _messageController.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
+    _headerOpacity.dispose();
     super.dispose();
   }
 
@@ -130,6 +149,26 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         curve: Curves.easeOut,
       );
     }
+  }
+
+  void _startVideoCall() {
+    // TODO: Реализовать видеозвонок
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Видеозвонок с ${widget.chatName ?? 'Chat Room ${widget.chatId}'}'),
+        backgroundColor: Colors.blue,
+      ),
+    );
+  }
+
+  void _startAudioCall() {
+    // TODO: Реализовать аудиозвонок
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Аудиозвонок с ${widget.chatName ?? 'Chat Room ${widget.chatId}'}'),
+        backgroundColor: Colors.green,
+      ),
+    );
   }
 
   void _sendMessage() {
@@ -369,84 +408,152 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         body: Container(
           decoration: GlassKit.mainBackground(isDark),
           child: SafeArea(
-            child: Column(
-              children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        widget.chatName ?? 'Chat Room ${widget.chatId}',
-                        style: TextStyle(color: isDark ? Colors.white : Colors.black, fontSize: 18, fontWeight: FontWeight.bold),
-                        overflow: TextOverflow.ellipsis,
+            child: CustomScrollView(
+              controller: _scrollController,
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                // Единая шапка в стиле VTALK (точная копия общих чатов)
+                SliverAppBar(
+                  pinned: true,
+                  automaticallyImplyLeading: false,
+                  backgroundColor: Colors.transparent, // Как в общих чатах
+                  elevation: 0,
+                  flexibleSpace: GlassKit.liquidGlass(
+                    radius: 0, // Как в общих чатах
+                    isDark: isDark,
+                    opacity: 0.3, // Как в общих чатах
+                    useBlur: true, // Как в общих чатах
+                    child: Container(),
+                  ),
+                  title: Row(
+                    children: [
+                      // Кнопка назад вместо иконки blur_on
+                      IconButton(
+                        icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
+                        onPressed: () => Navigator.pop(context),
                       ),
-                    ),
-                    IconButton(icon: Icon(Icons.more_vert, color: isDark ? Colors.white : Colors.black), onPressed: () {}),
-                  ],
-                ),
-              ),
-
-              // Messages
-              Expanded(
-                child: ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _messages.length,
-                  itemBuilder: (context, index) {
-                    final m = _messages[index];
-                    final isMe = m['isMe'] as bool;
-                    return Container(
-                      margin: const EdgeInsets.symmetric(vertical: 6),
-                      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-                      child: GlassKit.liquidGlass(
-                        isDark: isDark,
-                        useBlur: false,
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: RichText(text: _buildTextWithEmojis(m['text'] as String, isDark)),
+                      const SizedBox(width: 8),
+                      
+                      // Аватар контакта
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundImage: CachedNetworkImageProvider(
+                          "${AppConstants.defaultAvatarUrl}?u=${widget.chatId}",
                         ),
                       ),
-                    );
-                  },
-                ),
-              ),
-
-              // Input
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.emoji_emotions_outlined, color: isDark ? Colors.white70 : Colors.black54),
-                      onPressed: () => _showEmojiPicker(isDark),
-                    ),
-                    Expanded(
-                      child: TextField(
-                        controller: _messageController,
-                        focusNode: _focusNode,
-                        style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                        decoration: InputDecoration(
-                          hintText: 'Type a message...',
-                          hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
-                          filled: true,
-                          fillColor: isDark ? Colors.white10 : Colors.black12,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
+                      const SizedBox(width: 12),
+                      
+                      // Имя контакта
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.chatName ?? 'Chat Room ${widget.chatId}',
+                              style: TextStyle(
+                                color: isDark ? Colors.white : Colors.black,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              'Online',
+                              style: TextStyle(
+                                color: isDark ? Colors.white70 : Colors.black54,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
-                        onSubmitted: (_) => _sendMessage(),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton(icon: Icon(Icons.send, color: Colors.blueAccent), onPressed: _sendMessage),
+                    ],
+                  ),
+                  actions: [
+                    // Кнопки вызова только для личных чатов
+                    if (!widget.isGroupChat) ...[
+                      ValueListenableBuilder<double>(
+                        valueListenable: _headerOpacity,
+                        builder: (context, opacity, _) {
+                          return IconButton(
+                            icon: Icon(Icons.videocam, color: isDark ? Colors.white : Colors.black),
+                            onPressed: () => _startVideoCall(),
+                          );
+                        },
+                      ),
+                      ValueListenableBuilder<double>(
+                        valueListenable: _headerOpacity,
+                        builder: (context, opacity, _) {
+                          return IconButton(
+                            icon: Icon(Icons.call, color: isDark ? Colors.white : Colors.black),
+                            onPressed: () => _startAudioCall(),
+                          );
+                        },
+                      ),
+                    ],
+                    const SizedBox(width: 16),
                   ],
                 ),
-              ),
+                
+                // Messages
+                SliverToBoxAdapter(
+                  child: Container(
+                    height: MediaQuery.of(context).size.height - 200, // Высота для сообщений
+                    child: ListView.builder(
+                      // Убираем controller - он уже используется в CustomScrollView
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _messages.length,
+                      itemBuilder: (context, index) {
+                        final m = _messages[index];
+                        final isMe = m['isMe'] as bool;
+                        return Container(
+                          margin: const EdgeInsets.symmetric(vertical: 6),
+                          alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                          child: GlassKit.liquidGlass(
+                            isDark: isDark,
+                            useBlur: false,
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: RichText(text: _buildTextWithEmojis(m['text'] as String, isDark)),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+
+                // Input field
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.emoji_emotions_outlined, color: isDark ? Colors.white70 : Colors.black54),
+                          onPressed: () => _showEmojiPicker(isDark),
+                        ),
+                        Expanded(
+                          child: TextField(
+                            controller: _messageController,
+                            focusNode: _focusNode,
+                            style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                            decoration: InputDecoration(
+                              hintText: 'Type a message...',
+                              hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
+                              filled: true,
+                              fillColor: isDark ? Colors.white10 : Colors.black12,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
+                            ),
+                            onSubmitted: (_) => _sendMessage(),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(icon: Icon(Icons.send, color: Colors.blueAccent), onPressed: _sendMessage),
+                      ],
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
