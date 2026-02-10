@@ -17,12 +17,24 @@ class ChatsScreen extends StatefulWidget {
 
 class _ChatsScreenState extends State<ChatsScreen> {
   final ScrollController _scrollController = ScrollController();
+  final ValueNotifier<double> _scrollOffset = ValueNotifier(0.0);
   // Simple in-memory storage for newly created chats/groups in this session
   final List<Map<String, dynamic>> _customChats = [];
 
   @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    _scrollOffset.value = _scrollController.offset;
+  }
+
+  @override
   void dispose() {
     _scrollController.dispose();
+    _scrollOffset.dispose();
     super.dispose();
   }
 
@@ -42,23 +54,60 @@ class _ChatsScreenState extends State<ChatsScreen> {
             controller: _scrollController,
             physics: const BouncingScrollPhysics(),
             slivers: [
-              VtalkHeader(
-                title: 'VTALK',
-                showScrollAnimation: false,
+              SliverAppBar(
+                pinned: true,
+                automaticallyImplyLeading: false,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                title: Row(
+                  children: [
+                    const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ValueListenableBuilder<double>(
+                        valueListenable: _scrollOffset,
+                        builder: (context, offset, _) {
+                          final opacity = (1.0 - (offset / 80)).clamp(0.0, 1.0);
+                          return Opacity(
+                            opacity: opacity,
+                            child: const Text("VTALK", style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 2,
+                              fontSize: 20
+                            )),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
                 actions: [
+                  ValueListenableBuilder<double>(
+                    valueListenable: _scrollOffset,
+                    builder: (context, offset, _) {
+                      final opacity = (offset / 80).clamp(0.0, 1.0);
+                      return Opacity(
+                        opacity: opacity,
+                        child: IconButton(
+                          icon: const Icon(Icons.search), 
+                          onPressed: () => _showSearch(context, isDark),
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
+                      );
+                    },
+                  ),
                   GestureDetector(
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
                     ),
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 16),
-                      child: CircleAvatar(
-                        radius: 18,
-                        backgroundImage: CachedNetworkImageProvider("${AppConstants.defaultAvatarUrl}?u=me"),
-                      ),
+                    child: CircleAvatar(
+                      radius: 18,
+                      backgroundImage: CachedNetworkImageProvider("${AppConstants.defaultAvatarUrl}?u=me"),
                     ),
                   ),
+                  const SizedBox(width: 16),
                 ],
               ),
               SliverToBoxAdapter(
