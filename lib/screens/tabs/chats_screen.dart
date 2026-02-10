@@ -66,10 +66,20 @@ class _ChatsScreenState extends State<ChatsScreen> {
               SliverAppBar(
                 pinned: true,
                 automaticallyImplyLeading: false,
-                backgroundColor: isDark 
-                  ? Colors.white.withValues(alpha: 0.12)
-                  : Colors.black.withValues(alpha: 0.08),
+                backgroundColor: Colors.transparent,
                 elevation: 0,
+                flexibleSpace: ValueListenableBuilder<double>(
+                  valueListenable: _searchOpacity,
+                  builder: (context, opacity, _) {
+                    return GlassKit.liquidGlass(
+                      radius: 0,
+                      isDark: isDark,
+                      opacity: opacity * 0.4,
+                      useBlur: true,
+                      child: Container(),
+                    );
+                  },
+                ),
                 title: Row(
                   children: [
                     const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
