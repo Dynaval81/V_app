@@ -137,9 +137,7 @@ class _VtalkHeaderState extends State<VtalkHeader>
           ),
         ],
       ),
-      actions: widget.actions != null  // ✅ Безопасная проверка null
-          ? [...?widget.actions]
-          : [],  // ✅ Возвращаем пустой список вместо ошибки
+        actions: widget.actions ?? [],
       // ✅ Заменили небезопасное распаковывание на безопасное
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(0),
