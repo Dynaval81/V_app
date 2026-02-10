@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 /// Custom TextEditingController that renders emoji codes as images inline
 /// Shows :smile: as actual GIF while keeping text format for sending
@@ -23,6 +24,28 @@ class EmojiTextEditingController extends TextEditingController {
 
   void updateTheme(bool isDark) {
     this.isDark = isDark;
+  }
+
+  // Helper to render emoji asset as GIF or SVG
+  Widget _buildEmojiAsset(String assetPath) {
+    if (assetPath.endsWith('.svg')) {
+      return SvgPicture.asset(
+        assetPath,
+        width: 22,
+        height: 22,
+        fit: BoxFit.contain,
+        colorFilter: const ColorFilter.mode(Color(0xFFFFFFFF), BlendMode.srcIn),
+      );
+    } else {
+      return Image.asset(
+        assetPath,
+        width: 22,
+        height: 22,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stack) =>
+            const Icon(Icons.broken_image, size: 14, color: Colors.red),
+      );
+    }
   }
 
   @override
@@ -62,12 +85,7 @@ class EmojiTextEditingController extends TextEditingController {
             child: SizedBox(
               width: 22,
               height: 22,
-              child: Image.asset(
-                asset,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stack) =>
-                    const Icon(Icons.broken_image, size: 14, color: Colors.red),
-              ),
+              child: _buildEmojiAsset(asset),
             ),
           ),
         ));

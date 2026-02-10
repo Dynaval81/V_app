@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../utils/glass_kit.dart';
 import '../utils/emoji_text_controller.dart';
 import '../theme_provider.dart';
@@ -183,6 +184,27 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     _scrollToBottom();
   }
 
+  // Helper function to render emoji asset as GIF or SVG
+  Widget _buildEmojiWidget(String assetPath, {double width = 28, double height = 28}) {
+    if (assetPath.endsWith('.svg')) {
+      return SvgPicture.asset(
+        assetPath,
+        width: width,
+        height: height,
+        fit: BoxFit.contain,
+        colorFilter: const ColorFilter.mode(Color(0xFFFFFFFF), BlendMode.srcIn),
+      );
+    } else {
+      return Image.asset(
+        assetPath,
+        width: width,
+        height: height,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stack) => Icon(Icons.broken_image, size: width * 0.8, color: Colors.red),
+      );
+    }
+  }
+
   // Robust emoji parsing using RegExp.allMatches
   InlineSpan _buildTextWithEmojis(String text, bool isDark) {
     final List<InlineSpan> spans = [];
@@ -207,11 +229,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             child: SizedBox(
               width: 28,
               height: 28,
-              child: Image.asset(
-                asset,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stack) => Icon(Icons.broken_image, size: 16, color: Colors.red),
-              ),
+              child: _buildEmojiWidget(asset, width: 28, height: 28),
             ),
           ),
         ));
@@ -288,11 +306,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                               SizedBox(
                                 width: 36,
                                 height: 36,
-                                child: Image.asset(
-                                  asset,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (c, e, s) => const Icon(Icons.emoji_emotions, size: 28),
-                                ),
+                                child: _buildEmojiWidget(asset, width: 36, height: 36),
                               ),
                               const SizedBox(height: 6),
                               Text(code.replaceAll(':', ''), style: const TextStyle(fontSize: 12)),
