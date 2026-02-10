@@ -87,8 +87,8 @@ class _MainScreenState extends State<MainScreen> {
         index: _currentIndex,
         children: [
           const ChatsScreen(),
-          const VPNScreen(),
           const AIScreen(),
+          const VPNScreen(),
           DashboardScreen(onTabSwitch: _switchTab),
         ],
       ),
@@ -101,8 +101,8 @@ class _MainScreenState extends State<MainScreen> {
         unselectedItemColor: Colors.white54,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: 'Chats'),
-          BottomNavigationBarItem(icon: Icon(Icons.vpn_lock), label: 'VPN'),
           BottomNavigationBarItem(icon: Icon(Icons.auto_awesome), label: 'Vtalk AI'),
+          BottomNavigationBarItem(icon: Icon(Icons.vpn_lock), label: 'VPN'),
           BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Dashboard'),
         ],
       ),

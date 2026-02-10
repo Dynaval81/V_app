@@ -27,8 +27,8 @@ class _MainAppState extends State<MainApp> {
   // ПРАВИЛЬНЫЙ ПОРЯДОК ВКЛАДОК
   List<Widget> get _screens => [
     const ChatsScreen(),      // 0. Мессенджер (Первый)
-    const VPNScreen(),        // 1. VPN
-    const AIScreen(),         // 2. Vtalk AI
+    const AIScreen(),         // 1. Vtalk AI
+    const VPNScreen(),        // 2. VPN
     DashboardScreen(          // 3. Dashboard (Последний)
       onTabSwitch: (i) => setState(() => _currentIndex = i),
     ),
@@ -58,8 +58,8 @@ class _MainAppState extends State<MainApp> {
             unselectedItemColor: themeProvider.isDarkMode ? Colors.white54 : Colors.black54,
             items: [
               BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: 'Chats'),
-              BottomNavigationBarItem(icon: Icon(Icons.vpn_lock), label: 'VPN'),
               BottomNavigationBarItem(icon: Icon(Icons.auto_awesome), label: 'Vtalk AI'),
+              BottomNavigationBarItem(icon: Icon(Icons.vpn_lock), label: 'VPN'),
               BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Dashboard'),
             ],
           ),
