@@ -7,6 +7,11 @@ import '../utils/glass_kit.dart';
 import '../utils/emoji_text_controller.dart';
 import '../theme_provider.dart';
 import '../constants/app_constants.dart';
+import '../widgets/vtalk_message_bubble.dart';
+import '../widgets/vtalk_floating_date_header.dart';
+import '../widgets/vtalk_url_preview.dart';
+import '../widgets/vtalk_compact_input.dart';
+import '../models/message_model.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final int chatId;
@@ -103,9 +108,34 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     ':undecided:': 'assets/emojis/undecided.gif',
   };
 
-  final List<Map<String, dynamic>> _messages = [
-    {'text': 'Привет! Посмотри на наши новые GIF :smile:', 'isMe': false, 'time': '12:30'},
-    {'text': 'Это работает мгновенно через Assets! :cool:', 'isMe': true, 'time': '12:31'},
+  final List<MessageModel> _messages = [
+    MessageModel(
+      id: '1',
+      text: 'Привет! Посмотри на наши новые эмодзи 😊',
+      isMe: false,
+      timestamp: DateTime.now().subtract(const Duration(minutes: 30)),
+      reactions: {'😊': 2, '👍': 1},
+    ),
+    MessageModel(
+      id: '2',
+      text: 'Это работает мгновенно через Assets! 😎',
+      isMe: true,
+      timestamp: DateTime.now().subtract(const Duration(minutes: 25)),
+      reactions: {'😎': 1},
+      replyTo: MessageModel(
+        id: '1',
+        text: 'Привет! Посмотри на наши новые эмодзи 😊',
+        isMe: false,
+        timestamp: DateTime.now().subtract(const Duration(minutes: 30)),
+      ),
+    ),
+    MessageModel(
+      id: '3',
+      text: 'Зацени этот сайт: https://flutter.dev',
+      isMe: false,
+      timestamp: DateTime.now().subtract(const Duration(minutes: 20)),
+      urls: ['https://flutter.dev'],
+    ),
   ];
 
   @override
@@ -117,7 +147,21 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       isDark: false,
     );
     _scrollController.addListener(_onScroll);
+    _focusNode.addListener(_onFocusChange);
+    
+    // Устанавливаем начальную прозрачность (более высокую для видимости при открытии)
+    _headerOpacity.value = 0.5;
+    
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+  }
+
+  void _onFocusChange() {
+    if (_focusNode.hasFocus) {
+      // Когда фокус на поле ввода, прокручиваем к низу
+      Future.delayed(const Duration(milliseconds: 300), () {
+        _scrollToBottom();
+      });
+    }
   }
 
   void _onScroll() {
@@ -125,7 +169,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     // Только обновлять при значимых изменениях (debounce: >5px)
     if ((offset - _lastOffset).abs() > 5.0) {
       _lastOffset = offset;
-      final newOpacity = (offset / 100).clamp(0.0, 1.0);
+      // Шапка становится прозрачнее при скролле ВНИЗ
+      final newOpacity = (1.0 - (offset / 100).clamp(0.0, 1.0)).clamp(0.3, 1.0);
       if ((newOpacity - _headerOpacity.value).abs() > 0.05) {
         _headerOpacity.value = newOpacity;
       }
@@ -176,16 +221,113 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     if (text.isEmpty) return;
 
     setState(() {
-      _messages.add({
-        'text': text,
-        'isMe': true,
-        'time': '${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}',
-      });
+      _messages.add(MessageModel(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        text: text,
+        isMe: true,
+        timestamp: DateTime.now(),
+      ));
     });
 
     _messageController.clear();
     _focusNode.requestFocus();
-    _scrollToBottom();
+    
+    // Прокручиваем к новому сообщению с задержкой для рендеринга
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    });
+  }
+
+  void _replyToMessage(MessageModel message) {
+    _messageController.text = '[reply:${message.id}] ${message.text}';
+    _focusNode.requestFocus();
+  }
+
+  void _showReactionPicker(MessageModel message) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => GlassKit.liquidGlass(
+        radius: 20,
+        isDark: Provider.of<ThemeProvider>(context).isDarkMode,
+        opacity: 0.15,
+        useBlur: true,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Выберите реакцию', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 20),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: ['😊', '😎', '👍', '❤️', '😂', '🔥', '🎉', '💯'].map((emoji) {
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                      _addReaction(message, emoji);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.white.withValues(alpha: 0.1),
+                      ),
+                      child: Text(emoji, style: const TextStyle(fontSize: 24)),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _addReaction(MessageModel message, String emoji) {
+    setState(() {
+      final index = _messages.indexWhere((m) => m.id == message.id);
+      if (index != -1) {
+        final reactions = Map<String, int>.from(_messages[index].reactions ?? {});
+        reactions[emoji] = (reactions[emoji] ?? 0) + 1;
+        _messages[index] = _messages[index].copyWith(reactions: reactions);
+      }
+    });
+  }
+
+  void _deleteMessage(MessageModel message) {
+    setState(() {
+      final index = _messages.indexWhere((m) => m.id == message.id);
+      if (index != -1) {
+        _messages[index] = _messages[index].copyWith(isDeleted: true);
+      }
+    });
+  }
+
+  void _showAttachmentMenu(BuildContext context, bool isDark) {
+    // Метод уже реализован в VTalkInputField
+  }
+
+  void _openCamera(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Камера')),
+    );
+  }
+
+  void _startAudioRecording() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Аудиозапись')),
+    );
   }
 
   // Helper function to render emoji asset as GIF or SVG
@@ -405,6 +547,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         }
       },
       child: Scaffold(
+        resizeToAvoidBottomInset: true, // Важно для клавиатуры
         body: Container(
           decoration: GlassKit.mainBackground(isDark),
           child: SafeArea(
@@ -418,12 +561,17 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                   automaticallyImplyLeading: false,
                   backgroundColor: Colors.transparent, // Как в общих чатах
                   elevation: 0,
-                  flexibleSpace: GlassKit.liquidGlass(
-                    radius: 0, // Как в общих чатах
-                    isDark: isDark,
-                    opacity: 0.3, // Как в общих чатах
-                    useBlur: true, // Как в общих чатах
-                    child: Container(),
+                  flexibleSpace: ValueListenableBuilder<double>(
+                    valueListenable: _headerOpacity,
+                    builder: (context, opacity, _) {
+                      return GlassKit.liquidGlass(
+                        radius: 0, // Как в общих чатах
+                        isDark: isDark,
+                        opacity: opacity,
+                        useBlur: true, // Как в общих чатах
+                        child: Container(),
+                      );
+                    },
                   ),
                   title: Row(
                     children: [
@@ -496,62 +644,80 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 ),
                 
                 // Messages
-                SliverToBoxAdapter(
-                  child: Container(
-                    height: MediaQuery.of(context).size.height - 200, // Высота для сообщений
-                    child: ListView.builder(
-                      // Убираем controller - он уже используется в CustomScrollView
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _messages.length,
-                      itemBuilder: (context, index) {
-                        final m = _messages[index];
-                        final isMe = m['isMe'] as bool;
-                        return Container(
-                          margin: const EdgeInsets.symmetric(vertical: 6),
-                          alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-                          child: GlassKit.liquidGlass(
-                            isDark: isDark,
-                            useBlur: false,
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: RichText(text: _buildTextWithEmojis(m['text'] as String, isDark)),
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: Stack(
+                          children: [
+                            // Плавающая дата
+                            VTalkFloatingDateHeader(
+                              date: DateTime.now(),
+                              isVisible: _headerOpacity.value > 0.5,
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-
-                // Input field
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.emoji_emotions_outlined, color: isDark ? Colors.white70 : Colors.black54),
-                          onPressed: () => _showEmojiPicker(isDark),
-                        ),
-                        Expanded(
-                          child: TextField(
-                            controller: _messageController,
-                            focusNode: _focusNode,
-                            style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                            decoration: InputDecoration(
-                              hintText: 'Type a message...',
-                              hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
-                              filled: true,
-                              fillColor: isDark ? Colors.white10 : Colors.black12,
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
+                            
+                            // Список сообщений
+                            ListView.builder(
+                              controller: _scrollController,
+                              padding: const EdgeInsets.all(16),
+                              itemCount: _messages.length,
+                              itemBuilder: (context, index) {
+                                final message = _messages[index];
+                                
+                                // URL превью
+                                if (message.urls != null && message.urls!.isNotEmpty) {
+                                  return Column(
+                                    crossAxisAlignment: message.isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                                    children: [
+                                      VTalkUrlPreview(
+                                        url: message.urls!.first,
+                                        title: 'Flutter.dev',
+                                        description: 'Flutter - Build beautiful native apps',
+                                        imageUrl: 'https://flutter.dev/images/flutter-logo-sharing.png',
+                                      ),
+                                      const SizedBox(height: 8),
+                                      VTalkMessageBubble(
+                                        text: message.text,
+                                        isMe: message.isMe,
+                                        time: message.formattedTime,
+                                        reactions: message.reactions,
+                                        replyTo: message.replyTo?.toJson(),
+                                        onReply: () => _replyToMessage(message),
+                                        onReact: () => _showReactionPicker(message),
+                                        onDelete: () => _deleteMessage(message),
+                                      ),
+                                    ],
+                                  );
+                                }
+                                
+                                return VTalkMessageBubble(
+                                  text: message.text,
+                                  isMe: message.isMe,
+                                  time: message.formattedTime,
+                                  reactions: message.reactions,
+                                  replyTo: message.replyTo?.toJson(),
+                                  onReply: () => _replyToMessage(message),
+                                  onReact: () => _showReactionPicker(message),
+                                  onDelete: () => _deleteMessage(message),
+                                );
+                              },
                             ),
-                            onSubmitted: (_) => _sendMessage(),
-                          ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        IconButton(icon: Icon(Icons.send, color: Colors.blueAccent), onPressed: _sendMessage),
-                      ],
-                    ),
+                      ),
+                      
+                      // Input field - теперь внутри Column для правильного resize
+                      VTalkCompactInput(
+                        controller: _messageController,
+                        focusNode: _focusNode,
+                        onSend: _sendMessage,
+                        onEmojiTap: () => _showEmojiPicker(isDark),
+                        onAttachTap: () => _showAttachmentMenu(context, isDark),
+                        onCameraTap: () => _openCamera(context),
+                        onMicTap: () => _startAudioRecording(),
+                      ),
+                    ],
                   ),
                 ),
             ],
