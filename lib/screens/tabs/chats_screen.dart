@@ -16,6 +16,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
   final ScrollController _scrollController = ScrollController();
   double _appBarDensity = 0.0;
   double _titleOpacity = 1.0;
+  // Simple in-memory storage for newly created chats/groups in this session
+  final List<Map<String, dynamic>> _customChats = [];
 
   @override
   void initState() {
@@ -43,6 +45,10 @@ class _ChatsScreenState extends State<ChatsScreen> {
     final isDark = themeProvider.isDarkMode;
 
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showCreateMenu,
+        child: const Icon(Icons.add),
+      ),
       body: Container(
         decoration: GlassKit.mainBackground(isDark),
         child: SafeArea(
@@ -113,13 +119,62 @@ class _ChatsScreenState extends State<ChatsScreen> {
 
               SliverList(
                 delegate: SliverChildBuilderDelegate(
-                  (context, index) => _buildChatTile(index, isDark),
-                  childCount: 20,
+                  (context, index) {
+                    if (index < _customChats.length) {
+                      final chat = _customChats[index];
+                      return _buildCustomChatTile(chat, isDark);
+                    }
+                    final generatedIndex = index - _customChats.length;
+                    return _buildChatTile(generatedIndex, isDark);
+                  },
+                  childCount: _customChats.length + 20,
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCustomChatTile(Map<String, dynamic> chat, bool isDark) {
+    final isGroup = chat['isGroup'] as bool? ?? false;
+    final isOnline = chat['isOnline'] as bool? ?? false;
+    final unreadCount = chat['unread'] as int? ?? 0;
+
+    return ListTile(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ChatRoomScreen(chatId: chat['id'] as int)),
+      ),
+      leading: Stack(
+        children: [
+          CircleAvatar(radius: 28, backgroundImage: NetworkImage("${AppConstants.defaultAvatarUrl}?u=custom${chat['id']}")),
+          if (isOnline)
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: Container(width: 12, height: 12, decoration: BoxDecoration(color: Colors.green, border: Border.all(color: Colors.white, width: 2), borderRadius: BorderRadius.circular(6))),
+            ),
+        ],
+      ),
+      title: Row(
+        children: [
+          if (isGroup) Icon(Icons.group, size: 16, color: Colors.blueAccent),
+          if (isGroup) const SizedBox(width: 6),
+          Expanded(child: Text(chat['name'] as String, style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold))),
+        ],
+      ),
+      subtitle: Text(isOnline ? 'Online' : 'Offline', style: TextStyle(color: isOnline ? Colors.green.withOpacity(0.7) : Colors.grey.withOpacity(0.7), fontSize: 12)),
+      trailing: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text('${12}:${45}', style: TextStyle(color: isDark ? Colors.white24 : Colors.black26, fontSize: 11)),
+          const SizedBox(height: 4),
+          if (unreadCount > 0)
+            Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.blueAccent, borderRadius: BorderRadius.circular(10)), child: Text(unreadCount > 99 ? '99+' : unreadCount.toString(), style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))),
+        ],
       ),
     );
   }
@@ -211,6 +266,278 @@ class _ChatsScreenState extends State<ChatsScreen> {
     showSearch(
       context: context,
       delegate: ChatSearchDelegate(isDark: isDark),
+    );
+  }
+
+  void _showCreateMenu() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(leading: const Icon(Icons.person_add), title: const Text('New Chat'), onTap: () {
+                Navigator.pop(context);
+                _showCreateChatForm(isGroup: false);
+              }),
+              ListTile(leading: const Icon(Icons.group_add), title: const Text('New Group'), onTap: () {
+                Navigator.pop(context);
+                _showCreateChatForm(isGroup: true);
+              }),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showCreateChatForm({required bool isGroup}) {
+    final TextEditingController nameCtrl = TextEditingController();
+    final Set<String> selectedParticipants = {};
+    final List<String> availableContacts = [
+      'Alice Johnson',
+      'Bob Smith',
+      'Charlie Brown',
+      'David Lee',
+      'Emma Wilson',
+      'Frank Miller',
+      'Grace Taylor',
+      'Henry Davis',
+    ];
+
+    showDialog(
+      context: context,
+      useSafeArea: true,
+      builder: (dialogContext) {
+        final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              child: GlassKit.liquidGlass(
+                isDark: isDark,
+                radius: 20,
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.9,
+                  constraints: const BoxConstraints(maxHeight: 600),
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Header
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            isGroup ? 'Create New Group' : 'Start One-on-One Chat',
+                            style: TextStyle(
+                              color: isDark ? Colors.white : Colors.black,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.close, color: isDark ? Colors.white70 : Colors.black54),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Divider(color: isDark ? Colors.white12 : Colors.black12),
+                      const SizedBox(height: 16),
+
+                      // Name field
+                      TextField(
+                        controller: nameCtrl,
+                        style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                        decoration: InputDecoration(
+                          labelText: isGroup ? 'Group Name' : 'Chat Name',
+                          labelStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
+                          prefixIcon: Icon(isGroup ? Icons.group : Icons.person, color: Colors.blueAccent),
+                          filled: true,
+                          fillColor: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                          hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Participants section (only for groups)
+                      if (isGroup)
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Select Participants',
+                                style: TextStyle(
+                                  color: isDark ? Colors.white : Colors.black,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              // Selected participants chips
+                              if (selectedParticipants.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: Wrap(
+                                    spacing: 8,
+                                    children: selectedParticipants.map((contact) {
+                                      return GlassKit.liquidGlass(
+                                        isDark: isDark,
+                                        useBlur: false,
+                                        radius: 20,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                contact.split(' ')[0],
+                                                style: TextStyle(
+                                                  color: isDark ? Colors.white : Colors.black,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 6),
+                                              GestureDetector(
+                                                onTap: () {
+                                                  setDialogState(() {
+                                                    selectedParticipants.remove(contact);
+                                                  });
+                                                },
+                                                child: Icon(Icons.close, size: 16, color: Colors.blueAccent),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                              // Contacts list
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    children: availableContacts.map((contact) {
+                                      final isSelected = selectedParticipants.contains(contact);
+                                      return GestureDetector(
+                                        onTap: () {
+                                          setDialogState(() {
+                                            if (isSelected) {
+                                              selectedParticipants.remove(contact);
+                                            } else {
+                                              selectedParticipants.add(contact);
+                                            }
+                                          });
+                                        },
+                                        child: Container(
+                                          margin: const EdgeInsets.only(bottom: 8),
+                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                          decoration: BoxDecoration(
+                                            color: isSelected
+                                                ? Colors.blueAccent.withValues(alpha: 0.2)
+                                                : isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(10),
+                                            border: isSelected
+                                                ? Border.all(color: Colors.blueAccent, width: 1.5)
+                                                : Border.all(color: Colors.transparent),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              CircleAvatar(
+                                                radius: 20,
+                                                backgroundImage: NetworkImage(
+                                                  "${AppConstants.defaultAvatarUrl}?u=${contact.toLowerCase().replaceAll(' ', '')}",
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: Text(
+                                                  contact,
+                                                  style: TextStyle(
+                                                    color: isDark ? Colors.white : Colors.black,
+                                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                                  ),
+                                                ),
+                                              ),
+                                              if (isSelected)
+                                                Icon(Icons.check_circle, color: Colors.blueAccent, size: 20),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                      const SizedBox(height: 16),
+                      Divider(color: isDark ? Colors.white12 : Colors.black12),
+                      const SizedBox(height: 12),
+
+                      // Action buttons
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Text(
+                              'Cancel',
+                              style: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              final name = nameCtrl.text.trim();
+                              if (name.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Please enter a name')),
+                                );
+                                return;
+                              }
+                              if (isGroup && selectedParticipants.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Please select at least one participant')),
+                                );
+                                return;
+                              }
+                              setState(() {
+                                _customChats.insert(0, {
+                                  'id': DateTime.now().millisecondsSinceEpoch.remainder(1000000),
+                                  'name': name,
+                                  'isGroup': isGroup,
+                                  'isOnline': true,
+                                  'unread': 0,
+                                  if (isGroup) 'participants': List<String>.from(selectedParticipants),
+                                });
+                              });
+                              Navigator.pop(context);
+                            },
+                            icon: const Icon(Icons.done),
+                            label: Text(isGroup ? 'Create Group' : 'Create Chat'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blueAccent,
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
