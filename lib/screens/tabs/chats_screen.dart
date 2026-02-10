@@ -145,7 +145,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
     return ListTile(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => ChatRoomScreen(chatId: chat['id'] as int)),
+        MaterialPageRoute(builder: (context) => ChatRoomScreen(chatId: chat['id'] as int, chatName: chat['name'] as String)),
       ),
       leading: Stack(
         children: [
@@ -183,11 +183,12 @@ class _ChatsScreenState extends State<ChatsScreen> {
     bool isGroup = i % 3 == 0;
     bool isOnline = i % 4 == 0;
     int unreadCount = i % 5 == 0 ? (i % 7 + 1) : 0;
+    final chatName = isGroup ? "Project Group $i" : "Contact $i";
     
     return ListTile(
       onTap: () => Navigator.push(
         context, 
-        MaterialPageRoute(builder: (context) => ChatRoomScreen(chatId: i))
+        MaterialPageRoute(builder: (context) => ChatRoomScreen(chatId: i, chatName: chatName))
       ),
       leading: Stack(
         children: [
@@ -270,23 +271,101 @@ class _ChatsScreenState extends State<ChatsScreen> {
   }
 
   void _showCreateMenu() {
+    final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
+    
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.transparent,
       builder: (context) {
         return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(leading: const Icon(Icons.person_add), title: const Text('New Chat'), onTap: () {
-                Navigator.pop(context);
-                _showCreateChatForm(isGroup: false);
-              }),
-              ListTile(leading: const Icon(Icons.group_add), title: const Text('New Group'), onTap: () {
-                Navigator.pop(context);
-                _showCreateChatForm(isGroup: true);
-              }),
-              const SizedBox(height: 8),
-            ],
+          child: GlassKit.liquidGlass(
+            isDark: isDark,
+            radius: 30,
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Create New',
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Divider(color: isDark ? Colors.white12 : Colors.black12),
+                  const SizedBox(height: 12),
+                  
+                  // New Chat option
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showCreateChatForm(isGroup: false);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.person_add, color: Colors.blueAccent, size: 24),
+                          const SizedBox(width: 14),
+                          Text(
+                            'New Chat',
+                            style: TextStyle(
+                              color: isDark ? Colors.white : Colors.black,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const Spacer(),
+                          Icon(Icons.chevron_right, color: isDark ? Colors.white54 : Colors.black54),
+                        ],
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 10),
+                  
+                  // New Group option
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showCreateChatForm(isGroup: true);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.group_add, color: Colors.blueAccent, size: 24),
+                          const SizedBox(width: 14),
+                          Text(
+                            'New Group',
+                            style: TextStyle(
+                              color: isDark ? Colors.white : Colors.black,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const Spacer(),
+                          Icon(Icons.chevron_right, color: isDark ? Colors.white54 : Colors.black54),
+                        ],
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 12),
+                ],
+              ),
+            ),
           ),
         );
       },
@@ -295,6 +374,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
 
   void _showCreateChatForm({required bool isGroup}) {
     final TextEditingController nameCtrl = TextEditingController();
+    final TextEditingController contactCtrl = TextEditingController(); // For searching contact
     final Set<String> selectedParticipants = {};
     final List<String> availableContacts = [
       'Alice Johnson',
@@ -327,22 +407,28 @@ class _ChatsScreenState extends State<ChatsScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       // Header
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            isGroup ? 'Create New Group' : 'Start One-on-One Chat',
-                            style: TextStyle(
-                              color: isDark ? Colors.white : Colors.black,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                      SizedBox(
+                        height: 50,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                isGroup ? 'Create New Group' : 'New One-on-One Chat',
+                                style: TextStyle(
+                                  color: isDark ? Colors.white : Colors.black,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.close, color: isDark ? Colors.white70 : Colors.black54),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                        ],
+                            IconButton(
+                              icon: Icon(Icons.close, color: isDark ? Colors.white70 : Colors.black54),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Divider(color: isDark ? Colors.white12 : Colors.black12),
@@ -363,6 +449,38 @@ class _ChatsScreenState extends State<ChatsScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
+
+                      // Contact search field (only for 1-on-1 chats)
+                      if (!isGroup)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Find Contact',
+                              style: TextStyle(
+                                color: isDark ? Colors.white : Colors.black,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextField(
+                              controller: contactCtrl,
+                              style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                              decoration: InputDecoration(
+                                labelText: 'Search @nick or VT-number',
+                                labelStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
+                                prefixIcon: Icon(Icons.search, color: Colors.blueAccent),
+                                filled: true,
+                                fillColor: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                hintText: '@username or VT-123456',
+                                hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                        ),
 
                       // Participants section (only for groups)
                       if (isGroup)
@@ -503,6 +621,15 @@ class _ChatsScreenState extends State<ChatsScreen> {
                                 );
                                 return;
                               }
+                              if (!isGroup) {
+                                final contact = contactCtrl.text.trim();
+                                if (contact.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Please enter a contact @nick or VT-number')),
+                                  );
+                                  return;
+                                }
+                              }
                               if (isGroup && selectedParticipants.isEmpty) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('Please select at least one participant')),
@@ -516,6 +643,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                                   'isGroup': isGroup,
                                   'isOnline': true,
                                   'unread': 0,
+                                  if (!isGroup) 'contact': contactCtrl.text.trim(),
                                   if (isGroup) 'participants': List<String>.from(selectedParticipants),
                                 });
                               });

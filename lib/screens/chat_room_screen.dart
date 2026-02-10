@@ -8,7 +8,8 @@ import '../theme_provider.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final int chatId;
-  const ChatRoomScreen({Key? key, required this.chatId}) : super(key: key);
+  final String? chatName;
+  const ChatRoomScreen({Key? key, required this.chatId, this.chatName}) : super(key: key);
 
   @override
   State<ChatRoomScreen> createState() => _ChatRoomScreenState();
@@ -381,7 +382,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text('Chat Room ${widget.chatId}', style: TextStyle(color: isDark ? Colors.white : Colors.black, fontSize: 18, fontWeight: FontWeight.bold)),
+                      child: Text(
+                        widget.chatName ?? 'Chat Room ${widget.chatId}',
+                        style: TextStyle(color: isDark ? Colors.white : Colors.black, fontSize: 18, fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                     IconButton(icon: Icon(Icons.more_vert, color: isDark ? Colors.white : Colors.black), onPressed: () {}),
                   ],
