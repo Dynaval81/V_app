@@ -118,7 +118,7 @@ class _VtalkHeaderState extends State<VtalkHeader>
       ),
       title: Row(
         children: [
-          const Icon(Icons.blur_on, color: Colors.blueAccent, size: 30),
+          const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
           const SizedBox(width: 8),
           Flexible(  // ✅ Добавили Flexible чтобы текст не переполнял
             child: Opacity(
@@ -129,7 +129,7 @@ class _VtalkHeaderState extends State<VtalkHeader>
                   color: isDark ? Colors.white : Colors.black,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 2,
-                  fontSize: 18,
+                  fontSize: 20,
                 ),
                 overflow: TextOverflow.ellipsis,  // ✅ Защита от overflow
               ),

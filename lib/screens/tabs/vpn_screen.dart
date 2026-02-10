@@ -65,10 +65,18 @@ class _VPNScreenState extends State<VPNScreen> {
                 title: 'VTALK VPN',
                 showScrollAnimation: false,
                 actions: [
-                  // keep avatar action consistent
-                  IconButton(
-                    icon: Icon(Icons.more_vert, color: isDark ? Colors.white70 : Colors.black54),
-                    onPressed: () {},
+                  GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
+                    ),
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 12),
+                      child: CircleAvatar(
+                        radius: 18,
+                        backgroundImage: NetworkImage("${AppConstants.defaultAvatarUrl}?u=me"),
+                      ),
+                    ),
                   ),
                 ],
               ),
