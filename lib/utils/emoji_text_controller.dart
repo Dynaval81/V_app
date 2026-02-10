@@ -3,14 +3,23 @@ import 'package:flutter/material.dart';
 /// Custom TextEditingController that renders emoji codes as images inline
 /// Shows :smile: as actual GIF while keeping text format for sending
 class EmojiTextEditingController extends TextEditingController {
-  final Map<String, String> emojiAssets;
+  late Map<String, String> _emojiAssets;
   bool isDark;
 
   EmojiTextEditingController({
-    required this.emojiAssets,
+    required Map<String, String> emojiAssets,
     required this.isDark,
     String? text,
-  }) : super(text: text ?? '');
+  }) : super(text: text ?? '') {
+    _emojiAssets = emojiAssets;
+  }
+
+  Map<String, String> get emojiAssets => _emojiAssets;
+  
+  set emojiAssets(Map<String, String> assets) {
+    _emojiAssets = assets;
+    notifyListeners();
+  }
 
   void updateTheme(bool isDark) {
     this.isDark = isDark;

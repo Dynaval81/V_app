@@ -17,9 +17,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   late EmojiTextEditingController _messageController;
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
+  
+  // Variant selection
+  String _emojiVariant = 'original'; // 'original', 'v1', 'v2'
 
-  // Local emoji assets map - complete list of all available emojis
-  final Map<String, String> _emojiAssets = {
+  // Emoji maps for 3 variants
+  final Map<String, String> _emojiAssetsOriginal = {
     ':smile:': 'assets/emojis/smiley.gif',
     ':cool:': 'assets/emojis/cool.gif',
     ':shock:': 'assets/emojis/shocked.gif',
@@ -52,6 +55,84 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     ':undecided:': 'assets/emojis/undecided.gif',
   };
 
+  final Map<String, String> _emojiAssetsV1 = {
+    ':smile:': 'assets/emojis_v1/smiley.gif',
+    ':cool:': 'assets/emojis_v1/cool.gif',
+    ':shock:': 'assets/emojis_v1/shocked.gif',
+    ':tongue:': 'assets/emojis_v1/tongue.gif',
+    ':heart:': 'assets/emojis_v1/kiss.gif',
+    ':sad:': 'assets/emojis_v1/sad.gif',
+    ':angry:': 'assets/emojis_v1/angry.gif',
+    ':grin:': 'assets/emojis_v1/grin.gif',
+    ':wink:': 'assets/emojis_v1/wink.gif',
+    ':cry:': 'assets/emojis_v1/cry.gif',
+    ':laugh:': 'assets/emojis_v1/laugh.gif',
+    ':evil:': 'assets/emojis_v1/evil.gif',
+    ':afro:': 'assets/emojis_v1/afro.gif',
+    ':angel:': 'assets/emojis_v1/angel.gif',
+    ':azn:': 'assets/emojis_v1/azn.gif',
+    ':bang:': 'assets/emojis_v1/bang.gif',
+    ':blank:': 'assets/emojis_v1/blank.gif',
+    ':buenpost:': 'assets/emojis_v1/buenpost.gif',
+    ':cheesy:': 'assets/emojis_v1/cheesy.gif',
+    ':embarrassed:': 'assets/emojis_v1/embarrassed.gif',
+    ':huh:': 'assets/emojis_v1/huh.gif',
+    ':kiss:': 'assets/emojis_v1/kiss.gif',
+    ':lipssealed:': 'assets/emojis_v1/lipsrsealed.gif',
+    ':mario:': 'assets/emojis_v1/mario.gif',
+    ':pacman:': 'assets/emojis_v1/pacman.gif',
+    ':police:': 'assets/emojis_v1/police.gif',
+    ':rolleyes:': 'assets/emojis_v1/rolleyes.gif',
+    ':sad2:': 'assets/emojis_v1/sad2.gif',
+    ':shrug:': 'assets/emojis_v1/shrug.gif',
+    ':undecided:': 'assets/emojis_v1/undecided.gif',
+  };
+
+  final Map<String, String> _emojiAssetsV2 = {
+    ':smile:': 'assets/emojis_v2/smiley.gif',
+    ':cool:': 'assets/emojis_v2/cool.gif',
+    ':shock:': 'assets/emojis_v2/shocked.gif',
+    ':tongue:': 'assets/emojis_v2/tongue.gif',
+    ':heart:': 'assets/emojis_v2/kiss.gif',
+    ':sad:': 'assets/emojis_v2/sad.gif',
+    ':angry:': 'assets/emojis_v2/angry.gif',
+    ':grin:': 'assets/emojis_v2/grin.gif',
+    ':wink:': 'assets/emojis_v2/wink.gif',
+    ':cry:': 'assets/emojis_v2/cry.gif',
+    ':laugh:': 'assets/emojis_v2/laugh.gif',
+    ':evil:': 'assets/emojis_v2/evil.gif',
+    ':afro:': 'assets/emojis_v2/afro.gif',
+    ':angel:': 'assets/emojis_v2/angel.gif',
+    ':azn:': 'assets/emojis_v2/azn.gif',
+    ':bang:': 'assets/emojis_v2/bang.gif',
+    ':blank:': 'assets/emojis_v2/blank.gif',
+    ':buenpost:': 'assets/emojis_v2/buenpost.gif',
+    ':cheesy:': 'assets/emojis_v2/cheesy.gif',
+    ':embarrassed:': 'assets/emojis_v2/embarrassed.gif',
+    ':huh:': 'assets/emojis_v2/huh.gif',
+    ':kiss:': 'assets/emojis_v2/kiss.gif',
+    ':lipssealed:': 'assets/emojis_v2/lipsrsealed.gif',
+    ':mario:': 'assets/emojis_v2/mario.gif',
+    ':pacman:': 'assets/emojis_v2/pacman.gif',
+    ':police:': 'assets/emojis_v2/police.gif',
+    ':rolleyes:': 'assets/emojis_v2/rolleyes.gif',
+    ':sad2:': 'assets/emojis_v2/sad2.gif',
+    ':shrug:': 'assets/emojis_v2/shrug.gif',
+    ':undecided:': 'assets/emojis_v2/undecided.gif',
+  };
+
+  // Get active emoji map based on current variant
+  Map<String, String> get _selectedEmojiAssets {
+    switch (_emojiVariant) {
+      case 'v1':
+        return _emojiAssetsV1;
+      case 'v2':
+        return _emojiAssetsV2;
+      default:
+        return _emojiAssetsOriginal;
+    }
+  }
+
   final List<Map<String, dynamic>> _messages = [
     {'text': 'Привет! Посмотри на наши новые GIF :smile:', 'isMe': false, 'time': '12:30'},
     {'text': 'Это работает мгновенно через Assets! :cool:', 'isMe': true, 'time': '12:31'},
@@ -61,7 +142,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   void initState() {
     super.initState();
     _messageController = EmojiTextEditingController(
-      emojiAssets: _emojiAssets,
+      emojiAssets: _selectedEmojiAssets,
       isDark: false, // Will be updated in build method
     );
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
@@ -117,7 +198,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       }
 
       final code = ':${match.group(1)}:';
-      final asset = _emojiAssets[code];
+      final asset = _selectedEmojiAssets[code];
       if (asset != null) {
         spans.add(WidgetSpan(
           alignment: PlaceholderAlignment.middle,
@@ -158,42 +239,103 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => GlassKit.liquidGlass(
-        radius: 30,
-        isDark: isDark,
-        useBlur: false,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _emojiAssets.entries.map((e) {
-              final code = e.key;
-              final asset = e.value;
-              return GestureDetector(
-                onTap: () {
-                  _messageController.text = '${_messageController.text} $code';
-                  Navigator.pop(context);
-                  _focusNode.requestFocus();
-                },
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: 36,
-                      height: 36,
-                      child: Image.asset(
-                        asset,
-                        fit: BoxFit.contain,
-                        errorBuilder: (c, e, s) => const Icon(Icons.emoji_emotions, size: 28),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(code.replaceAll(':', ''), style: const TextStyle(fontSize: 12)),
-                  ],
+      useRootNavigator: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => GlassKit.liquidGlass(
+          radius: 30,
+          isDark: isDark,
+          useBlur: false,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Variant selector tabs
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildVariantButton(isDark, 'Original', 'original', setModalState),
+                      const SizedBox(width: 8),
+                      _buildVariantButton(isDark, 'Variant 1', 'v1', setModalState),
+                      const SizedBox(width: 8),
+                      _buildVariantButton(isDark, 'Variant 2', 'v2', setModalState),
+                    ],
+                  ),
                 ),
-              );
-            }).toList(),
+                const SizedBox(height: 12),
+                Divider(color: isDark ? Colors.white12 : Colors.black12),
+                const SizedBox(height: 12),
+                // Emojis grid
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _selectedEmojiAssets.entries.map((e) {
+                        final code = e.key;
+                        final asset = e.value;
+                        return GestureDetector(
+                          onTap: () {
+                            _messageController.text = '${_messageController.text} $code';
+                            Navigator.pop(context);
+                            _focusNode.requestFocus();
+                          },
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: 36,
+                                height: 36,
+                                child: Image.asset(
+                                  asset,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (c, e, s) => const Icon(Icons.emoji_emotions, size: 28),
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(code.replaceAll(':', ''), style: const TextStyle(fontSize: 12)),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVariantButton(bool isDark, String label, String variant, Function setModalState) {
+    final isActive = _emojiVariant == variant;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _emojiVariant = variant;
+          _messageController.emojiAssets = _selectedEmojiAssets;
+        });
+        setModalState(() {});
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive ? Colors.blueAccent : (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1)),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isActive ? Colors.blueAccent : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isActive ? Colors.white : (isDark ? Colors.white70 : Colors.black54),
+            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
           ),
         ),
       ),

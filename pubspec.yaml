@@ -60,7 +60,9 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/emojis/ # Эта строчка подключит ВСЕ файлы из этой папки разом
+    - assets/emojis/ # Original emoji set
+    - assets/emojis_v1/ # Improved emoji variant 1
+    - assets/emojis_v2/ # Improved emoji variant 2
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
