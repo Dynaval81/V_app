@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../utils/glass_kit.dart';
 import '../../theme_provider.dart';
 import '../../constants/app_constants.dart';
@@ -152,7 +153,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
       ),
       leading: Stack(
         children: [
-          CircleAvatar(radius: 28, backgroundImage: NetworkImage("${AppConstants.defaultAvatarUrl}?u=custom${chat['id']}")),
+          CircleAvatar(radius: 28, backgroundImage: CachedNetworkImageProvider("${AppConstants.defaultAvatarUrl}?u=custom${chat['id']}"),),
           if (isOnline)
             Positioned(
               right: 0,
@@ -197,7 +198,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
         children: [
           CircleAvatar(
             radius: 28, 
-            backgroundImage: NetworkImage("${AppConstants.defaultAvatarUrl}?u=chat$i")
+            backgroundImage: CachedNetworkImageProvider("${AppConstants.defaultAvatarUrl}?u=chat$i")
           ),
           if (isOnline)
             Positioned(
