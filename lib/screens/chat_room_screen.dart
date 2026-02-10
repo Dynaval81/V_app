@@ -25,7 +25,7 @@ class ChatRoomScreen extends StatefulWidget {
 
 class _ChatRoomScreenState extends State<ChatRoomScreen> {
   late EmojiTextEditingController _messageController;
-  final ScrollController _scrollController = ScrollController();
+  final ScrollController _messagesScrollController = ScrollController(); // FOR MESSAGES LISTVIEW
   final FocusNode _focusNode = FocusNode();
   final ValueNotifier<double> _headerOpacity = ValueNotifier(0.0);
   double _lastOffset = 0.0;
@@ -146,7 +146,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       retroAssets: _retroEmojis,
       isDark: false,
     );
-    _scrollController.addListener(_onScroll);
+    _messagesScrollController.addListener(_onScroll);
     _focusNode.addListener(_onFocusChange);
     
     // Устанавливаем начальную прозрачность (более высокую для видимости при открытии)
@@ -165,7 +165,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   }
 
   void _onScroll() {
-    final offset = _scrollController.offset;
+    if (!_messagesScrollController.hasClients) return;
+    final offset = _messagesScrollController.offset;
     // Только обновлять при значимых изменениях (debounce: >5px)
     if ((offset - _lastOffset).abs() > 5.0) {
       _lastOffset = offset;
@@ -180,16 +181,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   @override
   void dispose() {
     _messageController.dispose();
-    _scrollController.dispose();
+    _messagesScrollController.dispose();
     _focusNode.dispose();
     _headerOpacity.dispose();
     super.dispose();
   }
 
   void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
+    if (_messagesScrollController.hasClients && _messagesScrollController.positions.isNotEmpty) {
+      _messagesScrollController.animateTo(
+        _messagesScrollController.position.maxScrollExtent,
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeOut,
       );
@@ -235,9 +236,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     // Прокручиваем к новому сообщению с задержкой для рендеринга
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future.delayed(const Duration(milliseconds: 100), () {
-        if (_scrollController.hasClients) {
-          _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent,
+        if (_messagesScrollController.hasClients && _messagesScrollController.positions.isNotEmpty) {
+          _messagesScrollController.animateTo(
+            _messagesScrollController.position.maxScrollExtent,
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOut,
           );
@@ -552,7 +553,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           decoration: GlassKit.mainBackground(isDark),
           child: SafeArea(
             child: CustomScrollView(
-              controller: _scrollController,
               physics: const BouncingScrollPhysics(),
               slivers: [
                 // Единая шапка в стиле VTALK (точная копия общих чатов)
@@ -659,8 +659,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                             
                             // Список сообщений
                             ListView.builder(
-                              controller: _scrollController,
+                              controller: _messagesScrollController,
                               padding: const EdgeInsets.all(16),
+                              physics: const BouncingScrollPhysics(),
                               itemCount: _messages.length,
                               itemBuilder: (context, index) {
                                 final message = _messages[index];
