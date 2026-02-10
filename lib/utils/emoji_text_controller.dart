@@ -2,23 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 /// Custom TextEditingController that renders emoji codes as images inline
-/// Shows :smile: as actual GIF while keeping text format for sending
+/// Shows :smile: as actual image while keeping text format for sending
+/// Supports both primary (main) and retro (8-bit) emoji collections
 class EmojiTextEditingController extends TextEditingController {
-  late Map<String, String> _emojiAssets;
+  late Map<String, String> _primaryEmojis;
+  late Map<String, String> _retroEmojis;
   bool isDark;
 
   EmojiTextEditingController({
-    required Map<String, String> emojiAssets,
+    required Map<String, String> emojiAssets, // Primary collection
     required this.isDark,
+    Map<String, String>? retroAssets, // Retro collection
     String? text,
   }) : super(text: text ?? '') {
-    _emojiAssets = emojiAssets;
+    _primaryEmojis = emojiAssets;
+    _retroEmojis = retroAssets ?? {};
   }
 
-  Map<String, String> get emojiAssets => _emojiAssets;
+  Map<String, String> get emojiAssets => _primaryEmojis;
   
   set emojiAssets(Map<String, String> assets) {
-    _emojiAssets = assets;
+    _primaryEmojis = assets;
+    notifyListeners();
+  }
+
+  void setRetroEmojis(Map<String, String> retroAssets) {
+    _retroEmojis = retroAssets;
     notifyListeners();
   }
 
@@ -55,8 +64,8 @@ class EmojiTextEditingController extends TextEditingController {
   }) {
     final List<InlineSpan> spans = [];
     final text = this.text;
-    // Pattern to match emoji codes like :smile:, :cool:, etc.
-    final emojiRegex = RegExp(r':(\w+):');
+    // Pattern to match both [retro]:code: and :code: formats
+    final emojiRegex = RegExp(r'(\[retro\])?:(\w+):');
     int lastIndex = 0;
 
     for (final match in emojiRegex.allMatches(text)) {
@@ -71,9 +80,13 @@ class EmojiTextEditingController extends TextEditingController {
         ));
       }
 
-      // Add emoji as widget or as text if not found
-      final emojiCode = ':${match.group(1)}:';
-      final asset = emojiAssets[emojiCode];
+      // Check if this is from retro collection
+      final isRetro = match.group(1) != null;
+      final emojiCode = ':${match.group(2)}:';
+      
+      // Get appropriate collection
+      final currentEmojis = isRetro ? _retroEmojis : _primaryEmojis;
+      final asset = currentEmojis[emojiCode];
 
       if (asset != null) {
         // Render emoji as image
@@ -89,9 +102,10 @@ class EmojiTextEditingController extends TextEditingController {
           ),
         ));
       } else {
-        // If emoji not found, show as text code (for debugging, shows what's available)
+        // If emoji not found, show as text code
+        final displayCode = isRetro ? '[retro]$emojiCode' : emojiCode;
         spans.add(TextSpan(
-          text: emojiCode,
+          text: displayCode,
           style: style ?? TextStyle(
             color: isDark ? Colors.grey : Colors.grey,
             fontSize: 14,
