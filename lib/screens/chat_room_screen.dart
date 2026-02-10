@@ -27,7 +27,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   late EmojiTextEditingController _messageController;
   final FocusNode _focusNode = FocusNode();
   final ValueNotifier<double> _headerOpacity = ValueNotifier(0.0);
-  double _lastOffset = 0.0;
   
   // Primary emoji collection (Main set - all 40 SVG icons from set 2)
   final Map<String, String> _primaryEmojis = {
@@ -162,9 +161,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     }
   }
 
-  void _onScroll() {
-    // Note: With SliverList in CustomScrollView, scroll events happen naturally
-    // This method can be used for future scroll-based UI updates if needed
+  void _scrollToBottom() {
+    // With SliverList in CustomScrollView, messages appear at bottom automatically
   }
 
   @override
@@ -175,10 +173,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     super.dispose();
   }
 
-  void _scrollToBottom() {
-    // With SliverList in CustomScrollView, the scroll happens automatically
-    // This is a placeholder for future enhancements
-  }
+
 
   void _startVideoCall() {
     // TODO: Реализовать видеозвонок
@@ -323,8 +318,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     }
   }
 
+  // Helper function to render emoji - currently not used but kept for future enhancements
   // Robust emoji parsing with support for [retro] prefix
-  InlineSpan _buildTextWithEmojis(String text, bool isDark) {
+  InlineSpan? _buildTextWithEmojis(String text, bool isDark) {
     final List<InlineSpan> spans = [];
     // Match both [retro]:code: and :code: patterns
     final regex = RegExp(r'(\[retro\])?:(\w+):');
