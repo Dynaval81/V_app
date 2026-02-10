@@ -14,13 +14,27 @@ class ChatsScreen extends StatefulWidget {
 }
 
 class _ChatsScreenState extends State<ChatsScreen> {
-  final ScrollController _scrollController = ScrollController();
+  final ScrollController _innerScrollController = ScrollController();
+  double _appBarOpacity = 0.0;
   // Simple in-memory storage for newly created chats/groups in this session
   final List<Map<String, dynamic>> _customChats = [];
 
   @override
+  void initState() {
+    super.initState();
+    _innerScrollController.addListener(_onInnerScroll);
+  }
+
+  void _onInnerScroll() {
+    double offset = _innerScrollController.offset;
+    setState(() {
+      _appBarOpacity = (offset / 80).clamp(0.0, 0.4);
+    });
+  }
+
+  @override
   void dispose() {
-    _scrollController.dispose();
+    _innerScrollController.dispose();
     super.dispose();
   }
 
@@ -37,13 +51,22 @@ class _ChatsScreenState extends State<ChatsScreen> {
       body: Container(
         decoration: GlassKit.mainBackground(isDark),
         child: SafeArea(
-          child: Column(
-            children: [
-              // Header (AppBar replacement - static, no scroll dynamics)
-              Container(
-                color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(
+          child: NestedScrollView(
+            headerSliverBuilder: (context, innerBoxIsScrolled) => [
+              SliverAppBar(
+                pinned: true,
+                automaticallyImplyLeading: false,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                flexibleSpace: _appBarOpacity > 0.05
+                    ? GlassKit.liquidGlass(
+                        radius: 0,
+                        isDark: isDark,
+                        opacity: _appBarOpacity,
+                        child: Container(),
+                      )
+                    : Container(),
+                title: Row(
                   children: [
                     const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
                     const SizedBox(width: 8),
@@ -55,64 +78,62 @@ class _ChatsScreenState extends State<ChatsScreen> {
                         fontSize: 20
                       )),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.search), 
-                      onPressed: () => _showSearch(context, isDark),
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                    GestureDetector(
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
-                      ),
-                      child: CircleAvatar(
-                        radius: 18,
-                        backgroundImage: NetworkImage("${AppConstants.defaultAvatarUrl}?u=me"),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
                   ],
                 ),
-              ),
-
-              // Search field
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
-                    border: Border.all(color: isDark ? Colors.white12 : Colors.black12, width: 1),
-                    borderRadius: BorderRadius.circular(15),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.search), 
+                    onPressed: () => _showSearch(context, isDark),
+                    color: isDark ? Colors.white : Colors.black,
                   ),
-                  child: TextField(
-                    style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                    decoration: InputDecoration(
-                      hintText: "Search chats...",
-                      hintStyle: TextStyle(color: isDark ? Colors.white24 : Colors.black26),
-                      prefixIcon: Icon(Icons.search, color: isDark ? Colors.white38 : Colors.black38),
-                      border: InputBorder.none,
+                  GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
+                    ),
+                    child: CircleAvatar(
+                      radius: 18,
+                      backgroundImage: NetworkImage("${AppConstants.defaultAvatarUrl}?u=me"),
                     ),
                   ),
-                ),
+                  const SizedBox(width: 16),
+                ],
               ),
-
-              // Chat list (ListView for smooth scrolling)
-              Expanded(
-                child: ListView.builder(
-                  controller: _scrollController,
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: _customChats.length + 20,
-                  itemBuilder: (context, index) {
-                    if (index < _customChats.length) {
-                      final chat = _customChats[index];
-                      return _buildCustomChatTile(chat, isDark);
-                    }
-                    final generatedIndex = index - _customChats.length;
-                    return _buildChatTile(generatedIndex, isDark);
-                  },
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
+                      border: Border.all(color: isDark ? Colors.white12 : Colors.black12, width: 1),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: TextField(
+                      style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                      decoration: InputDecoration(
+                        hintText: "Search chats...",
+                        hintStyle: TextStyle(color: isDark ? Colors.white24 : Colors.black26),
+                        prefixIcon: Icon(Icons.search, color: isDark ? Colors.white38 : Colors.black38),
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
+            body: ListView.builder(
+              controller: _innerScrollController,
+              physics: const BouncingScrollPhysics(),
+              itemCount: _customChats.length + 20,
+              itemBuilder: (context, index) {
+                if (index < _customChats.length) {
+                  final chat = _customChats[index];
+                  return _buildCustomChatTile(chat, isDark);
+                }
+                final generatedIndex = index - _customChats.length;
+                return _buildChatTile(generatedIndex, isDark);
+              },
+            ),
           ),
         ),
       ),
