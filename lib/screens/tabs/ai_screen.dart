@@ -76,10 +76,7 @@ class _AIScreenState extends State<AIScreen> {
     });
   }
 
-  // Adapter to allow passing controller to CustomScrollView (compat)
-  ScrollController? _scroll_controller_compat({required ScrollController scrollController}) {
-    return scrollController;
-  }
+  // (removed unused compat adapter)
 
   @override
   void dispose() {
@@ -98,7 +95,7 @@ class _AIScreenState extends State<AIScreen> {
         decoration: GlassKit.mainBackground(isDark),
         child: SafeArea(
           child: CustomScrollView(
-            controller: _scroll_controller_compat(scrollController: _scrollController),
+            controller: _scrollController,
             physics: const BouncingScrollPhysics(),
             slivers: [
               VtalkHeader(
