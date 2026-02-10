@@ -25,6 +25,7 @@ class ChatRoomScreen extends StatefulWidget {
 
 class _ChatRoomScreenState extends State<ChatRoomScreen> {
   late EmojiTextEditingController _messageController;
+  final ScrollController _customScrollController = ScrollController(); // For showing input field
   final FocusNode _focusNode = FocusNode();
   final ValueNotifier<double> _headerOpacity = ValueNotifier(0.0);
   
@@ -162,12 +163,26 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   }
 
   void _scrollToBottom() {
-    // With SliverList in CustomScrollView, messages appear at bottom automatically
+    if (_customScrollController.hasClients) {
+      // Scroll to the very bottom to show input field + keyboard space
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        try {
+          _customScrollController.animateTo(
+            _customScrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        } catch (e) {
+          // Ignore overflow errors during rapid scrolling
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
     _messageController.dispose();
+    _customScrollController.dispose();
     _focusNode.dispose();
     _headerOpacity.dispose();
     super.dispose();
@@ -211,7 +226,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     _messageController.clear();
     _focusNode.requestFocus();
     
-    // Note: With SliverList in CustomScrollView, the new message appears automatically at bottom
+    // Scroll to show input field when keyboard appears
+    _scrollToBottom();
   }
 
   void _replyToMessage(MessageModel message) {
@@ -522,6 +538,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           decoration: GlassKit.mainBackground(isDark),
           child: SafeArea(
             child: CustomScrollView(
+              controller: _customScrollController,
               physics: const BouncingScrollPhysics(),
               slivers: [
                 // Единая шапка в стиле VTALK (точная копия общих чатов)
@@ -694,7 +711,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 
                 // Safe area padding at bottom for keyboard
                 SliverToBoxAdapter(
-                  child: SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
+                  child: SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 20),
                 ),
             ],
           ),

@@ -135,8 +135,9 @@ class VTalkCompactInput extends StatelessWidget {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
+      useSafeArea: true, // Properly handle safe areas
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.55,
+        maxHeight: MediaQuery.of(context).size.height * 0.50, // Reduced to prevent overflow
       ),
       builder: (context) => GlassKit.liquidGlass(
         radius: 20,
@@ -145,7 +146,7 @@ class VTalkCompactInput extends StatelessWidget {
         useBlur: true,
         child: SingleChildScrollView(
           child: Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -163,15 +164,15 @@ class VTalkCompactInput extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
                 
                 // Опции - GridView без Expanded
                 GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   crossAxisCount: 4,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
                   childAspectRatio: 1,
                   children: [
                     _buildAttachmentOption(
@@ -218,6 +219,14 @@ class VTalkCompactInput extends StatelessWidget {
                     ),
                   ],
                 ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
               ],
             ),
           ),
