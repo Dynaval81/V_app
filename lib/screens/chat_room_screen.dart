@@ -8,7 +8,6 @@ import '../utils/emoji_text_controller.dart';
 import '../theme_provider.dart';
 import '../constants/app_constants.dart';
 import '../widgets/vtalk_message_bubble.dart';
-import '../widgets/vtalk_floating_date_header.dart';
 import '../widgets/vtalk_url_preview.dart';
 import '../widgets/vtalk_compact_input.dart';
 import '../models/message_model.dart';
@@ -697,7 +696,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
