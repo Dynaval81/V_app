@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import 'dart:math';
@@ -30,6 +31,16 @@ class _AIScreenState extends State<AIScreen> {
   bool _isTyping = false;
   final Random _random = Random();
 
+  @override
+  void initState() {
+    super.initState();
+    // Делаем системную панель навигации прозрачной
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+    ));
+  }
+
   void _handleSubmitted(String text) async {
     if (text.isEmpty) return;
     _textController.clear();
@@ -53,6 +64,7 @@ class _AIScreenState extends State<AIScreen> {
             imageUrl: "https://picsum.photos/seed/${_random.nextInt(1000)}/400/300", // Рандомная картинка
           ));
         } else {
+          // Используем Neural Bubbles для ответов ИИ
           _messages.add(ChatMessage(text: _generateAIResponse(text), isUser: false));
         }
       });
@@ -90,82 +102,166 @@ class _AIScreenState extends State<AIScreen> {
     final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
     
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      extendBody: true, // Позволяет контенту затекать под BottomNavigationBar
+      extendBodyBehindAppBar: true, // Позволяет фону быть под шапкой
       body: Container(
-        decoration: GlassKit.mainBackground(isDark),
-        child: SafeArea(
-          child: CustomScrollView(
-            controller: _scrollController,
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              VtalkHeader(
-                title: 'Vtalk AI',
-                showScrollAnimation: false,
-                scrollController: null, // Без анимации скролла
-                actions: [
-                  GestureDetector(
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
+        // Растягиваем фон на весь экран, ИГНОРИРУЯ SafeArea
+        width: double.infinity,
+        height: double.infinity,
+        decoration: GlassKit.mainBackground(isDark), 
+        child: Column(
+          children: [
+            Expanded(
+              child: _buildMessagesList(), // Твои сообщения
+            ),
+            // Нижнюю панель оборачиваем в SafeArea только снизу
+            SafeArea(
+              top: false,
+              child: _buildChatStyleInput(isDark),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMessagesList() {
+    return CustomScrollView(
+      controller: _scrollController,
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        VtalkHeader(
+          title: 'Vtalk AI',
+          showScrollAnimation: false,
+          scrollController: null, // Без анимации скролла
+          actions: [
+            GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
+              ),
+              child: Container(
+                margin: const EdgeInsets.only(right: 16),
+                child: CircleAvatar(
+                  radius: 18,
+                  backgroundImage: NetworkImage("${AppConstants.defaultAvatarUrl}?u=me"),
+                ),
+              ),
+            ),
+          ],
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Text(
+                    'How can I help you?',
+                    style: TextStyle(
+                      color: Provider.of<ThemeProvider>(context, listen: false).isDarkMode ? Colors.white : Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
                     ),
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 16),
-                      child: CircleAvatar(
-                        radius: 18,
-                        backgroundImage: NetworkImage("${AppConstants.defaultAvatarUrl}?u=me"),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Actions grid
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    _aiTile(Icons.image, 'Create Image', Colors.purpleAccent, () => _onAction('create_image')),
+                    _aiTile(Icons.photo_library, 'Edit Photo', Colors.orangeAccent, () => _onAction('edit_photo')),
+                    _aiTile(Icons.text_snippet, 'Improve Text', Colors.teal, () => _onAction('improve_text')),
+                    _aiTile(Icons.translate, 'Translate Text', Colors.indigo, () => _onAction('translate')),
+                    _aiTile(Icons.help_outline, 'Explain', Colors.green, () => _onAction('explain')),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                // small note
+                Center(
+                  child: Text(
+                    'Choose an action above or write below',
+                    style: TextStyle(color: Provider.of<ThemeProvider>(context, listen: false).isDarkMode ? Colors.white54 : Colors.black54, fontSize: 13),
+                  ),
+                ),
+                const SizedBox(height: 200),
+              ],
+            ),
+          ),
+        ),
+        // Сообщения с Neural Bubbles
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (BuildContext context, int index) {
+              final message = _messages[index];
+              if (message.isUser) {
+                // Сообщение пользователя - стандартный стиль
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: GlassKit.liquidGlass(
+                      radius: 15,
+                      isDark: Provider.of<ThemeProvider>(context).isDarkMode,
+                      opacity: 0.15,
+                      child: Container(
+                        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+                        padding: const EdgeInsets.all(16),
+                        child: Text(message.text, style: TextStyle(color: Provider.of<ThemeProvider>(context).isDarkMode ? Colors.white : Colors.black)),
                       ),
+                    ),
+                  ),
+                );
+              } else {
+                // Сообщение ИИ - Neural Bubbles
+                return _buildVTalkAIMessage(message.text);
+              }
+            },
+            childCount: _messages.length,
+          ),
+        ),
+        // Индикатор печати ИИ
+        if (_isTyping)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              child: Column(
+                children: [
+                  // Мерцающая аура
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.purpleAccent.withOpacity(0.3),
+                          Colors.blueAccent.withOpacity(0.3),
+                          Colors.purpleAccent.withOpacity(0.3),
+                        ],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'VTalk AI is thinking...',
+                    style: TextStyle(
+                      color: Provider.of<ThemeProvider>(context).isDarkMode ? Colors.white54 : Colors.black54,
+                      fontSize: 13,
+                      fontStyle: FontStyle.italic,
                     ),
                   ),
                 ],
               ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Center(
-                        child: Text(
-                          'Чем я могу тебе помочь?',
-                          style: TextStyle(
-                            color: isDark ? Colors.white : Colors.black,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      // Actions grid
-                      Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        alignment: WrapAlignment.center,
-                        children: [
-                          _aiTile(Icons.image, 'Создать изображение', Colors.purpleAccent, () => _onAction('create_image')),
-                          _aiTile(Icons.photo_library, 'Редактировать фото', Colors.orangeAccent, () => _onAction('edit_photo')),
-                          _aiTile(Icons.text_snippet, 'Улучшить текст', Colors.teal, () => _onAction('improve_text')),
-                          _aiTile(Icons.translate, 'Перевести текст', Colors.indigo, () => _onAction('translate')),
-                          _aiTile(Icons.help_outline, 'Объяснить', Colors.green, () => _onAction('explain')),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      // small note
-                      Center(
-                        child: Text(
-                          'Выберите действие выше или напишите внизу',
-                          style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 13),
-                        ),
-                      ),
-                      const SizedBox(height: 200),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
-      bottomNavigationBar: _buildChatStyleInput(isDark),
+      ],
     );
   }
 
@@ -181,8 +277,8 @@ class _AIScreenState extends State<AIScreen> {
             child: Row(
               children: [
                 IconButton(
-                  icon: Icon(Icons.auto_awesome, color: Colors.blueAccent),
-                  onPressed: () => _showAIActionMenu(),
+                  icon: Icon(Icons.add_rounded, color: Colors.blueAccent), // ЕДИНЫЙ СТИЛЬ - ПЛЮС
+                  onPressed: () => _showAIAttachmentMenu(),
                 ),
                 Expanded(
                   child: Container(
@@ -217,23 +313,97 @@ class _AIScreenState extends State<AIScreen> {
     );
   }
 
-  void _showAIActionMenu() {
+  void _showAIAttachmentMenu() {
+    HapticFeedback.mediumImpact();
+    
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      barrierColor: Colors.black45,
+      isScrollControlled: true,
+      useSafeArea: true,
       builder: (context) => GlassKit.liquidGlass(
-        radius: 30,
+        radius: 32,
+        isDark: Provider.of<ThemeProvider>(context).isDarkMode,
+        opacity: 0.15,
+        useBlur: true,
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: 30, horizontal: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+          padding: const EdgeInsets.only(left: 12, right: 12, top: 12, bottom: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              _aiAction(Icons.brush, "Generate Image", Colors.purpleAccent),
-              _aiAction(Icons.photo_filter, "AI Editor", Colors.orangeAccent),
-              _aiAction(Icons.face_retouching_natural, "Avatar Maker", Colors.tealAccent),
+              // Заголовок
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Прикрепить',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  SizedBox(
+                    width: 36,
+                    height: 36,
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        Navigator.pop(context);
+                      },
+                      icon: const Icon(Icons.close, size: 20),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              
+              // Опции вложений для AI
+              Wrap(
+                spacing: 20,
+                runSpacing: 20,
+                alignment: WrapAlignment.center,
+                children: [
+                  _buildAIAttachOption(Icons.photo_library_rounded, "Photo", Colors.blueAccent),
+                  _buildAIAttachOption(Icons.camera_alt_rounded, "Camera", Colors.pinkAccent),
+                  _buildAIAttachOption(Icons.location_on_rounded, "Location", Colors.greenAccent),
+                  _buildAIAttachOption(Icons.text_fields_rounded, "Text", Colors.orangeAccent),
+                ],
+              ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildAIAttachOption(IconData icon, String label, Color color) {
+    return InkWell(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Selected: $label')),
+        );
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: color.withOpacity(0.1),
+              border: Border.all(color: color.withOpacity(0.3), width: 1.5),
+            ),
+            child: Icon(icon, color: color, size: 28),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+          ),
+        ],
       ),
     );
   }
@@ -289,81 +459,193 @@ class _AIScreenState extends State<AIScreen> {
   void _onAction(String key) {
     switch (key) {
       case 'create_image':
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Выбрано: Создать изображение')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Selected: Create Image')));
         break;
       case 'edit_photo':
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Выбрано: Редактировать фото')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Selected: Edit Photo')));
         break;
       case 'improve_text':
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Выбрано: Улучшить текст')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Selected: Improve Text')));
         break;
       case 'translate':
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Выбрано: Перевести текст')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Selected: Translate Text')));
         break;
       case 'explain':
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Выбрано: Объяснить')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Selected: Explain')));
         break;
     }
   }
 
   Widget _buildChatStyleInput(bool isDark) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: GlassKit.liquidGlass(
-          radius: 25,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: Icon(Icons.auto_awesome, color: Colors.blueAccent),
-                  onPressed: _showAIActionMenu,
-                ),
-                Expanded(
-                  child: TextField(
-                    controller: _textController,
-                    style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                    decoration: InputDecoration(
-                      hintText: 'Напишите сообщение или опишите задачу',
-                      hintStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
-                      border: InputBorder.none,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4), // МИНИМАЛЬНЫЕ ОТСТУПЫ
+      child: GlassKit.liquidGlass(
+        radius: 40, // Идеально гладкая форма
+        useBlur: true,
+        isDark: isDark,
+        opacity: 0.12, // Делаем очень легким, чтобы не перегружать
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(40),
+            // Тонкий бортик для ощущения премиальности
+            border: Border.all(
+              color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              // Кнопка вложений - ЕДИНИЙ СТИЛЬ с чатами
+              _buildInputCircleButton(
+                icon: Icons.add_rounded, // ЕДИНЫЙ СТИЛЬ - ПЛЮС
+                color: Colors.purpleAccent,
+                onTap: () => _showAIAttachmentMenu(),
+              ),
+              
+              const SizedBox(width: 8),
+              
+              Expanded(
+                child: TextField(
+                  controller: _textController,
+                  maxLines: 4,
+                  minLines: 1,
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                    fontSize: 15,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: "Ask VTalk AI...",
+                    hintStyle: TextStyle(
+                      color: isDark ? Colors.white30 : Colors.black38,
                     ),
-                    onSubmitted: _handleSubmitted,
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                  ),
+                  onSubmitted: _handleSubmitted,
+                ),
+              ),
+
+              // Кнопка отправки - "Заряженная" градиентом
+              GestureDetector(
+                onTap: () => _handleSubmitted(_textController.text),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.blueAccent,
+                        Colors.purpleAccent.shade400,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.purpleAccent.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.arrow_upward_rounded,
+                    color: Colors.white,
+                    size: 22,
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.send, color: Colors.blueAccent),
-                  onPressed: () => _handleSubmitted(_textController.text),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildAiBubble(String text, bool isUser) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
-        final isDark = themeProvider.isDarkMode;
-        
-        return Align(
-          alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8), // Здесь фикс ширины
-            child: GlassKit.liquidGlass(
-              radius: 15,
-              child: Container(
-                constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75), // Не шире 75% экрана
-                padding: EdgeInsets.all(16),
-                child: Text(text, style: TextStyle(color: isDark ? Colors.white : Colors.black)),
+  // Вспомогательный виджет для кнопок внутри инпута
+  Widget _buildInputCircleButton({required IconData icon, required Color color, required VoidCallback onTap}) {
+    return IconButton(
+      onPressed: onTap,
+      icon: Icon(icon, color: color.withOpacity(0.7), size: 24),
+    );
+  }
+
+  Widget _buildVTalkAIMessage(String text) {
+  final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
+
+  return Align(
+    alignment: Alignment.centerLeft, // ИИ всегда слева
+    child: Container(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Маленькая подпись над баблом
+          Row(
+            children: [
+              Icon(Icons.auto_awesome, size: 12, color: Colors.purpleAccent.withOpacity(0.8)),
+              const SizedBox(width: 4),
+              Text("VTALK AI", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.purpleAccent.withOpacity(0.8), letterSpacing: 1)),
+            ],
+          ),
+          const SizedBox(height: 4),
+          
+          // Основное тело сообщения
+          GlassKit.liquidGlass(
+            radius: 20,
+            useBlur: true,
+            isDark: isDark,
+            opacity: 0.15,
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                // НЕОНОВАЯ РАМКА: создаем эффект свечения
+                border: Border.all(
+                  color: Colors.purpleAccent.withOpacity(0.3),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.purpleAccent.withOpacity(0.05),
+                    blurRadius: 10,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: Stack(
+                children: [
+                  // Текст сообщения
+                  Padding(
+                    padding: const EdgeInsets.only(right: 12), // Место для иконки
+                    child: Text(
+                      text,
+                      style: TextStyle(
+                        color: isDark ? Colors.white.withOpacity(0.9) : Colors.black87,
+                        fontSize: 15,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                  // ИКОНКА SPARKLES: в нижнем правом углу
+                  Positioned(
+                    bottom: 4,
+                    right: 4,
+                    child: Icon(
+                      Icons.auto_awesome,
+                      size: 14,
+                      color: Colors.purpleAccent.withOpacity(0.6),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-        );
-      },
-    );
-  }
+        ],
+      ),
+    ),
+  );
+}
 }
