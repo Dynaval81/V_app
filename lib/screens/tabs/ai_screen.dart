@@ -131,9 +131,12 @@ class _AIScreenState extends State<AIScreen> {
       physics: const BouncingScrollPhysics(),
       slivers: [
         VtalkHeader(
-          title: 'Vtalk AI',
+          title: 'AI', // Убираем Vtalk, оставляем AI
           showScrollAnimation: false,
           scrollController: null, // Без анимации скролла
+          // Mercury Sphere увеличенная до 54px
+          logoAsset: 'assets/images/app_logo_mercury.png',
+          logoHeight: 54, // Увеличиваем с 44 до 54
           actions: [
             GestureDetector(
               onTap: () => Navigator.push(

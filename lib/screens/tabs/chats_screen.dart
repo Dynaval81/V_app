@@ -85,14 +85,46 @@ class _ChatsScreenState extends State<ChatsScreen> {
                 ),
                 title: Row(
                   children: [
-                    const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
-                    const SizedBox(width: 8),
+                    // Mercury Sphere с адаптивными тенями
+                    Container(
+                      height: 54, // Увеличиваем с 44 до 54
+                      width: 54,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: isDark 
+                          ? [
+                                // Для ТЕМНОЙ темы: оставляем магическое фиолетовое свечение
+                                BoxShadow(
+                                  color: Colors.purpleAccent.withOpacity(0.4),
+                                  blurRadius: 40,
+                                  spreadRadius: 5,
+                                ),
+                              ]
+                          : [
+                                // Для СВЕТЛОЙ темы: минималистичный "стеклянный" блик
+                                BoxShadow(
+                                  color: Colors.blueAccent.withOpacity(0.08), // Почти прозрачный голубой
+                                  blurRadius: 15, 
+                                  spreadRadius: 1,
+                                  offset: const Offset(0, 4), // Смещаем тень чуть вниз для объема
+                                ),
+                              ],
+                      ),
+                      child: Image.asset(
+                        'assets/images/app_logo_mercury.png',
+                        height: 54,
+                        width: 54,
+                        fit: BoxFit.contain,
+                        filterQuality: FilterQuality.high,
+                      ),
+                    ),
+                    const SizedBox(width: 8), // Уменьшаем отступ
                     Expanded(
-                      child: Text("VTALK", style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black87, // Исправляем контраст
+                      child: Text("TALK", style: TextStyle(
+                        color: isDark ? Colors.white : Colors.black87,
                         fontWeight: FontWeight.w900,
-                        letterSpacing: 2,
-                        fontSize: 20
+                        letterSpacing: 2, // Возвращаем оригинальный letterSpacing
+                        fontSize: 20, // Возвращаем оригинальный fontSize
                       )),
                     ),
                   ],

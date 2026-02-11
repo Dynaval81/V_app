@@ -9,12 +9,16 @@ class VtalkHeader extends StatefulWidget {
   final bool showScrollAnimation;
   final List<Widget>? actions;
   final ScrollController? scrollController; // Добавляем ScrollController
+  final String? logoAsset; // Добавляем путь к лого
+  final double? logoHeight; // Добавляем высоту лого
   
   const VtalkHeader({
     required this.title,
     this.showScrollAnimation = true,
     this.actions,
     this.scrollController, // Опциональный контроллер
+    this.logoAsset, // Опциональное лого
+    this.logoHeight, // Опциональная высота
   });
 
   @override
@@ -111,23 +115,80 @@ class _VtalkHeaderState extends State<VtalkHeader>
           ),
           title: Row(
             children: [
-              const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
-              const SizedBox(width: 8),
-              Flexible(  // Добавили Flexible чтобы текст не переполнял
-                child: Opacity(
-                  opacity: titleOpacity,
-                  child: Text(
-                    widget.title.toUpperCase(), 
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black.withOpacity(0.9), // Явный контраст для светлой темы
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 2,
-                      fontSize: 20
+              // Если есть логотип - используем его с адаптивными тенями
+              if (widget.logoAsset != null)
+                Container(
+                  height: 54, // Увеличиваем с 44 до 54
+                  width: 54,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: isDark 
+                      ? [
+                            // Для ТЕМНОЙ темы: оставляем магическое фиолетовое свечение
+                            BoxShadow(
+                              color: Colors.purpleAccent.withOpacity(0.4),
+                              blurRadius: 40,
+                              spreadRadius: 5,
+                            ),
+                          ]
+                      : [
+                            // Для СВЕТЛОЙ темы: минималистичный "стеклянный" блик
+                            BoxShadow(
+                              color: Colors.blueAccent.withOpacity(0.08), // Почти прозрачный голубой
+                              blurRadius: 15, 
+                              spreadRadius: 1,
+                              offset: const Offset(0, 4), // Смещаем тень чуть вниз для объема
+                            ),
+                          ],
+                  ),
+                  child: Image.asset(
+                    widget.logoAsset!,
+                    height: 54,
+                    width: 54,
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.high,
+                  ),
+                )
+              else ...[
+                const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
+                const SizedBox(width: 8),
+              ],
+              // Если есть логотип - добавляем текст с оригинальными стилями
+              if (widget.logoAsset != null) ...[
+                const SizedBox(width: 8), // Уменьшаем отступ
+                Flexible(
+                  child: Opacity(
+                    opacity: titleOpacity,
+                    child: Text(
+                      widget.title.toUpperCase(), // Возвращаем оригинальный title
+                      style: TextStyle(
+                        color: isDark ? Colors.white : Colors.black.withOpacity(0.9),
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 2, // Возвращаем оригинальный letterSpacing
+                        fontSize: 20, // Возвращаем оригинальный fontSize
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    overflow: TextOverflow.ellipsis,  // Защита от overflow
                   ),
                 ),
-              ),
+              ],
+              // Показываем текст только если нет логотипа
+              if (widget.logoAsset == null)
+                Flexible(  // Добавили Flexible чтобы текст не переполнял
+                  child: Opacity(
+                    opacity: titleOpacity,
+                    child: Text(
+                      widget.title.toUpperCase(), 
+                      style: TextStyle(
+                        color: isDark ? Colors.white : Colors.black.withOpacity(0.9), // Явный контраст для светлой темы
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 2,
+                        fontSize: 20
+                      ),
+                      overflow: TextOverflow.ellipsis,  // Защита от overflow
+                    ),
+                  ),
+                ),
             ],
           ),
           actions: widget.actions ?? [],

@@ -17,6 +17,13 @@ class MainApp extends StatefulWidget {
 
 class _MainAppState extends State<MainApp> {
   int _currentIndex = 0;
+  final PageController _pageController = PageController();
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -30,7 +37,7 @@ class _MainAppState extends State<MainApp> {
     const AIScreen(),         // 1. Vtalk AI
     const VPNScreen(),        // 2. VPN
     DashboardScreen(          // 3. Dashboard (Последний)
-      onTabSwitch: (i) => setState(() => _currentIndex = i),
+      onTabSwitch: (i) => _changeTab(i),
     ),
   ];
 
@@ -38,6 +45,11 @@ class _MainAppState extends State<MainApp> {
     setState(() {
       _currentIndex = index;
     });
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
@@ -45,13 +57,17 @@ class _MainAppState extends State<MainApp> {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         return Scaffold(
-          body: IndexedStack(
-            index: _currentIndex,
-            children: _screens,
-          ),
+          body: PageView(
+  controller: _pageController,
+  onPageChanged: (index) {
+    setState(() => _currentIndex = index);
+  },
+  physics: const BouncingScrollPhysics(), // Эффект пружины при свайпе
+  children: _screens,
+),
           bottomNavigationBar: BottomNavigationBar(
             currentIndex: _currentIndex,
-            onTap: (index) => setState(() => _currentIndex = index),
+            onTap: (index) => _changeTab(index),
             type: BottomNavigationBarType.fixed,
             backgroundColor: themeProvider.isDarkMode ? Color(0xFF252541) : Color(0xFFF5F5F5), // Адаптивный цвет
             selectedItemColor: Colors.blueAccent,
