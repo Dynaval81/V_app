@@ -154,32 +154,26 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   }
 
   void _onFocusChange() {
-    if (_focusNode.hasFocus) {
-      // Когда фокус на поле ввода, прокручиваем к низу
-      Future.delayed(const Duration(milliseconds: 300), () {
-        _scrollToBottom();
-      });
-    }
+    // Input field is now fixed at bottom and keyboard aware
+    // No need for manual scrolling on focus
   }
 
   void _scrollToBottom() {
+    // Input field is now fixed at bottom
+    // Messages scroll independently
+    // Scroll is automatic when messages are added
     if (_customScrollController.hasClients) {
-      // Only scroll if keyboard is not visible
-      // This prevents the input field from jumping up when keyboard appears
-      final viewInsets = MediaQuery.of(context).viewInsets;
-      if (viewInsets.bottom == 0) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          try {
-            _customScrollController.animateTo(
-              _customScrollController.position.maxScrollExtent,
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOut,
-            );
-          } catch (e) {
-            // Ignore overflow errors during rapid scrolling
-          }
-        });
-      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        try {
+          _customScrollController.animateTo(
+            _customScrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          );
+        } catch (e) {
+          // Ignore overflow during rapid changes
+        }
+      });
     }
   }
 
@@ -537,187 +531,169 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         }
       },
       child: Scaffold(
-        resizeToAvoidBottomInset: true, // Важно для клавиатуры
+        resizeToAvoidBottomInset: true,
         body: Container(
           decoration: GlassKit.mainBackground(isDark),
           child: SafeArea(
-            child: CustomScrollView(
-              controller: _customScrollController,
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                // Единая шапка в стиле VTALK (точная копия общих чатов)
-                SliverAppBar(
-                  pinned: true,
-                  automaticallyImplyLeading: false,
-                  backgroundColor: Colors.transparent, // Как в общих чатах
-                  elevation: 0,
-                  flexibleSpace: ValueListenableBuilder<double>(
-                    valueListenable: _headerOpacity,
-                    builder: (context, opacity, _) {
-                      return GlassKit.liquidGlass(
-                        radius: 0, // Как в общих чатах
-                        isDark: isDark,
-                        opacity: opacity,
-                        useBlur: true, // Как в общих чатах
-                        child: Container(),
-                      );
-                    },
-                  ),
-                  title: Row(
+            child: Column(
+              children: [
+                // Header (pinned, не скролится)
+                Container(
+                  color: Colors.transparent,
+                  child: Column(
                     children: [
-                      // Кнопка назад вместо иконки blur_on
-                      IconButton(
-                        icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const SizedBox(width: 8),
-                      
-                      // Аватар контакта
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundImage: CachedNetworkImageProvider(
-                          "${AppConstants.defaultAvatarUrl}?u=${widget.chatId}",
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      
-                      // Имя контакта
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      // Top bar с back, avatar, title, actions
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                        child: Row(
                           children: [
-                            Text(
-                              widget.chatName ?? 'Chat Room ${widget.chatId}',
-                              style: TextStyle(
-                                color: isDark ? Colors.white : Colors.black,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              overflow: TextOverflow.ellipsis,
+                            // Back button
+                            IconButton(
+                              icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
+                              onPressed: () => Navigator.pop(context),
                             ),
-                            Text(
-                              'Online',
-                              style: TextStyle(
-                                color: isDark ? Colors.white70 : Colors.black54,
-                                fontSize: 12,
+                            const SizedBox(width: 8),
+                            
+                            // Avatar
+                            CircleAvatar(
+                              radius: 20,
+                              backgroundImage: CachedNetworkImageProvider(
+                                "${AppConstants.defaultAvatarUrl}?u=${widget.chatId}",
                               ),
                             ),
+                            const SizedBox(width: 12),
+                            
+                            // Name + status
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    widget.chatName ?? 'Chat Room ${widget.chatId}',
+                                    style: TextStyle(
+                                      color: isDark ? Colors.white : Colors.black,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    'Online',
+                                    style: TextStyle(
+                                      color: isDark ? Colors.white70 : Colors.black54,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            
+                            // Call buttons (only for 1-on-1)
+                            if (!widget.isGroupChat) ...[
+                              IconButton(
+                                icon: Icon(Icons.videocam, color: isDark ? Colors.white : Colors.black),
+                                onPressed: () => _startVideoCall(),
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.call, color: isDark ? Colors.white : Colors.black),
+                                onPressed: () => _startAudioCall(),
+                              ),
+                            ],
+                            const SizedBox(width: 8),
                           ],
                         ),
                       ),
+                      
+                      // Header glass effect background
+                      ValueListenableBuilder<double>(
+                        valueListenable: _headerOpacity,
+                        builder: (context, opacity, _) {
+                          return Container(
+                            height: 1,
+                            color: isDark 
+                              ? Colors.white.withValues(alpha: opacity * 0.12)
+                              : Colors.black.withValues(alpha: opacity * 0.12),
+                          );
+                        },
+                      ),
                     ],
                   ),
-                  actions: [
-                    // Кнопки вызова только для личных чатов
-                    if (!widget.isGroupChat) ...[
-                      ValueListenableBuilder<double>(
-                        valueListenable: _headerOpacity,
-                        builder: (context, opacity, _) {
-                          return IconButton(
-                            icon: Icon(Icons.videocam, color: isDark ? Colors.white : Colors.black),
-                            onPressed: () => _startVideoCall(),
-                          );
-                        },
-                      ),
-                      ValueListenableBuilder<double>(
-                        valueListenable: _headerOpacity,
-                        builder: (context, opacity, _) {
-                          return IconButton(
-                            icon: Icon(Icons.call, color: isDark ? Colors.white : Colors.black),
-                            onPressed: () => _startAudioCall(),
-                          );
-                        },
-                      ),
-                    ],
-                    const SizedBox(width: 16),
-                  ],
                 ),
                 
-                // Messages - using SliverList for proper sliver hierarchy
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final message = _messages[index];
-                        
-                        // URL превью
-                        if (message.urls != null && message.urls!.isNotEmpty) {
-                          return Column(
-                            crossAxisAlignment: message.isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                            children: [
-                              VTalkUrlPreview(
-                                url: message.urls!.first,
-                                title: 'Flutter.dev',
-                                description: 'Flutter - Build beautiful native apps',
-                                imageUrl: 'https://flutter.dev/images/flutter-logo-sharing.png',
-                              ),
-                              const SizedBox(height: 8),
-                              VTalkMessageBubble(
-                                text: message.text,
-                                isMe: message.isMe,
-                                time: message.formattedTime,
-                                reactions: message.reactions,
-                                replyTo: message.replyTo?.toJson(),
-                                onReply: () => _replyToMessage(message),
-                                onReact: () => _showReactionPicker(message),
-                                onDelete: () => _deleteMessage(message),
-                              ),
-                              const SizedBox(height: 12),
-                            ],
-                          );
-                        }
-                        
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: VTalkMessageBubble(
-                            text: message.text,
-                            isMe: message.isMe,
-                            time: message.formattedTime,
-                            reactions: message.reactions,
-                            replyTo: message.replyTo?.toJson(),
-                            onReply: () => _replyToMessage(message),
-                            onReact: () => _showReactionPicker(message),
-                            onDelete: () => _deleteMessage(message),
+                // Messages list (scrollable, expanded)
+                Expanded(
+                  child: CustomScrollView(
+                    controller: _customScrollController,
+                    physics: const BouncingScrollPhysics(),
+                    slivers: [
+                      SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              final message = _messages[index];
+                              
+                              // URL превью
+                              if (message.urls != null && message.urls!.isNotEmpty) {
+                                return Column(
+                                  crossAxisAlignment: message.isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                                  children: [
+                                    VTalkUrlPreview(
+                                      url: message.urls!.first,
+                                      title: 'Flutter.dev',
+                                      description: 'Flutter - Build beautiful native apps',
+                                      imageUrl: 'https://flutter.dev/images/flutter-logo-sharing.png',
+                                    ),
+                                    const SizedBox(height: 8),
+                                    VTalkMessageBubble(
+                                      text: message.text,
+                                      isMe: message.isMe,
+                                      time: message.formattedTime,
+                                      reactions: message.reactions,
+                                      replyTo: message.replyTo?.toJson(),
+                                      onReply: () => _replyToMessage(message),
+                                      onReact: () => _showReactionPicker(message),
+                                      onDelete: () => _deleteMessage(message),
+                                    ),
+                                    const SizedBox(height: 12),
+                                  ],
+                                );
+                              }
+                              
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                child: VTalkMessageBubble(
+                                  text: message.text,
+                                  isMe: message.isMe,
+                                  time: message.formattedTime,
+                                  reactions: message.reactions,
+                                  replyTo: message.replyTo?.toJson(),
+                                  onReply: () => _replyToMessage(message),
+                                  onReact: () => _showReactionPicker(message),
+                                  onDelete: () => _deleteMessage(message),
+                                ),
+                              );
+                            },
+                            childCount: _messages.length,
                           ),
-                        );
-                      },
-                      childCount: _messages.length,
-                    ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 
-                // Плавающая дата (floating helper)
-                SliverToBoxAdapter(
-                  child: ValueListenableBuilder<double>(
-                    valueListenable: _headerOpacity,
-                    builder: (context, opacity, _) {
-                      return VTalkFloatingDateHeader(
-                        date: DateTime.now(),
-                        isVisible: opacity > 0.5,
-                      );
-                    },
-                  ),
+                // Input field (FIXED at bottom, never scrolls)
+                VTalkCompactInput(
+                  controller: _messageController,
+                  focusNode: _focusNode,
+                  onSend: _sendMessage,
+                  onEmojiTap: () => _showEmojiPicker(isDark),
+                  onAttachTap: () => _showAttachmentMenu(context, isDark),
+                  onCameraTap: () => _openCamera(context),
+                  onMicTap: () => _startAudioRecording(),
                 ),
-                
-                // Input field at bottom - fixed with SliverToBoxAdapter
-                SliverToBoxAdapter(
-                  child: VTalkCompactInput(
-                    controller: _messageController,
-                    focusNode: _focusNode,
-                    onSend: _sendMessage,
-                    onEmojiTap: () => _showEmojiPicker(isDark),
-                    onAttachTap: () => _showAttachmentMenu(context, isDark),
-                    onCameraTap: () => _openCamera(context),
-                    onMicTap: () => _startAudioRecording(),
-                  ),
-                ),
-                
-                // Safe area padding at bottom for keyboard
-                SliverToBoxAdapter(
-                  child: SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 20),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
