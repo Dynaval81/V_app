@@ -48,21 +48,21 @@ class ThemeProvider extends ChangeNotifier {
     appBarTheme: const AppBarTheme(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      iconTheme: IconThemeData(color: Colors.black),
+      iconTheme: IconThemeData(color: Colors.black87),
       titleTextStyle: TextStyle(
-        color: Colors.black,
+        color: Colors.black87, // Улучшенный контраст для светлой темы
         fontSize: 20,
         fontWeight: FontWeight.bold,
       ),
     ),
     textTheme: const TextTheme(
-      bodyLarge: TextStyle(color: Colors.black),
-      bodyMedium: TextStyle(color: Colors.black87),
+      bodyLarge: TextStyle(color: Colors.black87),
+      bodyMedium: TextStyle(color: Colors.black54),
     ),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: Color(0xFF252541),
+      backgroundColor: Color(0xFFF5F5F5), // Светлый фон для светлой темы
       selectedItemColor: Colors.blueAccent,
-      unselectedItemColor: Colors.white54,
+      unselectedItemColor: Colors.black54, // Темные иконки для светлой темы
       type: BottomNavigationBarType.fixed,
     ),
   );

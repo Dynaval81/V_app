@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import '../theme_provider.dart';
 import '../utils/glass_kit.dart';
+import '../constants/app_constants.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
   const AccountSettingsScreen({Key? key}) : super(key: key);
@@ -14,6 +16,8 @@ class AccountSettingsScreen extends StatefulWidget {
 class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   final TextEditingController _nicknameController = TextEditingController(text: 'John Doe');
   final TextEditingController _emailController = TextEditingController(text: 'john@vtalk.app');
+  String _userStatus = "at work / traveling"; // Добавляем переменную статуса
+  String _userAvatar = "${AppConstants.defaultAvatarUrl}?u=me"; // Добавляем переменную аватара
   
   @override
   void dispose() {
@@ -222,29 +226,32 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 ),
               ),
 
-              // Profile Avatar Section
+              // Profile Avatar Section с возможностью смены
               Center(
                 child: Column(
                   children: [
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.blue.withOpacity(0.8), Colors.purple.withOpacity(0.6)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.blue.withOpacity(0.3),
-                            blurRadius: 20,
-                            spreadRadius: 4,
+                    GestureDetector(
+                      onTap: () => _showImagePicker(),
+                      child: Stack(
+                        children: [
+                          CircleAvatar(
+                            radius: 50,
+                            backgroundImage: NetworkImage(_userAvatar),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: GlassKit.liquidGlass(
+                              isDark: isDark,
+                              radius: 20,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: Icon(Icons.camera_alt_rounded, size: 20, color: Colors.blueAccent),
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                      child: Icon(Icons.person, color: Colors.white, size: 50),
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -265,6 +272,16 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     ),
                   ],
                 ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Status Section - сразу под аватаром
+              _buildProfileField(
+                label: 'Your Status',
+                controller: TextEditingController(text: _userStatus),
+                isDark: isDark,
+                icon: Icons.edit_note_rounded,
               ),
 
               const SizedBox(height: 32),
@@ -337,15 +354,6 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 label: 'VT Number',
                 value: '1234567890',
                 icon: Icons.badge,
-                isDark: isDark,
-              ),
-
-              const SizedBox(height: 12),
-
-              _buildInfoTile(
-                label: 'Status',
-                value: 'Online',
-                icon: Icons.circle,
                 isDark: isDark,
               ),
 
@@ -535,6 +543,156 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  // Метод для выбора изображения из галереи/камеры
+  Future<void> _showImagePicker() async {
+    final ImagePicker picker = ImagePicker();
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => GlassKit.liquidGlass(
+        isDark: Provider.of<ThemeProvider>(context).isDarkMode,
+        radius: 20,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Change Avatar',
+                style: TextStyle(
+                  color: Provider.of<ThemeProvider>(context).isDarkMode ? Colors.white : Colors.black87,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildPickerOption(
+                    icon: Icons.camera_alt,
+                    label: 'Camera',
+                    onTap: () async {
+                      Navigator.pop(context);
+                      final XFile? image = await picker.pickImage(source: ImageSource.camera);
+                      if (image != null) {
+                        setState(() {
+                          _userAvatar = image.path;
+                        });
+                      }
+                    },
+                  ),
+                  _buildPickerOption(
+                    icon: Icons.photo_library,
+                    label: 'Gallery',
+                    onTap: () async {
+                      Navigator.pop(context);
+                      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+                      if (image != null) {
+                        setState(() {
+                          _userAvatar = image.path;
+                        });
+                      }
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPickerOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
+    
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: Colors.blueAccent, size: 28),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              color: isDark ? Colors.white70 : Colors.black54,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showStatusEditDialog(bool isDark) {
+    final TextEditingController statusController = TextEditingController(text: _userStatus);
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1A1A2E) : Colors.white,
+        title: Text(
+          'Share what\'s on your mind...',
+          style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+        ),
+        content: TextField(
+          controller: statusController,
+          style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+          decoration: InputDecoration(
+            hintText: 'How are you feeling today?',
+            hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.black12),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.blueAccent, width: 2),
+            ),
+          ),
+          maxLength: 50,
+          maxLines: 2,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: isDark ? Colors.white54 : Colors.black54)),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _userStatus = statusController.text.trim();
+              });
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Status updated! $_userStatus'),
+                  backgroundColor: Colors.green.withOpacity(0.7),
+                ),
+              );
+            },
+            child: Text('Share', style: TextStyle(color: Colors.blueAccent)),
+          ),
+        ],
       ),
     );
   }

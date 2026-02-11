@@ -580,32 +580,52 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                                   Text(
                                     widget.chatName ?? 'Chat Room ${widget.chatId}',
                                     style: TextStyle(
-                                      color: isDark ? Colors.white : Colors.black,
+                                      color: isDark ? Colors.white : Colors.black87,
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
+                                  const SizedBox(height: 2),
                                   Text(
-                                    'Online',
+                                    widget.isGroupChat ? "Group description..." : "at work / traveling", // Кастомный статус
                                     style: TextStyle(
-                                      color: isDark ? Colors.white70 : Colors.black54,
-                                      fontSize: 12,
+                                      fontSize: 11, // Мельче, чем имя
+                                      fontWeight: FontWeight.w400,
+                                      color: isDark ? Colors.white54 : Colors.black45, // Приглушенный цвет
                                     ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                               ),
                             ),
                             
-                            // Call buttons (only for 1-on-1)
+                            // Call buttons (only for 1-on-1) - Soft Glass стиль
                             if (!widget.isGroupChat) ...[
-                              IconButton(
-                                icon: Icon(Icons.videocam, color: isDark ? Colors.white : Colors.black),
-                                onPressed: () => _startVideoCall(),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: isDark 
+                                      ? Colors.white.withOpacity(0.05) // Тончайший слой для темной
+                                      : Colors.black.withOpacity(0.03), // Еле заметный для светлой
+                                  shape: BoxShape.circle,
+                                ),
+                                child: IconButton(
+                                  icon: Icon(Icons.videocam, color: isDark ? Colors.white70 : Colors.black54),
+                                  onPressed: () => _startVideoCall(),
+                                ),
                               ),
-                              IconButton(
-                                icon: Icon(Icons.call, color: isDark ? Colors.white : Colors.black),
-                                onPressed: () => _startAudioCall(),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: isDark 
+                                      ? Colors.white.withOpacity(0.05) // Тончайший слой для темной
+                                      : Colors.black.withOpacity(0.03), // Еле заметный для светлой
+                                  shape: BoxShape.circle,
+                                ),
+                                child: IconButton(
+                                  icon: Icon(Icons.call, color: isDark ? Colors.white70 : Colors.black54),
+                                  onPressed: () => _startAudioCall(),
+                                ),
                               ),
                             ],
                             const SizedBox(width: 8),

@@ -119,7 +119,7 @@ class _VtalkHeaderState extends State<VtalkHeader>
                   child: Text(
                     widget.title.toUpperCase(), 
                     style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black,
+                      color: isDark ? Colors.white : Colors.black.withOpacity(0.9), // Явный контраст для светлой темы
                       fontWeight: FontWeight.w900,
                       letterSpacing: 2,
                       fontSize: 20

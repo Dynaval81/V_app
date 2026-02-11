@@ -21,6 +21,9 @@ class _ChatsScreenState extends State<ChatsScreen> {
   double _lastOffset = 0.0;
   // Simple in-memory storage for newly created chats/groups in this session
   final List<Map<String, dynamic>> _customChats = [];
+  
+  // User status storage
+  String _userStatus = "at work / traveling";
 
   @override
   void initState() {
@@ -84,9 +87,9 @@ class _ChatsScreenState extends State<ChatsScreen> {
                   children: [
                     const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
                     const SizedBox(width: 8),
-                    const Expanded(
+                    Expanded(
                       child: Text("VTALK", style: TextStyle(
-                        color: Colors.white,
+                        color: isDark ? Colors.white : Colors.black87, // Исправляем контраст
                         fontWeight: FontWeight.w900,
                         letterSpacing: 2,
                         fontSize: 20
@@ -95,15 +98,10 @@ class _ChatsScreenState extends State<ChatsScreen> {
                   ],
                 ),
                 actions: [
-                  ValueListenableBuilder<double>(
-                    valueListenable: _searchOpacity,
-                    builder: (context, opacity, _) {
-                      return IconButton(
-                        icon: const Icon(Icons.search), 
-                        onPressed: () => _showSearch(context, isDark),
-                        color: isDark ? Colors.white : Colors.black.withOpacity(opacity),
-                      );
-                    },
+                  IconButton(
+                    icon: const Icon(Icons.search), 
+                    onPressed: () => _showSearch(context, isDark),
+                    color: isDark ? Colors.white : Colors.black87, // Фиксированный цвет для обеих тем
                   ),
                   GestureDetector(
                     onTap: () => Navigator.push(
@@ -147,7 +145,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
       context: context, // Добавляем context для debug mode
       useBlur: false, // Отключаем блюр для плавного скролла
       radius: 16,
-      opacity: 0.1,
+      opacity: 0.05, // Уменьшаем opacity до уровня Dashboard
       child: ListTile(
         onTap: () => Navigator.push(
           context,
@@ -160,7 +158,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
         leading: Stack(
           children: [
             CircleAvatar(radius: 28, backgroundImage: CachedNetworkImageProvider("${AppConstants.defaultAvatarUrl}?u=custom${chat['id']}"),),
-            if (isOnline)
+            if (!isGroup && isOnline) // Рисуем точку только если это НЕ группа и пользователь онлайн
               Positioned(
                 right: 0,
                 bottom: 0,
@@ -172,10 +170,19 @@ class _ChatsScreenState extends State<ChatsScreen> {
           children: [
             if (isGroup) Icon(Icons.group, size: 16, color: Colors.blueAccent),
             if (isGroup) const SizedBox(width: 6),
-            Expanded(child: Text(chat['name'] as String, style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold))),
+            Expanded(child: Text(chat['name'] as String, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.bold))),
           ],
         ),
-        subtitle: Text(isOnline ? 'Online' : 'Offline', style: TextStyle(color: isOnline ? Colors.green.withOpacity(0.7) : Colors.grey.withOpacity(0.7), fontSize: 12)),
+        subtitle: Text(
+            isGroup ? "Group description..." : _userStatus, // Используем пользовательский статус
+            style: TextStyle(
+              fontSize: 11, // Мельче, чем имя
+              fontWeight: FontWeight.w400,
+              color: isDark ? Colors.white54 : Colors.black45, // Приглушенный цвет
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -190,6 +197,62 @@ class _ChatsScreenState extends State<ChatsScreen> {
     );
   }
 
+  // Добавляем кнопку редактирования статуса в хедер
+  Widget _buildStatusEditButton(bool isDark) {
+    return IconButton(
+      icon: Icon(Icons.edit, size: 16, color: isDark ? Colors.white54 : Colors.black54),
+      onPressed: () => _showStatusEditDialog(isDark),
+      tooltip: 'Edit Status',
+    );
+  }
+
+  void _showStatusEditDialog(bool isDark) {
+    final TextEditingController statusController = TextEditingController(text: _userStatus);
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1A1A2E) : Colors.white,
+        title: Text(
+          'Edit Status',
+          style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+        ),
+        content: TextField(
+          controller: statusController,
+          style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+          decoration: InputDecoration(
+            hintText: 'Enter your status...',
+            hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.black12),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.blueAccent, width: 2),
+            ),
+          ),
+          maxLength: 50,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel', style: TextStyle(color: isDark ? Colors.white54 : Colors.black54)),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _userStatus = statusController.text.trim();
+              });
+              Navigator.pop(context);
+            },
+            child: Text('Save', style: TextStyle(color: Colors.blueAccent)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildChatTile(int i, bool isDark) {
     bool isGroup = i % 3 == 0;
     bool isOnline = i % 4 == 0;
@@ -200,7 +263,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
       context: context, // Добавляем context для debug mode
       useBlur: false, // Отключаем блюр для плавного скролла
       radius: 16,
-      opacity: 0.1,
+      opacity: 0.05, // Уменьшаем opacity до уровня Dashboard
       child: ListTile(
         onTap: () => Navigator.push(
           context, 
@@ -216,7 +279,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
               radius: 28, 
               backgroundImage: CachedNetworkImageProvider("${AppConstants.defaultAvatarUrl}?u=chat$i")
             ),
-            if (isOnline)
+            if (!isGroup && isOnline) // Рисуем точку только если это НЕ группа и пользователь онлайн
               Positioned(
                 right: 0,
                 bottom: 0,
@@ -241,7 +304,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
               child: Text(
                 isGroup ? "Project Group $i" : "Contact $i", 
                 style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black, 
+                  color: isDark ? Colors.white : Colors.black87, // Исправляем контраст
                   fontWeight: FontWeight.bold
                 )
               ),
@@ -249,12 +312,15 @@ class _ChatsScreenState extends State<ChatsScreen> {
           ],
         ),
         subtitle: Text(
-          isOnline ? "Online" : "Offline", 
-          style: TextStyle(
-            color: isOnline ? Colors.green.withOpacity(0.7) : Colors.grey.withOpacity(0.7), 
-            fontSize: 12
-          )
-        ),
+            isGroup ? "Group description..." : _userStatus, // Используем пользовательский статус
+            style: TextStyle(
+              fontSize: 11, // Мельче, чем имя
+              fontWeight: FontWeight.w400,
+              color: isDark ? Colors.white54 : Colors.black45, // Приглушенный цвет
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -411,6 +477,7 @@ Widget _buildMenuOption({
 
   void _showCreateChatForm({required bool isGroup}) {
     final TextEditingController nameCtrl = TextEditingController();
+    final TextEditingController descriptionCtrl = TextEditingController(); // Добавляем поле для описания группы
     final TextEditingController searchCtrl = TextEditingController();
     final Set<String> selectedParticipants = {};
     String? selectedContact; // For 1-on-1 chats
@@ -508,7 +575,24 @@ Widget _buildMenuOption({
                                 hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 12),
+                            // Description field for groups
+                            TextField(
+                              controller: descriptionCtrl,
+                              style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                              decoration: InputDecoration(
+                                labelText: 'Group Description',
+                                labelStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
+                                prefixIcon: Icon(Icons.description, color: Colors.blueAccent),
+                                filled: true,
+                                fillColor: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
+                                hintText: 'What\'s this group about?',
+                              ),
+                              maxLines: 2,
+                              maxLength: 100,
+                            ),
                           ],
                         ),
 

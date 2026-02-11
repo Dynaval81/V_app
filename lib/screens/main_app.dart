@@ -51,12 +51,12 @@ class _MainAppState extends State<MainApp> {
           ),
           bottomNavigationBar: BottomNavigationBar(
             currentIndex: _currentIndex,
-            onTap: _changeTab,
-            backgroundColor: themeProvider.isDarkMode ? Color(0xFF252541) : Color(0xFFF5F5F5),
+            onTap: (index) => setState(() => _currentIndex = index),
             type: BottomNavigationBarType.fixed,
+            backgroundColor: themeProvider.isDarkMode ? Color(0xFF252541) : Color(0xFFF5F5F5), // Адаптивный цвет
             selectedItemColor: Colors.blueAccent,
-            unselectedItemColor: themeProvider.isDarkMode ? Colors.white54 : Colors.black54,
-            items: [
+            unselectedItemColor: themeProvider.isDarkMode ? Colors.white54 : Colors.black54, // Адаптивный цвет
+            items: const [
               BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: 'Chats'),
               BottomNavigationBarItem(icon: Icon(Icons.auto_awesome), label: 'Vtalk AI'),
               BottomNavigationBarItem(icon: Icon(Icons.vpn_lock), label: 'VPN'),
