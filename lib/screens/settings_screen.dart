@@ -37,6 +37,15 @@ class SettingsScreen extends StatelessWidget {
                             },
                             activeColor: Colors.blueAccent,
                           )),
+                          _buildSettingItem("Debug Glass Mode", Icons.bug_report, 
+                            subtitle: "Visualize blur optimization", 
+                            trailing: Switch(
+                              value: themeProvider.debugGlassMode,
+                              onChanged: (val) {
+                                themeProvider.toggleDebugGlassMode();
+                              },
+                              activeColor: Colors.green,
+                            )),
                           _buildSettingItem("Profile Settings", Icons.person_outline),
                           _buildSettingItem("Notifications", Icons.notifications_none),
                           _buildSettingItem("Privacy & Security", Icons.lock_outline),
@@ -91,7 +100,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSettingItem(String title, IconData icon, {Widget? trailing, Color? color}) {
+  Widget _buildSettingItem(String title, IconData icon, {String? subtitle, Widget? trailing, Color? color}) {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         final isDark = themeProvider.isDarkMode;
@@ -99,6 +108,10 @@ class SettingsScreen extends StatelessWidget {
         return ListTile(
           leading: Icon(icon, color: color ?? (isDark ? Colors.blueAccent : Colors.blue)),
           title: Text(title, style: TextStyle(color: isDark ? Colors.white : Colors.black)),
+          subtitle: subtitle != null ? Text(subtitle, style: TextStyle(
+            color: isDark ? Colors.white54 : Colors.black54, 
+            fontSize: 12
+          )) : null,
           trailing: trailing ?? Icon(Icons.chevron_right, color: isDark ? Colors.white24 : Colors.black26),
         );
       },

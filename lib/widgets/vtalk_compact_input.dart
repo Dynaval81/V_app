@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../utils/glass_kit.dart';
 import '../theme_provider.dart';
@@ -131,101 +132,71 @@ class VTalkCompactInput extends StatelessWidget {
   }
 
   void _showAttachmentMenu(BuildContext context, bool isDark) {
+    HapticFeedback.mediumImpact(); // Тактильный отклик при открытии
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      barrierColor: Colors.black45, // Чуть сильнее затемняем фон чата
       isScrollControlled: true,
       useSafeArea: true,
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.48,
-      ),
+      // УБИРАЕМ constraints - даем меню полную высоту
       builder: (context) => GlassKit.liquidGlass(
-        radius: 20,
+        radius: 32, // Увеличиваем скругление как в Mercury Action Menu
         isDark: isDark,
         opacity: 0.15,
         useBlur: true,
-        child: SingleChildScrollView(
-          child: Container(
-            padding: const EdgeInsets.only(left: 12, right: 12, top: 12, bottom: 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Заголовок (компактный)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Прикрепить',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                    ),
-                    SizedBox(
-                      width: 36,
-                      height: 36,
-                      child: IconButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.close, size: 20),
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.7, // ОГРАНИЧИВАЕМ ВНУТРИ КОНТЕЙНЕРА
+          ),
+          child: SingleChildScrollView(
+            child: Container(
+              padding: const EdgeInsets.only(left: 12, right: 12, top: 12, bottom: 8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Заголовок в стиле Mercury
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Прикрепить',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                
-                // Опции GridView
-                GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 4,
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                  childAspectRatio: 1.1,
-                  children: [
-                    _buildAttachmentOption(
-                      context,
-                      Icons.photo_library,
-                      'Галерея',
-                      () => _pickImage(context),
-                      isDark,
-                    ),
-                    _buildAttachmentOption(
-                      context,
-                      Icons.camera_alt,
-                      'Камера',
-                      () => _openCamera(context),
-                      isDark,
-                    ),
-                    _buildAttachmentOption(
-                      context,
-                      Icons.attach_file,
-                      'Файл',
-                      () => _pickFile(context),
-                      isDark,
-                    ),
-                    _buildAttachmentOption(
-                      context,
-                      Icons.location_on,
-                      'Место',
-                      () => _shareLocation(context),
-                      isDark,
-                    ),
-                    _buildAttachmentOption(
-                      context,
-                      Icons.poll,
-                      'Опрос',
-                      () => _createPoll(context),
-                      isDark,
-                    ),
-                    _buildAttachmentOption(
-                      context,
-                      Icons.contact_page,
-                      'Контакт',
-                      () => _shareContact(context),
-                      isDark,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-              ],
+                      SizedBox(
+                        width: 36,
+                        height: 36,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: () {
+                            HapticFeedback.lightImpact(); // Тактильный отклик на закрытие
+                            Navigator.pop(context);
+                          },
+                          icon: const Icon(Icons.close, size: 20),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  
+                  // Mercury стиль сетки вложений 2x3
+                  Wrap(
+                    spacing: 20,
+                    runSpacing: 20,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      _buildUltraAttachOption(context, Icons.photo_library_rounded, "Gallery", Colors.blueAccent, isDark),
+                      _buildUltraAttachOption(context, Icons.camera_alt_rounded, "Camera", Colors.pinkAccent, isDark),
+                      _buildUltraAttachOption(context, Icons.insert_drive_file_rounded, "File", Colors.amberAccent, isDark),
+                      _buildUltraAttachOption(context, Icons.location_on_rounded, "Place", Colors.greenAccent, isDark),
+                      _buildUltraAttachOption(context, Icons.headset_rounded, "Music", Colors.purpleAccent, isDark),
+                      _buildUltraAttachOption(context, Icons.contact_page_rounded, "Contact", Colors.cyanAccent, isDark),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
           ),
         ),
@@ -233,38 +204,56 @@ class VTalkCompactInput extends StatelessWidget {
     );
   }
 
-  Widget _buildAttachmentOption(
+  Widget _buildUltraAttachOption(
     BuildContext context,
     IconData icon,
     String label,
-    VoidCallback onTap,
+    Color color,
     bool isDark,
   ) {
-    return GestureDetector(
+    return InkWell(
       onTap: () {
-        Navigator.pop(context);
-        onTap();
+        HapticFeedback.lightImpact();
+        // Логика нажатия
       },
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+              color: color.withOpacity(isDark ? 0.15 : 0.1),
+              // Внутреннее свечение (неоновое)
+              border: Border.all(
+                color: color.withOpacity(0.4),
+                width: 1.5,
+              ),
+              // Неоновое свечение снаружи
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.3),
+                  blurRadius: 8,
+                  spreadRadius: 2,
+                ),
+                BoxShadow(
+                  color: color.withOpacity(0.2),
+                  blurRadius: 16,
+                  spreadRadius: 4,
+                ),
+              ],
             ),
-            child: Icon(
-              icon,
-              color: isDark ? Colors.white.withValues(alpha: 0.7) : Colors.black.withValues(alpha: 0.54),
-              size: 28,
-            ),
+            child: Icon(icon, color: color, size: 28),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(
             label,
             style: TextStyle(
-              color: isDark ? Colors.white.withValues(alpha: 0.7) : Colors.black.withValues(alpha: 0.54),
               fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white70 : Colors.black87,
+              letterSpacing: 0.5,
             ),
           ),
         ],

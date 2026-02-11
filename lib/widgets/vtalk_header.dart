@@ -8,13 +8,13 @@ class VtalkHeader extends StatefulWidget {
   final String title;
   final bool showScrollAnimation;
   final List<Widget>? actions;
-  final double? scrollOffset;
+  final ScrollController? scrollController; // Добавляем ScrollController
   
   const VtalkHeader({
     required this.title,
     this.showScrollAnimation = true,
     this.actions,
-    this.scrollOffset,
+    this.scrollController, // Опциональный контроллер
   });
 
   @override
@@ -22,7 +22,7 @@ class VtalkHeader extends StatefulWidget {
 }
 
 class _VtalkHeaderState extends State<VtalkHeader>
-  with TickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late AnimationController _avatarController;
   late AnimationController _titleController;
   late Animation<double> _scaleAnimation;
@@ -62,114 +62,109 @@ class _VtalkHeaderState extends State<VtalkHeader>
     });
   }
   
-  double _calculateTitleOpacity() {
-    if (!widget.showScrollAnimation || widget.scrollOffset == null) {
-      return 1.0;
+  // Безопасные геттеры для расчета значений
+  double get _currentDensity {
+    try {
+      // Проверяем: прикреплен ли контроллер и есть ли у него размеры
+      if (widget.scrollController != null && widget.scrollController!.hasClients) {
+        return (widget.scrollController!.offset / 100).clamp(0.0, 0.8);
+      }
+    } catch (_) {
+      // Если что-то пошло не так (например, во время dispose)
     }
-    
-    // Заголовок начинает исчезать при скролле > 50px
-    final fadeStart = 50.0;
-    final fadeEnd = 150.0;
-    
-    if (widget.scrollOffset! <= fadeStart) {
-      return 1.0;
-    } else if (widget.scrollOffset! >= fadeEnd) {
-      return 0.0;
-    } else {
-      return 1.0 - ((widget.scrollOffset! - fadeStart) / (fadeEnd - fadeStart));
-    }
+    return 0.0; // По умолчанию шапка прозрачная
   }
-  
-  double _calculateAppBarOpacity() {
-    if (!widget.showScrollAnimation || widget.scrollOffset == null) {
-      return 0.0;
-    }
-    
-    // Фон появляется при скролле > 100px
-    final fadeStart = 100.0;
-    final fadeEnd = 200.0;
-    
-    if (widget.scrollOffset! <= fadeStart) {
-      return 0.0;
-    } else if (widget.scrollOffset! >= fadeEnd) {
-      return 0.4;
-    } else {
-      return ((widget.scrollOffset! - fadeStart) / (fadeEnd - fadeStart)) * 0.4;
-    }
+
+  double get _currentOpacity {
+    try {
+      if (widget.scrollController != null && widget.scrollController!.hasClients) {
+        // Текст исчезает быстрее, чем появляется блюр шапки
+        return (1.0 - (widget.scrollController!.offset / 60)).clamp(0.0, 1.0);
+      }
+    } catch (_) {}
+    return 1.0; // По умолчанию текст виден полностью
   }
   
   @override
   Widget build(BuildContext context) {
     final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
-    final titleOpacity = _calculateTitleOpacity();
-    final appBarOpacity = _calculateAppBarOpacity();
     
-    return SliverAppBar(
-      pinned: true,
-      automaticallyImplyLeading: false,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      flexibleSpace: GlassKit.liquidGlass(
-        radius: 0,
-        isDark: isDark,
-        opacity: appBarOpacity,
-        useBlur: true,  // ✅ Явно включаем блюр для заголовка
-        child: Container(),
-      ),
-      title: Row(
-        children: [
-          const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
-          const SizedBox(width: 8),
-          Flexible(  // ✅ Добавили Flexible чтобы текст не переполнял
-            child: Opacity(
-              opacity: titleOpacity,
-              child: Text(
-                widget.title.toUpperCase(), 
-                style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2,
-                  fontSize: 20,
-                ),
-                overflow: TextOverflow.ellipsis,  // ✅ Защита от overflow
-              ),
-            ),
+    return AnimatedBuilder(
+      animation: widget.scrollController ?? const AlwaysStoppedAnimation(0.0), // Безопасное использование
+      builder: (context, child) {
+        final titleOpacity = _currentOpacity;
+        final appBarOpacity = _currentDensity;
+        
+        return SliverAppBar(
+          pinned: true,
+          stretch: true,
+          backgroundColor: Colors.transparent,
+          expandedHeight: widget.showScrollAnimation ? 120 : 60, // Уменьшаем высоту для обычного режима
+          
+          // Используем наш оптимизированный GlassKit
+          flexibleSpace: GlassKit.liquidGlass(
+            radius: 0,
+            isDark: isDark,
+            opacity: appBarOpacity, // Динамическая прозрачность
+            useBlur: true, // В ШАПКЕ БЛЮР ОСТАВЛЯЕМ (это красиво!)
+            child: Container(), // УБИРАЕМ FlexibleSpaceBar с заголовком
           ),
-        ],
-      ),
-        actions: widget.actions ?? [],
-      // ✅ Заменили небезопасное распаковывание на безопасное
-      bottom: widget.showScrollAnimation
-          ? PreferredSize(
-              preferredSize: const Size.fromHeight(0),
-              child: ScaleTransition(
-                scale: _scaleAnimation,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: GestureDetector(
-                    onTapDown: (_) => _animateAvatar(),
-                    onTapUp: (_) => _avatarController.reverse(),
-                    onTapCancel: () => _avatarController.reverse(),
-                    onTap: () => Navigator.pushNamed(context, '/settings'),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: isDark ? Colors.white24 : Colors.black12,
-                          width: 2,
-                        ),
-                      ),
-                      child: CircleAvatar(
-                        radius: 16,
-                        backgroundColor: Colors.blue.withOpacity(0.7),
-                        child: const Icon(Icons.person, color: Colors.white),
-                      ),
+          title: Row(
+            children: [
+              const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
+              const SizedBox(width: 8),
+              Flexible(  // Добавили Flexible чтобы текст не переполнял
+                child: Opacity(
+                  opacity: titleOpacity,
+                  child: Text(
+                    widget.title.toUpperCase(), 
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2,
+                      fontSize: 20
                     ),
+                    overflow: TextOverflow.ellipsis,  // Защита от overflow
                   ),
                 ),
               ),
-            )
-          : null,
+            ],
+          ),
+          actions: widget.actions ?? [],
+          // Заменили небезопасное распаковывание на безопасное
+          bottom: widget.showScrollAnimation
+              ? PreferredSize(
+                  preferredSize: const Size.fromHeight(0),
+                  child: ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: GestureDetector(
+                        onTapDown: (_) => _animateAvatar(),
+                        onTapUp: (_) => _avatarController.reverse(),
+                        onTapCancel: () => _avatarController.reverse(),
+                        onTap: () => Navigator.pushNamed(context, '/settings'),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isDark ? Colors.white24 : Colors.black12,
+                              width: 2,
+                            ),
+                          ),
+                          child: CircleAvatar(
+                            radius: 16,
+                            backgroundColor: Colors.blue.withOpacity(0.7),
+                            child: const Icon(Icons.person, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              : null,
+        );
+      },
     );
   }
 }

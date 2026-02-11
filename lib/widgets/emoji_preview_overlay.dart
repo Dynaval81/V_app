@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
-import '../constants/emoji_sizes.dart';
+import '../utils/glass_kit.dart';
 import '../widgets/emoji_renderer.dart';
 
 class EmojiPreviewOverlay extends StatefulWidget {
@@ -47,45 +47,24 @@ class _EmojiPreviewOverlayState extends State<EmojiPreviewOverlay>
   }
   
   void showPreview(String emojiCode) {
+    HapticFeedback.mediumImpact(); // Более ощутимый отклик, "поднятие" элемента над стеклом
+    
     if (_overlayEntry != null) {
       _removeOverlay();
     }
     
     _overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        top: MediaQuery.of(context).viewInsets.bottom + 100,
-        right: 20,
-        child: AnimatedBuilder(
-          animation: _fadeAnimation,
-          builder: (context, child) => Opacity(
-            opacity: _fadeAnimation.value,
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).brightness == Brightness.dark 
-                        ? Colors.white.withOpacity(0.1)
-                        : Colors.black.withOpacity(0.1),
-                  ),
-                  padding: const EdgeInsets.all(12),
-                  child: EmojiRenderer.render(
-                    emojiCode, 
-                    EmojiSizes.preview,
-                    semanticLabel: 'Selected emoji preview',
-                  ),
-                ),
-              ),
+      builder: (context) => Center(
+        child: GlassKit.liquidGlass(
+          radius: 32,
+          useBlur: true, // Здесь блюр НУЖЕН для акцента на смайле
+          isDark: true, // Превью всегда лучше выглядит в темном стекле
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: EmojiRenderer.render(
+              emojiCode, 
+              EmojiSizes.preview, // Используем 48.0
+              semanticLabel: 'Selected emoji preview',
             ),
           ),
         ),

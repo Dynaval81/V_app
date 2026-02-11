@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../theme_provider.dart';
 import '../utils/glass_kit.dart';
 import '../constants/app_constants.dart';
+import '../widgets/vtalk_header.dart';
 import './account_settings_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -195,6 +196,127 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
     );
   }
 
+  Widget _buildAirHeader(bool isDark) {
+    return Row(
+      children: [
+        const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
+        const SizedBox(width: 8),
+        const Expanded(
+          child: Text("VTALK", style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 2,
+            fontSize: 20
+          )),
+        ),
+        ValueListenableBuilder<double>(
+          valueListenable: _searchOpacity,
+          builder: (context, opacity, _) {
+            return IconButton(
+              icon: const Icon(Icons.search), 
+              onPressed: () => _showSearch(context, isDark),
+              color: isDark ? Colors.white : Colors.black.withOpacity(opacity),
+            );
+          },
+        ),
+        GestureDetector(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
+          ),
+          child: CircleAvatar(
+            radius: 18,
+            backgroundImage: CachedNetworkImageProvider("${AppConstants.defaultAvatarUrl}?u=me"),
+          ),
+        ),
+        const SizedBox(width: 16),
+      ],
+    );
+  }
+
+  Widget _buildAirCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact(); // Легкий щелчок, как нажатие физической кнопки
+        onTap();
+      },
+      child: GlassKit.liquidGlass(
+        radius: 16,
+        isDark: isDark,
+        opacity: 0.08,
+        useBlur: false,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      color.withOpacity(0.8),
+                      color.withOpacity(0.4),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withOpacity(0.25),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Icon(icon, color: Colors.white, size: 28),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title, 
+                      style: TextStyle(
+                        color: isDark ? Colors.white : Colors.black,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle, 
+                      style: TextStyle(
+                        color: isDark ? Colors.white60 : Colors.black45,
+                        fontSize: 13,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded, 
+                color: isDark ? Colors.white.withOpacity(0.2) : Colors.black.withOpacity(0.08),
+                size: 24,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
@@ -208,43 +330,11 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
             controller: _scrollController,
             physics: const BouncingScrollPhysics(),
             slivers: [
-              SliverAppBar(
-                pinned: true,
-                automaticallyImplyLeading: false,
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                flexibleSpace: GlassKit.liquidGlass(
-                  radius: 0,
-                  isDark: isDark,
-                  opacity: 0.3,
-                  useBlur: true,
-                  child: Container(),
-                ),
-                title: Row(
-                  children: [
-                    const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
-                    const SizedBox(width: 8),
-                    const Expanded(
-                      child: Text("VTALK", style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2,
-                        fontSize: 20
-                      )),
-                    ),
-                  ],
-                ),
+              VtalkHeader(
+                title: "VTALK",
+                showScrollAnimation: false,
+                scrollController: null, // Без анимации скролла
                 actions: [
-                  ValueListenableBuilder<double>(
-                    valueListenable: _searchOpacity,
-                    builder: (context, opacity, _) {
-                      return IconButton(
-                        icon: const Icon(Icons.search), 
-                        onPressed: () => _showSearch(context, isDark),
-                        color: isDark ? Colors.white : Colors.black.withOpacity(opacity),
-                      );
-                    },
-                  ),
                   GestureDetector(
                     onTap: () => Navigator.push(
                       context,
@@ -258,169 +348,57 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                   const SizedBox(width: 16),
                 ],
               ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
-                      border: Border.all(color: isDark ? Colors.white12 : Colors.black12, width: 1),
-                      borderRadius: BorderRadius.circular(15),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    const SizedBox(height: 30),
+                    
+                    _buildAirCard(
+                      title: "VPN Status",
+                      subtitle: "Connected • Germany, Frankfurt",
+                      icon: Icons.vpn_lock_rounded,
+                      color: Colors.blueAccent,
+                      isDark: isDark,
+                      onTap: () => widget.onTabSwitch(2), // ИСПРАВЛЕНО: VPN = tab 2
                     ),
-                    child: TextField(
-                      style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                      decoration: InputDecoration(
-                        hintText: "Search dashboard...",
-                        hintStyle: TextStyle(color: isDark ? Colors.white24 : Colors.black26),
-                        prefixIcon: Icon(Icons.search, color: isDark ? Colors.white38 : Colors.black38),
-                        border: InputBorder.none,
-                      ),
+                    
+                    _buildAirCard(
+                      title: "AI Assistant",
+                      subtitle: "Model: Mercury-1.0-Flash",
+                      icon: Icons.psychology_rounded,
+                      color: Colors.purpleAccent,
+                      isDark: isDark,
+                      onTap: () => widget.onTabSwitch(1), // ИСПРАВЛЕНО: AI = tab 1
                     ),
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                  child: Column(
-                    children: [
-                      // 📊 Stats Row
-                      Row(
-                        children: [
-                          _buildStatCard(
-                            label: 'Chats',
-                            value: '24',
-                            icon: Icons.chat_bubble_outline,
-                            color: Colors.blue,
-                            isDark: isDark,
-                          ),
-                          const SizedBox(width: 8),
-                          _buildStatCard(
-                            label: 'Online',
-                            value: '12',
-                            icon: Icons.person_add,
-                            color: Colors.green,
-                            isDark: isDark,
-                          ),
-                          const SizedBox(width: 8),
-                          _buildStatCard(
-                            label: 'Storage',
-                            value: '2.4GB',
-                            icon: Icons.storage,
-                            color: Colors.purple,
-                            isDark: isDark,
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      // 🔐 Status Section
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: Text(
-                          'Status',
-                          style: TextStyle(
-                            color: isDark ? Colors.white : Colors.black,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-
-                      GlassKit.liquidGlass(
-                        radius: 16,
-                        isDark: isDark,
-                        opacity: 0.08,
-                        useBlur: false,
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 12,
-                                height: 12,
-                                decoration: BoxDecoration(
-                                  color: Colors.green,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.green.withOpacity(0.5),
-                                      blurRadius: 8,
-                                      spreadRadius: 1,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'VPN Connection',
-                                      style: TextStyle(
-                                        color: isDark ? Colors.white : Colors.black,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        letterSpacing: 0.3,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      'Connected • Moscow, RU',
-                                      style: TextStyle(
-                                        color: isDark ? Colors.white60 : Colors.black45,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Icon(Icons.check_circle, color: Colors.green, size: 20),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      // 🎯 Quick Actions
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: Text(
-                          'Quick Access',
-                          style: TextStyle(
-                            color: isDark ? Colors.white : Colors.black,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-
-                      _buildAirItem(
-                        icon: Icons.vpn_lock_rounded,
-                        title: 'Vtalk VPN',
-                        subtitle: 'Secure & Anonymous Connection',
-                        color: Colors.blue,
-                        isDark: isDark,
-                        onTap: () => widget.onTabSwitch(1),
-                      ),
-
-                      _buildAirItem(
-                        icon: Icons.psychology_rounded,
-                        title: 'AI Assistant',
-                        subtitle: 'Your Personal AI Companion',
-                        color: Colors.purple,
-                        isDark: isDark,
-                        onTap: () => widget.onTabSwitch(2),
-                      ),
-
-                      const SizedBox(height: 24),
-                    ],
-                  ),
+                    _buildAirCard(
+                      title: "Appearance",
+                      subtitle: "Glassmorphism & Themes",
+                      icon: Icons.palette_rounded,
+                      color: Colors.orangeAccent,
+                      isDark: isDark,
+                      onTap: () {
+                        // TODO: Implement theme picker
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Theme picker coming soon!')),
+                        );
+                      },
+                    ),
+                    
+                    const SizedBox(height: 20),
+                    Consumer<ThemeProvider>(
+                      builder: (context, themeProvider, child) {
+                        return _buildAirCard(
+                          title: "Debug Glass Mode",
+                          subtitle: themeProvider.debugGlassMode ? 'Visual blur ON' : 'Visual blur OFF',
+                          icon: Icons.bug_report,
+                          color: themeProvider.debugGlassMode ? Colors.green : Colors.red,
+                          isDark: isDark,
+                          onTap: () => themeProvider.toggleDebugGlassMode(),
+                        );
+                      },
+                    ),
+                  ]),
                 ),
               ),
             ],

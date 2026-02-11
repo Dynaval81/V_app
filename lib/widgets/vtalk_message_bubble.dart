@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/glass_kit.dart';
 import '../theme_provider.dart';
+import '../widgets/emoji_renderer.dart';
 import 'package:provider/provider.dart';
 
 class VTalkMessageBubble extends StatelessWidget {
@@ -30,6 +31,36 @@ class VTalkMessageBubble extends StatelessWidget {
     this.onAddReaction,
     this.onDelete,
   }) : super(key: key);
+
+  // Функция для обработки текста с эмодзи
+  Widget _buildTextWithEmojis(String text, TextStyle style) {
+    final List<String> parts = text.split(' ');
+    final List<InlineSpan> spans = [];
+    
+    for (int i = 0; i < parts.length; i++) {
+      final part = parts[i];
+      
+      // Проверяем, что это эмодзи (начинается и заканчивается двоеточием) или ретро эмодзи
+      if ((part.startsWith(':') && part.endsWith(':') && part.length > 2) ||
+          (part.startsWith('[retro]:') && part.endsWith(':'))) {
+        // Это эмодзи - используем EmojiRenderer
+        spans.add(WidgetSpan(
+          child: EmojiRenderer.render(part, EmojiSizes.chat),
+          alignment: PlaceholderAlignment.middle,
+        ));
+      } else {
+        // Обычный текст
+        spans.add(TextSpan(
+          text: part + (i < parts.length - 1 ? ' ' : ''),
+          style: style,
+        ));
+      }
+    }
+    
+    return RichText(
+      text: TextSpan(children: spans),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,9 +102,9 @@ class VTalkMessageBubble extends StatelessWidget {
                         ),
                       )
                     else
-                      Text(
+                      _buildTextWithEmojis(
                         text,
-                        style: TextStyle(
+                        TextStyle(
                           color: isDark ? Colors.white : Colors.black,
                           fontSize: 16,
                           height: 1.4,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../utils/glass_kit.dart';
@@ -52,7 +53,10 @@ class _ChatsScreenState extends State<ChatsScreen> {
 
     return Scaffold(
       floatingActionButton: FloatingActionButton(
-        onPressed: _showCreateMenu,
+        onPressed: () {
+          print("MERCURY_DEBUG: FAB НАЖАТ!"); // Крайний тест
+          _showCreateMenu();
+        },
         child: const Icon(Icons.add),
       ),
       body: Container(
@@ -67,6 +71,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
                 automaticallyImplyLeading: false,
                 backgroundColor: Colors.transparent,
                 elevation: 0,
+                floating: true, // ВАЖНО: Позволяет FAB "плавать" над AppBar
+                snap: true,     // ВАЖНО: Автоматически показывать/скрывать AppBar
                 flexibleSpace: GlassKit.liquidGlass(
                   radius: 0,
                   isDark: isDark,
@@ -137,43 +143,49 @@ class _ChatsScreenState extends State<ChatsScreen> {
     final isOnline = chat['isOnline'] as bool? ?? false;
     final unreadCount = chat['unread'] as int? ?? 0;
 
-    return ListTile(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => ChatRoomScreen(
-          chatId: chat['id'] as int, 
-          chatName: chat['name'] as String,
-          isGroupChat: false, // Личные чаты
-        )),
-      ),
-      leading: Stack(
-        children: [
-          CircleAvatar(radius: 28, backgroundImage: CachedNetworkImageProvider("${AppConstants.defaultAvatarUrl}?u=custom${chat['id']}"),),
-          if (isOnline)
-            Positioned(
-              right: 0,
-              bottom: 0,
-              child: Container(width: 12, height: 12, decoration: BoxDecoration(color: Colors.green, border: Border.all(color: Colors.white, width: 2), borderRadius: BorderRadius.circular(6))),
-            ),
-        ],
-      ),
-      title: Row(
-        children: [
-          if (isGroup) Icon(Icons.group, size: 16, color: Colors.blueAccent),
-          if (isGroup) const SizedBox(width: 6),
-          Expanded(child: Text(chat['name'] as String, style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold))),
-        ],
-      ),
-      subtitle: Text(isOnline ? 'Online' : 'Offline', style: TextStyle(color: isOnline ? Colors.green.withOpacity(0.7) : Colors.grey.withOpacity(0.7), fontSize: 12)),
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text('${12}:${45}', style: TextStyle(color: isDark ? Colors.white24 : Colors.black26, fontSize: 11)),
-          const SizedBox(height: 4),
-          if (unreadCount > 0)
-            Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.blueAccent, borderRadius: BorderRadius.circular(10)), child: Text(unreadCount > 99 ? '99+' : unreadCount.toString(), style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))),
-        ],
+    return GlassKit.liquidGlass(
+      context: context, // Добавляем context для debug mode
+      useBlur: false, // Отключаем блюр для плавного скролла
+      radius: 16,
+      opacity: 0.1,
+      child: ListTile(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ChatRoomScreen(
+            chatId: chat['id'] as int, 
+            chatName: chat['name'] as String,
+            isGroupChat: false, // Личные чаты
+          )),
+        ),
+        leading: Stack(
+          children: [
+            CircleAvatar(radius: 28, backgroundImage: CachedNetworkImageProvider("${AppConstants.defaultAvatarUrl}?u=custom${chat['id']}"),),
+            if (isOnline)
+              Positioned(
+                right: 0,
+                bottom: 0,
+                child: Container(width: 12, height: 12, decoration: BoxDecoration(color: Colors.green, border: Border.all(color: Colors.white, width: 2), borderRadius: BorderRadius.circular(6))),
+              ),
+          ],
+        ),
+        title: Row(
+          children: [
+            if (isGroup) Icon(Icons.group, size: 16, color: Colors.blueAccent),
+            if (isGroup) const SizedBox(width: 6),
+            Expanded(child: Text(chat['name'] as String, style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold))),
+          ],
+        ),
+        subtitle: Text(isOnline ? 'Online' : 'Offline', style: TextStyle(color: isOnline ? Colors.green.withOpacity(0.7) : Colors.grey.withOpacity(0.7), fontSize: 12)),
+        trailing: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text('${12}:${45}', style: TextStyle(color: isDark ? Colors.white24 : Colors.black26, fontSize: 11)),
+            const SizedBox(height: 4),
+            if (unreadCount > 0)
+              Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.blueAccent, borderRadius: BorderRadius.circular(10)), child: Text(unreadCount > 99 ? '99+' : unreadCount.toString(), style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))),
+          ],
+        ),
       ),
     );
   }
@@ -184,84 +196,90 @@ class _ChatsScreenState extends State<ChatsScreen> {
     int unreadCount = i % 5 == 0 ? (i % 7 + 1) : 0;
     final chatName = isGroup ? "Project Group $i" : "Contact $i";
     
-    return ListTile(
-      onTap: () => Navigator.push(
-        context, 
-        MaterialPageRoute(builder: (context) => ChatRoomScreen(
-          chatId: i, 
-          chatName: chatName,
-          isGroupChat: isGroup, // Групповые чаты
-        )),
-      ),
-      leading: Stack(
-        children: [
-          CircleAvatar(
-            radius: 28, 
-            backgroundImage: CachedNetworkImageProvider("${AppConstants.defaultAvatarUrl}?u=chat$i")
-          ),
-          if (isOnline)
-            Positioned(
-              right: 0,
-              bottom: 0,
-              child: Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: Colors.green,
-                  border: Border.all(color: Colors.white, width: 2),
-                  borderRadius: BorderRadius.circular(6),
+    return GlassKit.liquidGlass(
+      context: context, // Добавляем context для debug mode
+      useBlur: false, // Отключаем блюр для плавного скролла
+      radius: 16,
+      opacity: 0.1,
+      child: ListTile(
+        onTap: () => Navigator.push(
+          context, 
+          MaterialPageRoute(builder: (context) => ChatRoomScreen(
+            chatId: i, 
+            chatName: chatName,
+            isGroupChat: isGroup, // Групповые чаты
+          )),
+        ),
+        leading: Stack(
+          children: [
+            CircleAvatar(
+              radius: 28, 
+              backgroundImage: CachedNetworkImageProvider("${AppConstants.defaultAvatarUrl}?u=chat$i")
+            ),
+            if (isOnline)
+              Positioned(
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: Colors.green,
+                    border: Border.all(color: Colors.white, width: 2),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
                 ),
               ),
-            ),
-        ],
-      ),
-      title: Row(
-        children: [
-          if (isGroup) 
-            Icon(Icons.group, size: 16, color: Colors.blueAccent),
-          if (isGroup) const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              isGroup ? "Project Group $i" : "Contact $i", 
-              style: TextStyle(
-                color: isDark ? Colors.white : Colors.black, 
-                fontWeight: FontWeight.bold
-              )
-            ),
-          ),
-        ],
-      ),
-      subtitle: Text(
-        isOnline ? "Online" : "Offline", 
-        style: TextStyle(
-          color: isOnline ? Colors.green.withOpacity(0.7) : Colors.grey.withOpacity(0.7), 
-          fontSize: 12
-        )
-      ),
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text("${12 + (i % 12)}:${45 + (i % 15)}", 
-               style: TextStyle(color: isDark ? Colors.white24 : Colors.black26, fontSize: 11)),
-          const SizedBox(height: 4),
-          if (unreadCount > 0)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.blueAccent, 
-                borderRadius: BorderRadius.circular(10)
-              ),
+          ],
+        ),
+        title: Row(
+          children: [
+            if (isGroup) 
+              Icon(Icons.group, size: 16, color: Colors.blueAccent),
+            if (isGroup) const SizedBox(width: 6),
+            Expanded(
               child: Text(
-                unreadCount > 99 ? "99+" : unreadCount.toString(), 
-                style: const TextStyle(
-                  color: Colors.white, 
-                  fontSize: 10, 
+                isGroup ? "Project Group $i" : "Contact $i", 
+                style: TextStyle(
+                  color: isDark ? Colors.white : Colors.black, 
                   fontWeight: FontWeight.bold
                 )
               ),
             ),
-        ],
+          ],
+        ),
+        subtitle: Text(
+          isOnline ? "Online" : "Offline", 
+          style: TextStyle(
+            color: isOnline ? Colors.green.withOpacity(0.7) : Colors.grey.withOpacity(0.7), 
+            fontSize: 12
+          )
+        ),
+        trailing: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text("${12 + (i % 12)}:${45 + (i % 15)}", 
+                   style: TextStyle(color: isDark ? Colors.white24 : Colors.black26, fontSize: 11)),
+            const SizedBox(height: 4),
+            if (unreadCount > 0)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.blueAccent, 
+                  borderRadius: BorderRadius.circular(10)
+                ),
+                child: Text(
+                  unreadCount > 99 ? "99+" : unreadCount.toString(), 
+                  style: const TextStyle(
+                    color: Colors.white, 
+                    fontSize: 10, 
+                    fontWeight: FontWeight.bold
+                  )
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -274,105 +292,122 @@ class _ChatsScreenState extends State<ChatsScreen> {
   }
 
   void _showCreateMenu() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext context) {
-        final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
-        return SafeArea(
-          child: GlassKit.liquidGlass(
-            isDark: isDark,
-            radius: 30,
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Create New',
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Divider(color: isDark ? Colors.white12 : Colors.black12),
-                  const SizedBox(height: 12),
-                  
-                  // New Chat option
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showCreateChatForm(isGroup: false);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      decoration: BoxDecoration(
-                        color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.person_add, color: Colors.blueAccent, size: 24),
-                          const SizedBox(width: 14),
-                          Text(
-                            'New Chat',
-                            style: TextStyle(
-                              color: isDark ? Colors.white : Colors.black,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const Spacer(),
-                          Icon(Icons.chevron_right, color: isDark ? Colors.white54 : Colors.black54),
-                        ],
-                      ),
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 10),
-                  
-                  // New Group option
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showCreateChatForm(isGroup: true);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      decoration: BoxDecoration(
-                        color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.group_add, color: Colors.blueAccent, size: 24),
-                          const SizedBox(width: 14),
-                          Text(
-                            'New Group',
-                            style: TextStyle(
-                              color: isDark ? Colors.white : Colors.black,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const Spacer(),
-                          Icon(Icons.chevron_right, color: isDark ? Colors.white54 : Colors.black54),
-                        ],
-                      ),
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 12),
-                ],
+  print("MERCURY_DEBUG: Попытка открыть меню!"); // Грязный тест
+  
+  final isDark = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
+  
+  // Добавляем тактильный отклик при открытии
+  print("MERCURY_DEBUG: Перед HapticFeedback!"); // Тест
+  HapticFeedback.mediumImpact();
+  print("MERCURY_DEBUG: После HapticFeedback!"); // Тест
+  
+  print("MERCURY_DEBUG: Перед showModalBottomSheet!"); // Тест
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent, // Важно для Glass-эффекта
+    barrierColor: Colors.black26,       // Легкое затемнение фона
+    isScrollControlled: true,
+    builder: (context) {
+      print("MERCURY_DEBUG: Внутри showModalBottomSheet!"); // Тест
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: GlassKit.liquidGlass(
+          radius: 32,
+          useBlur: true, // Здесь блюр обязателен!
+          isDark: isDark,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              // Индикатор для свайпа вниз (Handle)
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white24 : Colors.black12,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
+              const SizedBox(height: 20),
+              _buildMenuOption(
+                icon: Icons.chat_bubble_outline_rounded,
+                title: "New Chat",
+                color: Colors.blueAccent,
+                onTap: () {
+                  print("MERCURY_DEBUG: New Chat нажат!"); // Тест
+                  Navigator.pop(context);
+                  _showCreateChatForm(isGroup: false);
+                },
+              ),
+              _buildMenuOption(
+                icon: Icons.group_add_outlined,
+                title: "Create Group",
+                color: Colors.purpleAccent,
+                onTap: () {
+                  print("MERCURY_DEBUG: Create Group нажат!"); // Тест
+                  Navigator.pop(context);
+                  _showCreateChatForm(isGroup: true);
+                },
+              ),
+              _buildMenuOption(
+                icon: Icons.qr_code_scanner_rounded,
+                title: "Scan QR",
+                color: Colors.orangeAccent,
+                onTap: () {
+                  print("MERCURY_DEBUG: Scan QR нажат!"); // Тест
+                  Navigator.pop(context);
+                  // TODO: Implement QR scanner
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('QR Scanner coming soon!')),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+  print("MERCURY_DEBUG: После showModalBottomSheet!"); // Тест
+}
+
+Widget _buildMenuOption({
+  required IconData icon,
+  required String title,
+  required Color color,
+  required VoidCallback onTap,
+}) {
+  final isDark = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
+  
+  return ListTile(
+    onTap: () {
+      HapticFeedback.lightImpact();
+      onTap();
+    },
+    leading: Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.15),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(icon, color: color, size: 24),
+    ),
+    title: Text(
+      title,
+      style: TextStyle(
+        fontWeight: FontWeight.w600,
+        fontSize: 16,
+        color: isDark ? Colors.white : Colors.black,
+      ),
+    ),
+    trailing: Icon(
+      Icons.chevron_right_rounded, 
+      size: 20,
+      color: isDark ? Colors.white54 : Colors.black54,
+    ),
+  );
+}
 
   void _showCreateChatForm({required bool isGroup}) {
     final TextEditingController nameCtrl = TextEditingController();

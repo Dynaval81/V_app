@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeProvider extends ChangeNotifier {
   bool _isDarkMode = true;
   bool _isInitialized = false;
+  bool _debugGlassMode = false; // Выключаем по умолчанию
 
   bool get isDarkMode => _isDarkMode;
   bool get isInitialized => _isInitialized;
+  bool get debugGlassMode => _debugGlassMode;
 
   ThemeData get currentTheme {
     return _isDarkMode ? _darkTheme : _lightTheme;
@@ -90,6 +93,12 @@ class ThemeProvider extends ChangeNotifier {
       // Продолжаем работу даже если не удалось сохранить
     }
     
+    notifyListeners();
+  }
+
+  void toggleDebugGlassMode() {
+    HapticFeedback.selectionClick(); // Специальный мягкий клик для свитчей/селекторов
+    _debugGlassMode = !_debugGlassMode;
     notifyListeners();
   }
 

@@ -101,6 +101,7 @@ class _AIScreenState extends State<AIScreen> {
               VtalkHeader(
                 title: 'Vtalk AI',
                 showScrollAnimation: false,
+                scrollController: null, // Без анимации скролла
                 actions: [
                   GestureDetector(
                     onTap: () => Navigator.push(

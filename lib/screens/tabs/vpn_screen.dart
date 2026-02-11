@@ -63,6 +63,7 @@ class _VPNScreenState extends State<VPNScreen> {
               VtalkHeader(
                 title: 'VTALK VPN',
                 showScrollAnimation: false,
+                scrollController: null, // Без анимации скролла
                 actions: [
                   GestureDetector(
                     onTap: () => Navigator.push(

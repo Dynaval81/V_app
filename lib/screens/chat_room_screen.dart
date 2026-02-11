@@ -211,6 +211,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
+    HapticFeedback.vibrate(); // Короткий импульс подтверждения действия
+
     setState(() {
       _messages.add(MessageModel(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
