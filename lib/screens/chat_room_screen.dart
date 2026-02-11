@@ -286,6 +286,14 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     });
   }
 
+  void _editMessage(MessageModel message) {
+    _messageController.text = message.text;
+    _focusNode.requestFocus();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Редактирование: ${message.text}')),
+    );
+  }
+
   void _deleteMessage(MessageModel message) {
     setState(() {
       final index = _messages.indexWhere((m) => m.id == message.id);
@@ -651,6 +659,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                                       reactions: message.reactions,
                                       replyTo: message.replyTo?.toJson(),
                                       onReply: () => _replyToMessage(message),
+                                      onEdit: () => _editMessage(message),
+                                      onAddReaction: (emoji) => _addReaction(message, emoji),
                                       onReact: () => _showReactionPicker(message),
                                       onDelete: () => _deleteMessage(message),
                                     ),
@@ -668,6 +678,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                                   reactions: message.reactions,
                                   replyTo: message.replyTo?.toJson(),
                                   onReply: () => _replyToMessage(message),
+                                  onEdit: () => _editMessage(message),
+                                  onAddReaction: (emoji) => _addReaction(message, emoji),
                                   onReact: () => _showReactionPicker(message),
                                   onDelete: () => _deleteMessage(message),
                                 ),

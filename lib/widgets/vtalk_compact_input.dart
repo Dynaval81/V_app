@@ -135,9 +135,9 @@ class VTalkCompactInput extends StatelessWidget {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      useSafeArea: true, // Properly handle safe areas
+      useSafeArea: true,
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.50, // Reduced to prevent overflow
+        maxHeight: MediaQuery.of(context).size.height * 0.48,
       ),
       builder: (context) => GlassKit.liquidGlass(
         radius: 20,
@@ -146,34 +146,39 @@ class VTalkCompactInput extends StatelessWidget {
         useBlur: true,
         child: SingleChildScrollView(
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.only(left: 12, right: 12, top: 12, bottom: 8),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Заголовок
+                // Заголовок (компактный)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
                       'Прикрепить',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                     ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close),
+                    SizedBox(
+                      width: 36,
+                      height: 36,
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.close, size: 20),
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 
-                // Опции - GridView без Expanded
+                // Опции GridView
                 GridView.count(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   crossAxisCount: 4,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: 1,
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 10,
+                  childAspectRatio: 1.1,
                   children: [
                     _buildAttachmentOption(
                       context,
@@ -219,7 +224,7 @@ class VTalkCompactInput extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
               ],
             ),
           ),

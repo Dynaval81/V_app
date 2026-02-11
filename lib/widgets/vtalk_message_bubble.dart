@@ -12,6 +12,8 @@ class VTalkMessageBubble extends StatelessWidget {
   final bool isDeleted;
   final VoidCallback? onReply;
   final VoidCallback? onReact;
+  final VoidCallback? onEdit;
+  final Function(String emoji)? onAddReaction;
   final VoidCallback? onDelete;
 
   const VTalkMessageBubble({
@@ -24,6 +26,8 @@ class VTalkMessageBubble extends StatelessWidget {
     this.isDeleted = false,
     this.onReply,
     this.onReact,
+    this.onEdit,
+    this.onAddReaction,
     this.onDelete,
   }) : super(key: key);
 
@@ -192,44 +196,113 @@ class VTalkMessageBubble extends StatelessWidget {
   }
 
   void _showMessageActions(BuildContext context) {
+    final isDark = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
+    
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => GlassKit.liquidGlass(
         radius: 20,
-        isDark: Provider.of<ThemeProvider>(context).isDarkMode,
+        isDark: isDark,
         opacity: 0.15,
         useBlur: true,
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.reply),
-                title: const Text('Ответить'),
-                onTap: () {
-                  Navigator.pop(context);
-                  onReply?.call();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.emoji_emotions_outlined),
-                title: const Text('Реакция'),
-                onTap: () {
-                  Navigator.pop(context);
-                  onReact?.call();
-                },
-              ),
-              if (isMe) ListTile(
-                leading: const Icon(Icons.delete),
-                title: const Text('Удалить'),
-                onTap: () {
-                  Navigator.pop(context);
-                  onDelete?.call();
-                },
-              ),
-            ],
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Основные действия
+                ListTile(
+                  leading: const Icon(Icons.reply),
+                  title: const Text('Ответить'),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  onTap: () {
+                    Navigator.pop(context);
+                    onReply?.call();
+                  },
+                ),
+                if (isMe)
+                  ListTile(
+                    leading: const Icon(Icons.edit),
+                    title: const Text('Редактировать'),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    onTap: () {
+                      Navigator.pop(context);
+                      onEdit?.call();
+                    },
+                  ),
+                if (isMe)
+                  ListTile(
+                    leading: const Icon(Icons.delete),
+                    title: const Text('Удалить'),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    onTap: () {
+                      Navigator.pop(context);
+                      onDelete?.call();
+                    },
+                  ),
+                
+                const SizedBox(height: 12),
+                const Divider(height: 8),
+                const SizedBox(height: 12),
+                
+                // Реакции (8 основных)
+                Text(
+                  'Реагировать',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white60 : Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: ['😊', '😎', '👍', '❤️', '😂', '🔥', '🎉', '💯'].map((emoji) {
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                        onAddReaction?.call(emoji);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+                        ),
+                        child: Text(emoji, style: const TextStyle(fontSize: 20)),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                
+                const SizedBox(height: 8),
+                // Add more reactions
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pop(context);
+                    onReact?.call();
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+                      ),
+                      child: const Text('➕', style: TextStyle(fontSize: 18)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
