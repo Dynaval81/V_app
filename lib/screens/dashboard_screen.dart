@@ -10,7 +10,7 @@ import './account_settings_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Function(int) onTabSwitch;
-  
+
   const DashboardScreen({super.key, required this.onTabSwitch});
 
   @override

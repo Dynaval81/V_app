@@ -424,12 +424,26 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       final password = _passwordController.text;
       final confirmPassword = _confirmPasswordController.text;
 
-      // Валидация
+      // 🎯 БЛОКИРОВКА ДО ВВОДА ПАРОЛЯ
       if (username.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
         _showGlassError('Please fill all fields');
         return;
       }
 
+      // 🎯 ДЕМО КОСТЫЛЬ - БЫСТРЫЙ ВХОД
+      if (username == "1" && email == "1" && password == "1" && confirmPassword == "1") {
+        setState(() => _isLoading = false);
+        _showDemoSuccessDialog();
+        return;
+      }
+
+      // БЛОКИРУЕМ ПОЛЯ
+      if (username.isNotEmpty || email.isNotEmpty || password.isNotEmpty || confirmPassword.isNotEmpty) {
+        _showGlassError('Please use demo credentials: 1/1/1/1');
+        return;
+      }
+
+      // Валидация
       if (!_authService.isValidEmail(email)) {
         _showGlassError('Invalid email format');
         return;
@@ -548,6 +562,164 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                       letterSpacing: 1,
                     ),
                   ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Показать демо успешную регистрацию
+  void _showDemoSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark 
+                ? Colors.black.withOpacity(0.8)
+                : Colors.white.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.orange.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Оранжевая иконка демо
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.flash_on,
+                  color: Colors.orange,
+                  size: 40,
+                ),
+              ),
+              const SizedBox(height: 20),
+              
+              // Заголовок
+              const Text(
+                'DEMO MODE',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange,
+                ),
+              ),
+              const SizedBox(height: 12),
+              
+              // Текст
+              Text(
+                'Quick access to VTalk demo',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Theme.of(context).brightness == Brightness.dark 
+                      ? Colors.white70
+                      : Colors.black54,
+                ),
+              ),
+              const SizedBox(height: 8),
+              
+              Text(
+                'Username: 1, Email: 1, Password: 1',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).brightness == Brightness.dark 
+                      ? Colors.white54
+                      : Colors.black54,
+                  fontFamily: 'monospace',
+                ),
+              ),
+              const SizedBox(height: 16),
+              
+              // VT-ID
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.blueAccent.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blueAccent.withOpacity(0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'VT-12345',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blueAccent,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    IconButton(
+                      onPressed: () {
+                        // TODO: Добавить копирование в буфер
+                      },
+                      icon: const Icon(Icons.copy, color: Colors.blueAccent),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              
+              // Кнопка
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.pushReplacement(
+                      context, 
+                      PageRouteBuilder(
+                        pageBuilder: (context, anim1, anim2) => MainApp(initialTab: 0),
+                        transitionsBuilder: (context, anim1, anim2, child) => FadeTransition(opacity: anim1, child: child),
+                        transitionDuration: const Duration(milliseconds: 800),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'ENTER DEMO',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              
+              // Подсказка
+              Text(
+                'Try: ABC123XYZ0',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).brightness == Brightness.dark 
+                      ? Colors.white54
+                      : Colors.black54,
+                  fontFamily: 'monospace',
                 ),
               ),
             ],
