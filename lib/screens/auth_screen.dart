@@ -406,7 +406,12 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           ),
         );
       } else {
-        _showGlassError(result['error'] ?? 'Login failed');
+        // ⭐ ПРОВЕРКА НА EMAIL NOT VERIFIED
+        if (result['isEmailNotVerified'] == true) {
+          _showEmailNotVerifiedAlert(result['error'] ?? 'Email not verified');
+        } else {
+          _showGlassError(result['error'] ?? 'Login failed');
+        }
       }
     } catch (e) {
       _showGlassError('Network error: ${e.toString()}');
@@ -459,13 +464,11 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         email: email,
         password: password,
         username: username.isEmpty ? null : username,  // Отправляем null если пусто
-        region: 'RU',
       );
 
       if (result['success']) {
-        final user = result['user'];
-        
-        // 🎯 ПЕРЕХОД НА ЭКРАН ПОДТВЕРЖДЕНИЯ
+        // ⭐ НОВЫЙ ФЛОУ - НЕ ПУСКАЕМ В ПРИЛОЖЕНИЕ
+        setState(() => _isLoading = false);
         Navigator.pushReplacement(
           context,
           PageRouteBuilder(
@@ -567,6 +570,98 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                   ),
                   child: const Text(
                     'TRY AGAIN',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ⭐ ПОКАЗАТЬ АЛЕРТ EMAIL NOT VERIFIED
+  void _showEmailNotVerifiedAlert(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark 
+                ? Colors.black.withOpacity(0.8)
+                : Colors.white.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.orange.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Оранжевая иконка
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.email_outlined,
+                  color: Colors.orange,
+                  size: 40,
+                ),
+              ),
+              const SizedBox(height: 20),
+              
+              // Заголовок
+              const Text(
+                'EMAIL NOT VERIFIED',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange,
+                ),
+              ),
+              const SizedBox(height: 12),
+              
+              // Текст ошибки
+              Text(
+                message,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Theme.of(context).brightness == Brightness.dark 
+                      ? Colors.white70
+                      : Colors.black54,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              
+              // Кнопка ОК
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange.withOpacity(0.1),
+                    foregroundColor: Colors.orange,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'OK',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

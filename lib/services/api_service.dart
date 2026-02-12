@@ -26,7 +26,7 @@ class ApiService {
           'email': email,
           'password': password,
           'username': username,  // Отправляем null если пусто
-          'region': "RU",  // ⭐ ОБЯЗАТЕЛЬНОЕ ПОЛЕ
+          // ⭐ Region убираем - бэкенд сам ставит
         }),
       ).timeout(_timeout);
 
@@ -53,9 +53,21 @@ class ApiService {
         };
       }
     } catch (e) {
+      // ⭐ КРИТИЧНО - ПРАВИЛЬНЫЙ ПАРСИНГ ОШИБОК
+      String errorMessage = 'Network error';
+      
+      try {
+        if (e.toString().contains('Exception:')) {
+          final errorString = e.toString().split('Exception: ')[1];
+          errorMessage = errorString.replaceAll(RegExp(r'[{}"]'), '').trim();
+        }
+      } catch (_) {
+        errorMessage = 'Network error: ${e.toString()}';
+      }
+      
       return {
         'success': false,
-        'error': 'Network error: ${e.toString()}',
+        'error': errorMessage,
       };
     }
   }
@@ -87,6 +99,12 @@ class ApiService {
           'user': data['user'],
           'token': data['token'],
         };
+      } else if (response.statusCode == 403) {
+        return {
+          'success': false,
+          'error': data['error'] ?? 'Email not verified',
+          'isEmailNotVerified': true,
+        };
       } else {
         return {
           'success': false,
@@ -94,9 +112,21 @@ class ApiService {
         };
       }
     } catch (e) {
+      // ⭐ КРИТИЧНО - ПРАВИЛЬНЫЙ ПАРСИНГ ОШИБОК
+      String errorMessage = 'Network error';
+      
+      try {
+        if (e.toString().contains('Exception:')) {
+          final errorString = e.toString().split('Exception: ')[1];
+          errorMessage = errorString.replaceAll(RegExp(r'[{}"]'), '').trim();
+        }
+      } catch (_) {
+        errorMessage = 'Network error: ${e.toString()}';
+      }
+      
       return {
         'success': false,
-        'error': 'Network error: ${e.toString()}',
+        'error': errorMessage,
       };
     }
   }
