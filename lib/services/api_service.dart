@@ -3,8 +3,9 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiService {
-  static const String _baseUrl = 'http://10.0.2.2:3000'; // Для эмулятора Android
+  static const String _baseUrl = 'http://57.128.239.33:3000'; // 🎯 РЕЛИЗНЫЙ СЕРВЕР
   static const String _tokenKey = 'auth_token';
+  static const Duration _timeout = Duration(seconds: 30); // ⭐ ТАЙМАУТ 30 СЕКУНД
   
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
@@ -12,7 +13,7 @@ class ApiService {
   Future<Map<String, dynamic>> register({
     required String email,
     required String password,
-    required String username,
+    String? username,  // ⭐ Делаем опциональным
     String region = 'RU',
   }) async {
     try {
@@ -24,10 +25,10 @@ class ApiService {
         body: jsonEncode({
           'email': email,
           'password': password,
-          'username': username,
+          'username': username,  // Отправляем null если пусто
           'region': region,
         }),
-      );
+      ).timeout(_timeout);
 
       final data = jsonDecode(response.body);
       
@@ -68,7 +69,7 @@ class ApiService {
           'email': email,
           'password': password,
         }),
-      );
+      ).timeout(_timeout);
 
       final data = jsonDecode(response.body);
       
@@ -138,6 +139,58 @@ class ApiService {
   Future<bool> hasToken() async {
     final token = await _secureStorage.read(key: _tokenKey);
     return token != null;
+  }
+
+  // ⭐ СМЕНА ИМЕНИ ПОЛЬЗОВАТЕЛЯ
+  Future<Map<String, dynamic>> changeUsername(String newName) async {
+    try {
+      final token = await _secureStorage.read(key: _tokenKey);
+      
+      if (token == null) {
+        return {'success': false, 'error': 'No token found'};
+      }
+      
+      final response = await http.put(
+        Uri.parse('$_baseUrl/api/v1/users/me'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'username': newName,
+        }),
+      ).timeout(_timeout);
+
+      final data = jsonDecode(response.body);
+      
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'username': data['username'],
+        };
+      } else if (response.statusCode == 400) {
+        return {
+          'success': false,
+          'error': data['message'] ?? 'Это имя зарезервировано системой. Пожалуйста, выберите другое',
+        };
+      } else if (response.statusCode == 429) {
+        return {
+          'success': false,
+          'error': data['message'] ?? 'Превышен лимит попыток смены имени',
+          'nextChangeDate': data['nextChangeDate'], // ⭐ ДАТА СЛЕДУЮЩЕЙ ВОЗМОЖНОСТИ
+        };
+      } else {
+        return {
+          'success': false,
+          'error': data['message'] ?? 'Ошибка смены имени',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Network error: ${e.toString()}',
+      };
+    }
   }
 
   // Выход

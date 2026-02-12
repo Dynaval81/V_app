@@ -5,6 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import '../theme_provider.dart';
 import '../utils/glass_kit.dart';
 import '../constants/app_constants.dart';
+import '../providers/user_provider.dart';
+import '../screens/username_change_screen.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
   const AccountSettingsScreen({Key? key}) : super(key: key);
@@ -383,6 +385,16 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               ),
 
               _buildInfoTile(
+                label: 'Change Username',
+                value: 'Update your username',
+                icon: Icons.edit,
+                isDark: isDark,
+                onTap: () => _showUsernameChangeDialog(context, isDark),
+              ),
+
+              const SizedBox(height: 12),
+
+              _buildInfoTile(
                 label: 'Change Password',
                 value: 'Update password',
                 icon: Icons.lock_outline,
@@ -694,6 +706,14 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  // ⭐ ДИАЛОГ СМЕНЫ ИМЕНИ
+  void _showUsernameChangeDialog(BuildContext context, bool isDark) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const UsernameChangeScreen()),
     );
   }
 

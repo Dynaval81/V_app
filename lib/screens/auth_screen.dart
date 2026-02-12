@@ -4,6 +4,7 @@ import '../utils/glass_kit.dart';
 import 'main_app.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
+import '../screens/email_verification_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -437,12 +438,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         return;
       }
 
-      // БЛОКИРУЕМ ПОЛЯ
-      if (username.isNotEmpty || email.isNotEmpty || password.isNotEmpty || confirmPassword.isNotEmpty) {
-        _showGlassError('Please use demo credentials: 1/1/1/1');
-        return;
-      }
-
       // Валидация
       if (!_authService.isValidEmail(email)) {
         _showGlassError('Invalid email format');
@@ -463,15 +458,31 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       final result = await _apiService.register(
         email: email,
         password: password,
-        username: username,
+        username: username.isEmpty ? null : username,  // Отправляем null если пусто
         region: 'RU',
       );
 
       if (result['success']) {
         final user = result['user'];
-        _showSuccessRegistrationModal(user['vtNumber']);
+        
+        // 🎯 ПЕРЕХОД НА ЭКРАН ПОДТВЕРЖДЕНИЯ
+        Navigator.pushReplacement(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, anim1, anim2) => EmailVerificationScreen(
+              email: email,
+              username: username.isEmpty ? email.split('@')[0] : username,
+            ),
+            transitionsBuilder: (context, anim1, anim2, child) => 
+                FadeTransition(opacity: anim1, child: child),
+            transitionDuration: const Duration(milliseconds: 800),
+          ),
+        );
       } else {
-        _showGlassError(result['error'] ?? 'Registration failed');
+        // 🎯 ДЕТАЛЬНАЯ ОШИБКА РЕГИСТРАЦИИ
+        final errorMessage = result['error'] ?? 'Ошибка регистрации';
+        print('Registration error: $errorMessage'); // ⭐ ДЕБАГ ЛОГ
+        _showGlassError(errorMessage);
       }
     } catch (e) {
       _showGlassError('Network error: ${e.toString()}');
@@ -632,8 +643,9 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
               ),
               const SizedBox(height: 8),
               
+              // ⭐ УБИРАЕМ ПОДСКАЗКУ УЧЕТНЫХ ДАННЫХ
               Text(
-                'Username: 1, Email: 1, Password: 1',
+                'Demo credentials activated',
                 style: TextStyle(
                   fontSize: 12,
                   color: Theme.of(context).brightness == Brightness.dark 

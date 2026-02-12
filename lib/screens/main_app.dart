@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../theme_provider.dart';
+import '../providers/user_provider.dart';
 import 'tabs/chats_screen.dart';
 import 'tabs/vpn_screen.dart';
 import 'tabs/ai_screen.dart';
 import 'dashboard_screen.dart';
-import '../theme_provider.dart';
 
 class MainApp extends StatefulWidget {
   final int initialTab;
@@ -34,12 +35,19 @@ class _MainAppState extends State<MainApp> {
   // ПРАВИЛЬНЫЙ ПОРЯДОК ВКЛАДОК
   List<Widget> get _screens => [
     const ChatsScreen(),      // 0. Мессенджер (Первый)
-    const AIScreen(),         // 1. Vtalk AI
-    const VPNScreen(),        // 2. VPN
+    AIScreen(isLocked: !_hasAccess()),         // 1. Vtalk AI
+    VPNScreen(isLocked: !_hasAccess()),        // 2. VPN
     DashboardScreen(          // 3. Dashboard (Последний)
       onTabSwitch: (i) => _changeTab(i),
     ),
   ];
+
+  // ⭐ GRACE PERIOD - ПРОВЕРКА ДОСТУПА
+  bool _hasAccess() {
+    final user = Provider.of<UserProvider>(context, listen: false).user;
+    if (user == null) return false;
+    return user.hasAccess();
+  }
 
   void _changeTab(int index) {
     setState(() {

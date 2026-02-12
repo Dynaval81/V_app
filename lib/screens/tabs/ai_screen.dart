@@ -7,6 +7,7 @@ import '../../utils/glass_kit.dart';
 import '../../theme_provider.dart';
 import '../../constants/app_constants.dart';
 import '../../widgets/vtalk_header.dart';
+import '../../widgets/grace_period_banner.dart';
 import '../account_settings_screen.dart';
 
 class ChatMessage {
@@ -18,7 +19,9 @@ class ChatMessage {
 }
 
 class AIScreen extends StatefulWidget {
-  const AIScreen({super.key});
+  final bool isLocked;
+  
+  const AIScreen({super.key, this.isLocked = false});
   
   @override
   _AIScreenState createState() => _AIScreenState();
@@ -104,23 +107,74 @@ class _AIScreenState extends State<AIScreen> {
     return Scaffold(
       extendBody: true, // Позволяет контенту затекать под BottomNavigationBar
       extendBodyBehindAppBar: true, // Позволяет фону быть под шапкой
-      body: Container(
-        // Растягиваем фон на весь экран, ИГНОРИРУЯ SafeArea
-        width: double.infinity,
-        height: double.infinity,
-        decoration: GlassKit.mainBackground(isDark), 
-        child: Column(
-          children: [
-            Expanded(
-              child: _buildMessagesList(), // Твои сообщения
-            ),
-            // Нижнюю панель оборачиваем в SafeArea только снизу
-            SafeArea(
-              top: false,
-              child: _buildChatStyleInput(isDark),
-            ),
-          ],
+      body: Column(
+        children: [
+          // ⭐ GRACE PERIOD BANNER
+          const GracePeriodBanner(),
+          Expanded(
+            child: widget.isLocked
+                ? _buildLockedContent(isDark)
+                : _buildChatInterface(isDark),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLockedContent(bool isDark) {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: GlassKit.mainBackground(isDark),
+      child: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.lock,
+                size: 64,
+                color: Colors.orange,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'AI доступ заблокирован',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Активируйте Premium для разблокировки',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white70,
+                ),
+              ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildChatInterface(bool isDark) {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: GlassKit.mainBackground(isDark),
+      child: Column(
+        children: [
+          Expanded(
+            child: _buildMessagesList(),
+          ),
+          SafeArea(
+            top: false,
+            child: _buildChatStyleInput(isDark),
+          ),
+        ],
       ),
     );
   }

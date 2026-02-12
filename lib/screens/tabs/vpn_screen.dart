@@ -5,10 +5,13 @@ import '../../utils/glass_kit.dart';
 import '../../theme_provider.dart';
 import '../../constants/app_constants.dart';
 import '../../widgets/vtalk_header.dart';
+import '../../widgets/grace_period_banner.dart';
 import '../account_settings_screen.dart';
 
 class VPNScreen extends StatefulWidget {
-  const VPNScreen({super.key});
+  final bool isLocked;
+  
+  const VPNScreen({super.key, this.isLocked = false});
   
   @override
   _VPNScreenState createState() => _VPNScreenState();
@@ -19,7 +22,8 @@ class _VPNScreenState extends State<VPNScreen> {
   bool isConnecting = false;
   int _secondsActive = 0;
   Timer? _timer;
-  String selectedMode = 'All Apps';
+  String selectedProtocol = "OpenVPN"; // ⭐ ДОБАВЛЯЮ ПЕРЕМЕННУЮ
+  String selectedMode = "Stealth"; // ⭐ ДОБАВЛЯЮ ПЕРЕМЕННУЮ
 
   void toggleConnection() async {
     if (isConnected) {
@@ -46,118 +50,313 @@ class _VPNScreenState extends State<VPNScreen> {
     super.dispose();
   }
 
+  // ⭐ ФОРМАТИРОВАНИЕ ДЛИТЕЛЬНОСТИ
+  String _formatDuration(int seconds) {
+    final hours = seconds ~/ 3600;
+    final minutes = (seconds % 3600) ~/ 60;
+    final secs = seconds % 60;
+    return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+  }
+
+  // ⭐ ПОКАЗ ВЫБОРА ПРОТОКОЛА
+  void _showProtocolPicker() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark 
+                ? Colors.black.withOpacity(0.9)
+                : Colors.white.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Выберите протокол', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              ...['OpenVPN', 'WireGuard', 'IKEv2'].map((protocol) => 
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() => selectedProtocol = protocol);
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: selectedProtocol == protocol ? Colors.blue : Colors.transparent,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(protocol),
+                    ),
+                  ),
+                ),
+              ).toList(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ⭐ ПОКАЗ ВЫБОРА РЕЖИМА
+  void _showModePicker() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark 
+                ? Colors.black.withOpacity(0.9)
+                : Colors.white.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Выберите режим', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              ...['Stealth', 'Standard'].map((mode) => 
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() => selectedMode = mode);
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: selectedMode == mode ? Colors.blue : Colors.transparent,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(mode),
+                    ),
+                  ),
+                ),
+              ).toList(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
     
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: GlassKit.mainBackground(isDark),
-        child: SafeArea(
-          child: CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              VtalkHeader(
-                title: 'PN', // Убираем V, оставляем только PN
-                showScrollAnimation: false,
-                scrollController: null, // Без анимации скролла
-                // Mercury Sphere увеличенная до 54px
-                logoAsset: 'assets/images/app_logo_mercury.png',
-                logoHeight: 54, // Увеличиваем с 44 до 54
-                actions: [
-                  GestureDetector(
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
-                    ),
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 16),
-                      child: CircleAvatar(
-                        radius: 18,
-                        backgroundImage: NetworkImage("${AppConstants.defaultAvatarUrl}?u=me"),
-                      ),
-                    ),
-                  ),
-                ],
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      body: Column(
+        children: [
+          // ⭐ GRACE PERIOD BANNER
+          const GracePeriodBanner(),
+          Expanded(
+            child: widget.isLocked
+                ? _buildLockedContent(isDark)
+                : _buildVpnInterface(isDark),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLockedContent(bool isDark) {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: GlassKit.mainBackground(isDark),
+      child: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.lock,
+                size: 64,
+                color: Colors.orange,
               ),
-              SliverToBoxAdapter(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 20),
-
-                    // Кнопка подключения
-                    GestureDetector(
-                      onTap: isConnecting ? null : toggleConnection,
-                      child: Center(
-                        child: AnimatedContainer(
-                          duration: Duration(milliseconds: 300),
-                          width: 180, 
-                          height: 180,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.transparent,
-                            border: Border.all(
-                              color: isConnecting 
-                                ? Colors.orange 
-                                : (isConnected ? Colors.green : Colors.blue), 
-                              width: 3
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: (isConnected ? Colors.green : Colors.blue).withOpacity(0.2), 
-                                blurRadius: 30, 
-                                spreadRadius: 10
-                              )
-                            ],
-                          ),
-                          child: GlassKit.liquidGlass(
-                            radius: 90,
-                            child: isConnecting 
-                              ? Center(child: CircularProgressIndicator(color: Colors.orange)) 
-                              : Icon(
-                                  Icons.power_settings_new, 
-                                  size: 70, 
-                                  color: isConnected ? Colors.green : Colors.blue
-                                ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    
-                    SizedBox(height: 30),
-                    
-                    // Инфо-панель (появляется при коннекте)
-                    if (isConnected || isConnecting)
-                      GlassKit.liquidGlass(
-                        radius: 15,
-                        child: Container(
-                          width: MediaQuery.of(context).size.width * 0.85,
-                          padding: EdgeInsets.all(16),
-                          child: Column(
-                            children: [
-                              _row("IP Address", isConnecting ? "..." : AppConstants.mockVpnIp),
-                              Divider(color: isDark ? Colors.white24 : Colors.black26),
-                              _row("Uptime", _formatTime(_secondsActive)),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                    SizedBox(height: 20),
-
-                    // Настройки туннелирования
-                    _glassTile(Icons.alt_route, "Tunneling Mode", selectedMode, () => _showModePicker()),
-                    _glassTile(Icons.public, "Location", "Frankfurt, Germany", null),
-                    
-                    SizedBox(height: 20),
-                  ],
+              const SizedBox(height: 16),
+              const Text(
+                'VPN доступ заблокирован',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Активируйте Premium для разблокировки',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white70,
                 ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVpnInterface(bool isDark) {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: GlassKit.mainBackground(isDark),
+      child: SafeArea(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            VtalkHeader(
+              title: 'PN', 
+              showScrollAnimation: false,
+              scrollController: null, 
+              logoAsset: 'assets/images/app_logo_mercury.png',
+              logoHeight: 54, 
+              actions: [
+                GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
+                  ),
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 16),
+                    child: CircleAvatar(
+                      radius: 18,
+                      backgroundImage: NetworkImage("${AppConstants.defaultAvatarUrl}?u=me"),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+
+                  // Кнопка подключения
+                  GestureDetector(
+                    onTap: isConnecting ? null : toggleConnection,
+                    child: Container(
+                      width: 140,
+                      height: 140,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.transparent,
+                        border: Border.all(
+                          color: isConnecting 
+                              ? Colors.orange 
+                              : isConnected 
+                                  ? Colors.green 
+                                  : Colors.red,
+                          width: 4,
+                        ),
+                      ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Внешний круг
+                          Container(
+                            width: 120,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: isConnecting
+                                    ? [Colors.orange.withOpacity(0.3), Colors.orange.withOpacity(0.1)]
+                                    : isConnected
+                                        ? [Colors.green.withOpacity(0.3), Colors.green.withOpacity(0.1)]
+                                        : [Colors.red.withOpacity(0.3), Colors.red.withOpacity(0.1)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                            ),
+                          ),
+                          // Внутренний круг
+                          Container(
+                            width: 100,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: isConnecting
+                                    ? [Colors.orange.withOpacity(0.5), Colors.orange.withOpacity(0.2)]
+                                    : isConnected
+                                        ? [Colors.green.withOpacity(0.5), Colors.green.withOpacity(0.2)]
+                                        : [Colors.red.withOpacity(0.5), Colors.red.withOpacity(0.2)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                            ),
+                          ),
+                          // Иконка состояния
+                          Icon(
+                            isConnecting 
+                                ? Icons.sync 
+                                : isConnected 
+                                    ? Icons.check_circle 
+                                    : Icons.cancel,
+                            size: 40,
+                            color: Colors.white,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Статус подключения
+                  Text(
+                    isConnecting 
+                        ? 'Подключение...' 
+                        : isConnected 
+                            ? 'Подключено' 
+                            : 'Отключено',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: isConnecting 
+                          ? Colors.orange 
+                          : isConnected 
+                              ? Colors.green 
+                              : Colors.red,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Время активности
+                  if (isConnected)
+                    Text(
+                      'Активно: ${_formatDuration(_secondsActive)}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white70,
+                      ),
+                    ),
+
+                  const SizedBox(height: 40),
+
+                  // Настройки VPN
+                  _glassTile(Icons.security, "Protocol", selectedProtocol, () => _showProtocolPicker()),
+                  _glassTile(Icons.speed, "Encryption", "AES-256", null),
+                  _glassTile(Icons.alt_route, "Tunneling Mode", selectedMode, () => _showModePicker()),
+                  _glassTile(Icons.public, "Location", "Frankfurt, Germany", null),
+                  
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -201,27 +400,6 @@ class _VPNScreenState extends State<VPNScreen> {
   }
   
   String _formatTime(int s) => Duration(seconds: s).toString().split('.').first.padLeft(8, "0");
-
-  void _showModePicker() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => GlassKit.liquidGlass(
-        radius: 30,
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _modeOption('All Apps'),
-              _modeOption('Specific Apps'),
-              _modeOption('Selected Websites'),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _modeOption(String mode) {
     return Consumer<ThemeProvider>(

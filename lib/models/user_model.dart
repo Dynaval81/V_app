@@ -6,6 +6,7 @@ class User {
   final bool isPremium;
   final String? activationCode;
   final DateTime? createdAt;
+  final DateTime? premiumExpiresAt;  // ⭐ ДОБАВИТЬ
 
   User({
     required this.id,
@@ -15,12 +16,23 @@ class User {
     this.isPremium = false,
     this.activationCode,
     this.createdAt,
+    this.premiumExpiresAt,  // ⭐ ДОБАВИТЬ
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
+    // Авто-генерация ника из email если username пустой
+    final username = json['username']?.toString() ?? 
+                  (json['email']?.toString().split('@')[0] ?? 'User');
+    
+    // Парсим premiumExpiresAt если есть
+    DateTime? premiumExpiresAt;
+    if (json['premiumExpiresAt'] != null) {
+      premiumExpiresAt = DateTime.parse(json['premiumExpiresAt']);
+    }
+    
     return User(
       id: json['id']?.toString() ?? '',
-      username: json['username']?.toString() ?? '',
+      username: username,
       email: json['email']?.toString() ?? '',
       vtNumber: json['vtNumber']?.toString() ?? '',
       isPremium: json['isPremium'] ?? false,
@@ -28,6 +40,7 @@ class User {
       createdAt: json['createdAt'] != null 
           ? DateTime.parse(json['createdAt']) 
           : null,
+      premiumExpiresAt: premiumExpiresAt,  // ⭐ ДОБАВИТЬ
     );
   }
 
@@ -40,7 +53,39 @@ class User {
       'isPremium': isPremium,
       'activationCode': activationCode,
       'createdAt': createdAt?.toIso8601String(),
+      'premiumExpiresAt': premiumExpiresAt?.toIso8601String(),  // ⭐ ДОБАВИТЬ
     };
+  }
+
+  // ⭐ GRACE PERIOD - ПРОВЕРКА ДОСТУПА
+  bool hasAccess() {
+    if (isPremium) return true;
+    if (premiumExpiresAt == null) return false;
+    
+    // Добавляем 24 часа к дате истечения
+    final gracePeriodEnd = premiumExpiresAt!.add(const Duration(hours: 24));
+    return DateTime.now().isBefore(gracePeriodEnd);
+  }
+
+  // ⭐ ФОРМАТИРОВАННАЯ ДАТА ДЛЯ UI
+  String get premiumExpiresFormatted {
+    if (premiumExpiresAt == null) return 'Не указана';
+    
+    final date = premiumExpiresAt!;
+    return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+  }
+
+  // ⭐ СТАТУС PREMIUM ДЛЯ UI
+  String get premiumStatus {
+    if (isPremium) return 'Premium активен';
+    if (premiumExpiresAt == null) return 'Premium не активен';
+    
+    final gracePeriodEnd = premiumExpiresAt!.add(const Duration(hours: 24));
+    if (DateTime.now().isBefore(gracePeriodEnd)) {
+      return 'Grace Period (льготный период)';
+    }
+    
+    return 'Premium истек';
   }
 
   User copyWith({
@@ -51,6 +96,7 @@ class User {
     bool? isPremium,
     String? activationCode,
     DateTime? createdAt,
+    DateTime? premiumExpiresAt,  // ⭐ ДОБАВИТЬ
   }) {
     return User(
       id: id ?? this.id,
@@ -60,6 +106,7 @@ class User {
       isPremium: isPremium ?? this.isPremium,
       activationCode: activationCode ?? this.activationCode,
       createdAt: createdAt ?? this.createdAt,
+      premiumExpiresAt: premiumExpiresAt ?? this.premiumExpiresAt,  // ⭐ ДОБАВИТЬ
     );
   }
 }
