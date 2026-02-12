@@ -42,23 +42,32 @@ class ApiService {
         };
       } else if (response.statusCode == 400) {
         final errorData = jsonDecode(response.body);
+        // ⭐ MATRIX ОШИБКИ - ПРОКИДЫВАЕМ ТЕКСТ ИСКЛЮЧЕНИЯ
+        final matrixError = errorData['error'] ?? errorData['message'] ?? 'Registration failed';
         return {
           'success': false,
-          'error': errorData['error'] ?? 'Registration failed',
+          'error': matrixError,
         };
       } else {
+        // ⭐ ДРУГИЕ ОШИБКИ - ТАКЖЕ ПРОКИДЫВАЕМ ТЕКСТ
+        final otherError = data['error'] ?? data['message'] ?? 'Registration failed';
         return {
           'success': false,
-          'error': data['message'] ?? 'Registration failed',
+          'error': otherError,
         };
       }
     } catch (e) {
-      // ⭐ КРИТИЧНО - ПРАВИЛЬНЫЙ ПАРСИНГ ОШИБОК
-      String errorMessage = 'Network error';
+      // ⭐ MATRIX ОШИБКИ - ПРОКИДЫВАЕМ ТЕКСТ ИСКЛЮЧЕНИЯ
+      String errorMessage = 'Registration failed';
       
       try {
+        // Если это Exception с текстом ошибки - прокидываем его
         if (e.toString().contains('Exception:')) {
           final errorString = e.toString().split('Exception: ')[1];
+          errorMessage = errorString.replaceAll(RegExp(r'[{}"]'), '').trim();
+        } else {
+          // Если это другая ошибка - пробуем распарсить как JSON
+          final errorString = e.toString().replaceAll('Exception: ', '');
           errorMessage = errorString.replaceAll(RegExp(r'[{}"]'), '').trim();
         }
       } catch (_) {
