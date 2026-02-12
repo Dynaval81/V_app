@@ -18,7 +18,7 @@ class ApiService {
   }) async {
     try {
       final response = await http.post(
-        Uri.parse('$_baseUrl/api/auth/register'),
+        Uri.parse('$_baseUrl/api/v1/auth/register'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -26,7 +26,7 @@ class ApiService {
           'email': email,
           'password': password,
           'username': username,  // Отправляем null если пусто
-          'region': region,
+          'region': "RU",  // ⭐ ОБЯЗАТЕЛЬНОЕ ПОЛЕ
         }),
       ).timeout(_timeout);
 
@@ -41,9 +41,10 @@ class ApiService {
           'token': data['token'],
         };
       } else if (response.statusCode == 400) {
+        final errorData = jsonDecode(response.body);
         return {
           'success': false,
-          'error': data['message'] ?? 'Validation error',
+          'error': errorData['error'] ?? 'Registration failed',
         };
       } else {
         return {
@@ -66,7 +67,7 @@ class ApiService {
   }) async {
     try {
       final response = await http.post(
-        Uri.parse('$_baseUrl/api/auth/login'),
+        Uri.parse('$_baseUrl/api/v1/auth/login'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -201,7 +202,7 @@ class ApiService {
   // Восстановление доступа
   Future<void> recoverAccess(String email) async {
     final response = await http.post(
-      Uri.parse('$_baseUrl/auth/recovery'),
+      Uri.parse('$_baseUrl/api/v1/auth/recovery'),
       headers: {
         'Content-Type': 'application/json',
       },
