@@ -247,7 +247,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       children: [
         _buildAuthField(
           icon: Icons.alternate_email_rounded, 
-          hint: "Email / Identifier", 
+          hint: "VT-ID / Username / Email", 
           isDark: isDark,
           controller: _emailController,
         ),

@@ -40,6 +40,11 @@ class ApiService {
           'user': data['user'],
           'token': data['token'],
         };
+      } else if (response.statusCode == 400) {
+        return {
+          'success': false,
+          'error': data['message'] ?? 'Validation error',
+        };
       } else {
         return {
           'success': false,
@@ -66,7 +71,7 @@ class ApiService {
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'email': email,
+          'identifier': email,
           'password': password,
         }),
       ).timeout(_timeout);
@@ -191,6 +196,18 @@ class ApiService {
         'error': 'Network error: ${e.toString()}',
       };
     }
+  }
+
+  // Восстановление доступа
+  Future<void> recoverAccess(String email) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/auth/recovery'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'email': email}),
+    );
+    if (response.statusCode != 200) throw Exception('Recovery failed');
   }
 
   // Выход
