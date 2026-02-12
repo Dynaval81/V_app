@@ -59,8 +59,13 @@ class AuthService {
     };
   }
 
-  // Валидация email
+  // Валидация email или VT-ID
   bool isValidEmail(String email) {
+    // ⭐ ПОДДЕРЖКА VT-ID (5 и 6 значных)
+    if (RegExp(r'^VT-\d{5,6}$', caseSensitive: false).hasMatch(email)) {
+      return true;
+    }
+    // Стандартная валидация email
     return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
   }
 

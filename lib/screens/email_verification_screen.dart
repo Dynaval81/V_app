@@ -81,9 +81,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                     ),
                     const SizedBox(height: 8),
                     
-                    // Username
+                    // Username с VT-номером
                     Text(
-                      'Ник: ${widget.username}',
+                      'VT-ID: ${widget.username}',
                       style: TextStyle(
                         fontSize: 14,
                         color: isDark ? Colors.white54 : Colors.black38,
@@ -127,7 +127,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                                   ),
                                 )
                               : const Text(
-                                  'Я подтвердил',
+                                  'I have verified my email',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,

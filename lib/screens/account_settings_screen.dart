@@ -266,7 +266,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'VT#1234567890',
+                      'VT-12345',
                       style: TextStyle(
                         color: isDark ? Colors.white60 : Colors.black54,
                         fontSize: 12,

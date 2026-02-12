@@ -247,7 +247,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       children: [
         _buildAuthField(
           icon: Icons.alternate_email_rounded, 
-          hint: "VT-ID / Username / Email", 
+          hint: "Login (VT-XXXXX / Nickname / Email)", 
           isDark: isDark,
           controller: _emailController,
         ),
@@ -284,6 +284,17 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           color: isDark ? Colors.white : Colors.black87,
           fontSize: 16,
         ),
+        onChanged: isPassword ? null : (text) {
+          // ⭐ АВТОПОДСТАНОВКА VT- ДЛЯ ЦИФР
+          if (text.isNotEmpty && !text.toLowerCase().contains('vt') && 
+              RegExp(r'^\d+$').hasMatch(text)) {
+            final cursorPosition = controller?.selection.baseOffset ?? text.length;
+            controller?.value = TextEditingValue(
+              text: 'VT-$text',
+              selection: TextSelection.collapsed(offset: cursorPosition + 3),
+            );
+          }
+        },
         decoration: InputDecoration(
           prefixIcon: Icon(icon, color: isDark ? Colors.white54 : Colors.black54),
           hintText: hint,
