@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import '../../utils/glass_kit.dart';
@@ -100,7 +101,7 @@ class _VPNScreenState extends State<VPNScreen> {
                   GestureDetector(
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
+                      CupertinoPageRoute(builder: (context) => const AccountSettingsScreen()),
                     ),
                     child: Container(
                       margin: const EdgeInsets.only(right: 16),

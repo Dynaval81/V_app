@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import '../main_app.dart';
 import '../../constants/app_colors.dart';
@@ -162,7 +163,7 @@ class RegistrationSuccessScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => MainApp(initialTab: 3)),
+                    CupertinoPageRoute(builder: (context) => MainApp(initialTab: 3)),
                   );
                 },
                 style: ElevatedButton.styleFrom(
