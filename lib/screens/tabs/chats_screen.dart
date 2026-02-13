@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -175,7 +176,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                   GestureDetector(
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
+                      CupertinoPageRoute(builder: (context) => const AccountSettingsScreen()),
                     ),
                     child: CircleAvatar(
                       radius: 18,
@@ -237,10 +238,10 @@ class _ChatsScreenState extends State<ChatsScreen> {
           final id = chat['id'].toString();
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => ChatRoomScreen(
+            CupertinoPageRoute(builder: (context) => ChatRoomScreen(
               chatId: id,
-              chatName: chat['name'] as String,
-              isGroupChat: false,
+              chatName: chat['name'] ?? 'Unknown',
+              isGroupChat: chat['isGroup'] ?? false,
             )),
           );
         },
@@ -881,7 +882,7 @@ Widget _buildMenuOption({
                                   Navigator.pop(context); // close dialog
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (context) => ChatRoomScreen(
+                                    CupertinoPageRoute(builder: (context) => ChatRoomScreen(
                                       chatId: roomId,
                                       chatName: selectedContact,
                                       isGroupChat: false,

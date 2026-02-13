@@ -548,10 +548,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                     child: const Text('Cancel'),
                                   ),
                                   TextButton(
-                                    onPressed: () {
+                                    onPressed: () async {
                                       Navigator.pop(ctx);
                                       final userProvider = Provider.of<UserProvider>(context, listen: false);
-                                      userProvider.clearUser();
+                                      await userProvider.clearUser(); // 🚨 ИСПРАВЛЕНО: Добавил await
                                       Navigator.pushNamedAndRemoveUntil(
                                         context,
                                         '/login',

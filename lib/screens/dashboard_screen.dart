@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -266,7 +267,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
         GestureDetector(
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
+            CupertinoPageRoute(builder: (context) => const AccountSettingsScreen()),
           ),
           child: CircleAvatar(
             radius: 18,
@@ -384,7 +385,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                   GestureDetector(
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
+                      CupertinoPageRoute(builder: (context) => const AccountSettingsScreen()),
                     ),
                     child: CircleAvatar(
                       radius: 18,
@@ -399,15 +400,6 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     const SizedBox(height: 30),
-                    
-                    _buildAirCard(
-                      title: "VPN Status",
-                      subtitle: "Connected • Germany, Frankfurt",
-                      icon: Icons.vpn_lock_rounded,
-                      color: Colors.blueAccent,
-                      isDark: isDark,
-                      onTap: () => widget.onTabSwitch(2), // ИСПРАВЛЕНО: VPN = tab 2
-                    ),
                     
                     _buildAirCard(
                       title: "AI Assistant",
@@ -515,6 +507,134 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                     ),
                     
                     const SizedBox(height: 20),
+                    
+                    // About Button
+                    _buildAirCard(
+                      title: "About",
+                      subtitle: "App information & version",
+                      icon: Icons.info_rounded,
+                      color: Colors.blueAccent,
+                      isDark: isDark,
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => Dialog(
+                            backgroundColor: Colors.transparent,
+                            child: GlassKit.liquidGlass(
+                              isDark: isDark,
+                              radius: 16,
+                              child: Container(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      'VTalk App',
+                                      style: TextStyle(
+                                        color: isDark ? Colors.white : Colors.black,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Version: 1.0.0',
+                                      style: TextStyle(
+                                        color: isDark ? Colors.white70 : Colors.black54,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Secure messaging & VPN application',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: isDark ? Colors.white70 : Colors.black54,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text('Close'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    
+                    // Donate Button
+                    _buildAirCard(
+                      title: "Donate",
+                      subtitle: "Support development",
+                      icon: Icons.favorite_rounded,
+                      color: Colors.pinkAccent,
+                      isDark: isDark,
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => Dialog(
+                            backgroundColor: Colors.transparent,
+                            child: GlassKit.liquidGlass(
+                              isDark: isDark,
+                              radius: 16,
+                              child: Container(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      'Support VTalk',
+                                      style: TextStyle(
+                                        color: isDark ? Colors.white : Colors.black,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Your donation helps us maintain and improve the app.',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: isDark ? Colors.white70 : Colors.black54,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context),
+                                          child: const Text('Maybe Later'),
+                                        ),
+                                        ElevatedButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(content: Text('Thank you for your support!')),
+                                            );
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.pinkAccent,
+                                            foregroundColor: Colors.white,
+                                          ),
+                                          child: const Text('Donate'),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                     
                     Consumer<ThemeProvider>(
                       builder: (context, themeProvider, child) {

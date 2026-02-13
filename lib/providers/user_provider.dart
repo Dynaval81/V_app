@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/user_model.dart';
 import '../services/api_service.dart';
 
@@ -7,6 +8,7 @@ class UserProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   final ApiService _apiService = ApiService();
+  final _storage = const FlutterSecureStorage();
 
   User? get user => _user;
   bool get isLoading => _isLoading;
@@ -138,9 +140,14 @@ class UserProvider with ChangeNotifier {
     return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
   }
 
-  void clearUser() {
+  Future<void> clearUser() async {
     _user = null;
     _error = null;
+    _isLoading = false;
+    
+    // 🚨 ИСПРАВЛЕНО: Стираем токен при logout
+    await _storage.delete(key: 'auth_token');
+    
     notifyListeners();
   }
 
