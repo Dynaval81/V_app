@@ -407,21 +407,11 @@ Widget _buildMenuOption({
     final Set<String> selectedParticipants = {};
     String selectedContact = ''; // For 1-on-1 chats (empty until chosen)
     String selectedContactId = ''; // UUID from search result
-    // list of mocked contacts used only for group creation (participants selection)
-    final List<String> availableContacts = [
-      'Alice Johnson',
-      'Bob Smith',
-      'Charlie Brown',
-      'David Lee',
-      'Emma Wilson',
-      'Frank Miller',
-      'Grace Taylor',
-      'Henry Davis',
-    ];
     // search state
     List<Map<String, dynamic>> searchResults = [];
     bool isSearching = false;
     Timer? _debounce;
+    TextEditingController groupSearchCtrl = TextEditingController();
 
     showDialog(
       context: context,
@@ -564,17 +554,23 @@ Widget _buildMenuOption({
                                 final vt = userMap['vtNumber'] ?? '';
                                 return GestureDetector(
                                   onTap: () {
-                                    selectedContact = name;
-                                    // you could also handle vtNumber etc.
-                                    setDialogState(() {});
+                                    setDialogState(() {
+                                      selectedContact = name;
+                                      selectedContactId = userMap['id']?.toString() ?? '';
+                                    });
                                   },
                                   child: Container(
                                     margin: const EdgeInsets.symmetric(vertical: 6),
                                     padding: const EdgeInsets.all(14),
                                     decoration: BoxDecoration(
-                                      color: Colors.blueAccent.withValues(alpha: 0.15),
+                                      color: selectedContact == name
+                                          ? Colors.blueAccent.withValues(alpha: 0.25)
+                                          : Colors.blueAccent.withValues(alpha: 0.15),
                                       borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
+                                      border: Border.all(
+                                        color: selectedContact == name ? Colors.blueAccent : Colors.blueAccent.withValues(alpha: 0.3),
+                                        width: selectedContact == name ? 2 : 1,
+                                      ),
                                     ),
                                     child: Row(
                                       children: [
@@ -598,7 +594,7 @@ Widget _buildMenuOption({
                                                 ),
                                               ),
                                               Text(
-                                                'VT#$vt',
+                                                vt,
                                                 style: TextStyle(
                                                   color: isDark ? Colors.white54 : Colors.black54,
                                                   fontSize: 12,
@@ -607,6 +603,8 @@ Widget _buildMenuOption({
                                             ],
                                           ),
                                         ),
+                                        if (selectedContact == name)
+                                          Icon(Icons.check_circle, color: Colors.blueAccent, size: 20),
                                       ],
                                     ),
                                   ),
@@ -624,8 +622,47 @@ Widget _buildMenuOption({
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // Search field for group members
+                              TextField(
+                                controller: groupSearchCtrl,
+                                style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                                onChanged: (val) {
+                                  if (_debounce?.isActive ?? false) _debounce!.cancel();
+                                  _debounce = Timer(const Duration(milliseconds: 300), () async {
+                                    if (val.trim().isEmpty) {
+                                      setDialogState(() {
+                                        searchResults.clear();
+                                        isSearching = false;
+                                      });
+                                      return;
+                                    }
+                                    setDialogState(() {
+                                      isSearching = true;
+                                    });
+                                    final result = await AuthService().searchUsers(val.trim());
+                                    setDialogState(() {
+                                      isSearching = false;
+                                      if (result['success'] == true) {
+                                        searchResults = List<Map<String, dynamic>>.from(result['users'] ?? []);
+                                      } else {
+                                        searchResults.clear();
+                                      }
+                                    });
+                                  });
+                                },
+                                decoration: InputDecoration(
+                                  labelText: 'Add members',
+                                  labelStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
+                                  prefixIcon: Icon(Icons.search, color: Colors.blueAccent),
+                                  filled: true,
+                                  fillColor: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                                  hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
                               Text(
-                                'Select Participants',
+                                'Selected Members',
                                 style: TextStyle(
                                   color: isDark ? Colors.white : Colors.black,
                                   fontSize: 14,
@@ -639,7 +676,12 @@ Widget _buildMenuOption({
                                   padding: const EdgeInsets.only(bottom: 12),
                                   child: Wrap(
                                     spacing: 8,
-                                    children: selectedParticipants.map((contact) {
+                                    children: selectedParticipants.map((id) {
+                                      final user = searchResults.firstWhere(
+                                        (u) => u['id']?.toString() == id,
+                                        orElse: () => {'username': id, 'vtNumber': ''},
+                                      );
+                                      final name = user['username'] ?? id;
                                       return GlassKit.liquidGlass(
                                         isDark: isDark,
                                         useBlur: false,
@@ -650,7 +692,7 @@ Widget _buildMenuOption({
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
                                               Text(
-                                                contact.split(' ')[0],
+                                                name.split(' ')[0],
                                                 style: TextStyle(
                                                   color: isDark ? Colors.white : Colors.black,
                                                   fontSize: 12,
@@ -660,7 +702,7 @@ Widget _buildMenuOption({
                                               GestureDetector(
                                                 onTap: () {
                                                   setDialogState(() {
-                                                    selectedParticipants.remove(contact);
+                                                    selectedParticipants.remove(id);
                                                   });
                                                 },
                                                 child: Icon(Icons.close, size: 16, color: Colors.blueAccent),
@@ -672,62 +714,91 @@ Widget _buildMenuOption({
                                     }).toList(),
                                   ),
                                 ),
-                              // Contacts list
-                              Expanded(
-                                child: SingleChildScrollView(
-                                  child: Column(
-                                    children: availableContacts.map((contact) {
-                                      final isSelected = selectedParticipants.contains(contact);
-                                      return GestureDetector(
-                                        onTap: () {
-                                          setDialogState(() {
-                                            if (isSelected) {
-                                              selectedParticipants.remove(contact);
-                                            } else {
-                                              selectedParticipants.add(contact);
-                                            }
-                                          });
-                                        },
-                                        child: Container(
-                                          margin: const EdgeInsets.only(bottom: 8),
-                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                          decoration: BoxDecoration(
-                                            color: isSelected
-                                                ? Colors.blueAccent.withValues(alpha: 0.2)
-                                                : isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
-                                            borderRadius: BorderRadius.circular(10),
-                                            border: isSelected
-                                                ? Border.all(color: Colors.blueAccent, width: 1.5)
-                                                : Border.all(color: Colors.transparent),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              CircleAvatar(
-                                                radius: 20,
-                                                backgroundImage: NetworkImage(
-                                                  "${AppConstants.defaultAvatarUrl}?u=${contact.toLowerCase().replaceAll(' ', '')}",
-                                                ),
-                                              ),
-                                              const SizedBox(width: 12),
-                                              Expanded(
-                                                child: Text(
-                                                  contact,
-                                                  style: TextStyle(
-                                                    color: isDark ? Colors.white : Colors.black,
-                                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                              // Search results
+                              if (isSearching)
+                                Center(child: CircularProgressIndicator())
+                              else if (groupSearchCtrl.text.isNotEmpty)
+                                Expanded(
+                                  child: SingleChildScrollView(
+                                    child: Column(
+                                      children: searchResults.map((userMap) {
+                                        final name = userMap['username'] ?? '';
+                                        final vt = userMap['vtNumber'] ?? '';
+                                        final userId = userMap['id']?.toString() ?? '';
+                                        final isSelected = selectedParticipants.contains(userId);
+                                        return GestureDetector(
+                                          onTap: () {
+                                            setDialogState(() {
+                                              if (isSelected) {
+                                                selectedParticipants.remove(userId);
+                                              } else {
+                                                selectedParticipants.add(userId);
+                                              }
+                                            });
+                                          },
+                                          child: Container(
+                                            margin: const EdgeInsets.only(bottom: 8),
+                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                            decoration: BoxDecoration(
+                                              color: isSelected
+                                                  ? Colors.blueAccent.withValues(alpha: 0.2)
+                                                  : isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
+                                              borderRadius: BorderRadius.circular(10),
+                                              border: isSelected
+                                                  ? Border.all(color: Colors.blueAccent, width: 1.5)
+                                                  : Border.all(color: Colors.transparent),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                CircleAvatar(
+                                                  radius: 20,
+                                                  backgroundImage: NetworkImage(
+                                                    "${AppConstants.defaultAvatarUrl}?u=$name",
                                                   ),
                                                 ),
-                                              ),
-                                              if (isSelected)
-                                                Icon(Icons.check_circle, color: Colors.blueAccent, size: 20),
-                                            ],
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(
+                                                        name,
+                                                        style: TextStyle(
+                                                          color: isDark ? Colors.white : Colors.black,
+                                                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        vt,
+                                                        style: TextStyle(
+                                                          color: isDark ? Colors.white54 : Colors.black54,
+                                                          fontSize: 12,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                if (isSelected)
+                                                  Icon(Icons.check_circle, color: Colors.blueAccent, size: 20),
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                      );
-                                    }).toList(),
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ),
+                                )
+                              else
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  child: Text(
+                                    'Type to search members',
+                                    style: TextStyle(
+                                      color: isDark ? Colors.white54 : Colors.black54,
+                                      fontSize: 13,
+                                    ),
                                   ),
                                 ),
-                              ),
                             ],
                           ),
                         ),

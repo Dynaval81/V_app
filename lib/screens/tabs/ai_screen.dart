@@ -102,13 +102,13 @@ class _AIScreenState extends State<AIScreen> {
     final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
     
     return Scaffold(
-      extendBody: true, // Позволяет контенту затекать под BottomNavigationBar
-      extendBodyBehindAppBar: true, // Позволяет фону быть под шапкой
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Container(
-        // Растягиваем фон на весь экран, ИГНОРИРУЯ SafeArea
         width: double.infinity,
         height: double.infinity,
-        decoration: GlassKit.mainBackground(isDark), 
+        color: Theme.of(context).scaffoldBackgroundColor,
         child: Column(
           children: [
             Expanded(

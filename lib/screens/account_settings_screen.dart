@@ -344,7 +344,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'VT#${currentUser.vtNumber}',
+                      currentUser.vtNumber,
                       style: TextStyle(
                         color: isDark ? Colors.white60 : Colors.black54,
                         fontSize: 12,
@@ -441,7 +441,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
               _buildInfoTile(
                 label: 'Joined',
-                value: 'Jan 15, 2024',
+                value: currentUser.createdAt != null
+                    ? '${currentUser.createdAt!.day.toString().padLeft(2, '0')}.${currentUser.createdAt!.month.toString().padLeft(2, '0')}.${currentUser.createdAt!.year}'
+                    : 'Not available',
                 icon: Icons.calendar_today,
                 isDark: isDark,
               ),

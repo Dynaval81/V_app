@@ -10,19 +10,13 @@ class VPNScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = Theme.of(context).scaffoldBackgroundColor;
 
     if (isLocked) {
       return Scaffold(
         body: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDark 
-                ? [const Color(0xFF1A1A2E), const Color(0xFF252541)]
-                : [const Color(0xFF6A11CB), const Color(0xFF2575FC)],
-            ),
-          ),
+          color: bgColor,
+
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
