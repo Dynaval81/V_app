@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'dart:math';
+import 'api_service.dart';
 
 class AuthService {
+  final ApiService _apiService = ApiService();
+  
   // Имитация базы данных пользователей
   final List<Map<String, String>> _mockUsers = [];
 
@@ -72,5 +75,18 @@ class AuthService {
   // Валидация пароля
   bool isValidPassword(String password) {
     return password.length >= 6;
+  }
+
+  // ⭐ ПОЛУЧЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЯ (getMe)
+  Future<Map<String, dynamic>> getMe() async {
+    try {
+      final result = await _apiService.getUserData();
+      return result;
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Failed to get user data: ${e.toString()}',
+      };
+    }
   }
 }

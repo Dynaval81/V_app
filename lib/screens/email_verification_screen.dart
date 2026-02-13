@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../services/api_service.dart';
+import '../services/auth_service.dart';
 import '../utils/glass_kit.dart';
 import '../theme_provider.dart';
 import 'main_app.dart';
@@ -196,7 +196,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       await Future.delayed(const Duration(seconds: 2));
       
       // ⭐ ЗАПРАШИВАЕМ СВЕЖИЕ ДАННЫЕ ПОЛЬЗОВАТЕЛЯ
-      final userResult = await ApiService().getUserData();
+      final userResult = await AuthService().getMe();
       
       if (userResult['success']) {
         final user = userResult['user'];
