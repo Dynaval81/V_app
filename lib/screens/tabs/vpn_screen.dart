@@ -17,8 +17,12 @@ class VPNScreen extends StatefulWidget {
 class _VPNScreenState extends State<VPNScreen> {
   bool isConnected = false;
   bool isConnecting = false;
-  int _secondsActive = 0;
+  int _secondsActive = 0; // duration since connected
   Timer? _timer;
+  // traffic stats (bytes)
+  int _incomingTraffic = 0;
+  int _outgoingTraffic = 0;
+  bool _splitTunneling = false;
   // only server selection remains
   final List<String> _servers = [
     'United States',
@@ -35,15 +39,26 @@ class _VPNScreenState extends State<VPNScreen> {
       setState(() { 
         isConnected = false; 
         isConnecting = false;
-        _secondsActive = 0; 
+        _secondsActive = 0;
+        _incomingTraffic = 0;
+        _outgoingTraffic = 0;
       });
     } else {
       setState(() => isConnecting = true);
-      await Future.delayed(Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 2));
       setState(() {
         isConnecting = false;
         isConnected = true;
-        _timer = Timer.periodic(Duration(seconds: 1), (t) => setState(() => _secondsActive++));
+        _incomingTraffic = 0;
+        _outgoingTraffic = 0;
+        _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+          setState(() {
+            _secondsActive++;
+            // simulate traffic growth
+            _incomingTraffic += 1024 + (1000 * (_splitTunneling ? 0 : 1));
+            _outgoingTraffic += 512 + (500 * (_splitTunneling ? 0 : 1));
+          });
+        });
       });
     }
   }
@@ -71,7 +86,8 @@ class _VPNScreenState extends State<VPNScreen> {
               VtalkHeader(
                 title: 'TALK VPN', // Убираем "V", оставляем "TALK VPN"
                 showScrollAnimation: false,
-                // Mercury Sphere увеличенная (handled internally now)
+                logoAsset: 'assets/images/app_logo_classic.png',
+                logoHeight: 40,
                 actions: [
                   GestureDetector(
                     onTap: () => Navigator.push(
@@ -132,6 +148,67 @@ class _VPNScreenState extends State<VPNScreen> {
                       ),
                     ),
                     
+                    SizedBox(height: 20),
+
+                    // connection duration / status
+                    if (isConnected)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Connected for ${_secondsActive}s',
+                            style: TextStyle(
+                              color: isDark ? Colors.white70 : Colors.black54,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    // traffic statistics
+                    if (isConnected || isConnecting) 
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(child: Text('Incoming', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54))),
+                                Flexible(child: Text('$_incomingTraffic KB', style: TextStyle(color: isDark ? Colors.white : Colors.black87))),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(child: Text('Outgoing', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54))),
+                                Flexible(child: Text('$_outgoingTraffic KB', style: TextStyle(color: isDark ? Colors.white : Colors.black87))),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    // split tunneling toggle
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text('Split tunneling', style: TextStyle(color: isDark ? Colors.white : Colors.black)),
+                          ),
+                          Switch(
+                            value: _splitTunneling,
+                            onChanged: (v) {
+                              setState(() {
+                                _splitTunneling = v;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
                     SizedBox(height: 20),
 
                     // Server selector dropdown

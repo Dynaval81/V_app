@@ -8,17 +8,17 @@ class VtalkHeader extends StatefulWidget {
   final String title;
   final bool showScrollAnimation;
   final List<Widget>? actions;
-  final ScrollController? scrollController; // Добавляем ScrollController
-  final String? logoAsset; // Добавляем путь к лого
-  final double? logoHeight; // Добавляем высоту лого
+  final double? scrollOffset;
+  final String? logoAsset;
+  final double? logoHeight;
   
   const VtalkHeader({
     required this.title,
     this.showScrollAnimation = true,
     this.actions,
-    this.scrollController, // Опциональный контроллер
-    this.logoAsset, // Опциональное лого
-    this.logoHeight, // Опциональная высота
+    this.scrollOffset,
+    this.logoAsset,
+    this.logoHeight,
   });
 
   @override
@@ -26,7 +26,7 @@ class VtalkHeader extends StatefulWidget {
 }
 
 class _VtalkHeaderState extends State<VtalkHeader>
-    with TickerProviderStateMixin {
+  with TickerProviderStateMixin {
   late AnimationController _avatarController;
   late AnimationController _titleController;
   late Animation<double> _scaleAnimation;
@@ -66,166 +66,120 @@ class _VtalkHeaderState extends State<VtalkHeader>
     });
   }
   
-  // Безопасные геттеры для расчета значений
-  double get _currentDensity {
-    try {
-      // Проверяем: прикреплен ли контроллер и есть ли у него размеры
-      if (widget.scrollController != null && widget.scrollController!.hasClients) {
-        return (widget.scrollController!.offset / 100).clamp(0.0, 0.8);
-      }
-    } catch (_) {
-      // Если что-то пошло не так (например, во время dispose)
+  double _calculateTitleOpacity() {
+    if (!widget.showScrollAnimation || widget.scrollOffset == null) {
+      return 1.0;
     }
-    return 0.0; // По умолчанию шапка прозрачная
+    
+    // Заголовок начинает исчезать при скролле > 50px
+    final fadeStart = 50.0;
+    final fadeEnd = 150.0;
+    
+    if (widget.scrollOffset! <= fadeStart) {
+      return 1.0;
+    } else if (widget.scrollOffset! >= fadeEnd) {
+      return 0.0;
+    } else {
+      return 1.0 - ((widget.scrollOffset! - fadeStart) / (fadeEnd - fadeStart));
+    }
   }
-
-  double get _currentOpacity {
-    try {
-      if (widget.scrollController != null && widget.scrollController!.hasClients) {
-        // Текст исчезает быстрее, чем появляется блюр шапки
-        return (1.0 - (widget.scrollController!.offset / 60)).clamp(0.0, 1.0);
-      }
-    } catch (_) {}
-    return 1.0; // По умолчанию текст виден полностью
+  
+  double _calculateAppBarOpacity() {
+    if (!widget.showScrollAnimation || widget.scrollOffset == null) {
+      return 0.0;
+    }
+    
+    // Фон появляется при скролле > 100px
+    final fadeStart = 100.0;
+    final fadeEnd = 200.0;
+    
+    if (widget.scrollOffset! <= fadeStart) {
+      return 0.0;
+    } else if (widget.scrollOffset! >= fadeEnd) {
+      return 0.4;
+    } else {
+      return ((widget.scrollOffset! - fadeStart) / (fadeEnd - fadeStart)) * 0.4;
+    }
   }
   
   @override
   Widget build(BuildContext context) {
     final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
+    final titleOpacity = _calculateTitleOpacity();
+    final appBarOpacity = _calculateAppBarOpacity();
     
-    return AnimatedBuilder(
-      animation: widget.scrollController ?? const AlwaysStoppedAnimation(0.0), // Безопасное использование
-      builder: (context, child) {
-        final titleOpacity = _currentOpacity;
-        final appBarOpacity = _currentDensity;
-        
-        return SliverAppBar(
-          pinned: true,
-          stretch: true,
-          backgroundColor: Colors.transparent,
-          expandedHeight: widget.showScrollAnimation ? 120 : 60, // Уменьшаем высоту для обычного режима
-          
-          // Используем наш оптимизированный GlassKit
-          flexibleSpace: GlassKit.liquidGlass(
-            radius: 0,
-            isDark: isDark,
-            opacity: appBarOpacity, // Динамическая прозрачность
-            useBlur: true, // В ШАПКЕ БЛЮР ОСТАВЛЯЕМ (это красиво!)
-            child: Container(), // УБИРАЕМ FlexibleSpaceBar с заголовком
-          ),
-          title: Row(
-            children: [
-              // Если есть логотип - используем его с адаптивными тенями
-              if (widget.logoAsset != null)
-                Container(
-                  height: 54, // Увеличиваем с 44 до 54
-                  width: 54,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: isDark 
-                      ? [
-                            // Для ТЕМНОЙ темы: оставляем магическое фиолетовое свечение
-                            BoxShadow(
-                              color: Colors.purpleAccent.withOpacity(0.4),
-                              blurRadius: 40,
-                              spreadRadius: 5,
-                            ),
-                          ]
-                      : [
-                            // Для СВЕТЛОЙ темы: минималистичный "стеклянный" блик
-                            BoxShadow(
-                              color: Colors.blueAccent.withOpacity(0.08), // Почти прозрачный голубой
-                              blurRadius: 15, 
-                              spreadRadius: 1,
-                              offset: const Offset(0, 4), // Смещаем тень чуть вниз для объема
-                            ),
-                          ],
-                  ),
-                  child: Image.asset(
-                    widget.logoAsset!,
-                    height: 54,
-                    width: 54,
-                    fit: BoxFit.contain,
-                    filterQuality: FilterQuality.high,
-                  ),
-                )
-              else ...[
-                const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
-                const SizedBox(width: 8),
-              ],
-              // Если есть логотип - добавляем текст с оригинальными стилями
-              if (widget.logoAsset != null) ...[
-                const SizedBox(width: 8), // Уменьшаем отступ
-                Flexible(
-                  child: Opacity(
-                    opacity: titleOpacity,
-                    child: Text(
-                      widget.title.toUpperCase(), // Возвращаем оригинальный title
-                      style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black.withOpacity(0.9),
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2, // Возвращаем оригинальный letterSpacing
-                        fontSize: 20, // Возвращаем оригинальный fontSize
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
+    return SliverAppBar(
+      pinned: true,
+      automaticallyImplyLeading: false,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      flexibleSpace: GlassKit.liquidGlass(
+        radius: 0,
+        isDark: isDark,
+        opacity: appBarOpacity,
+        useBlur: true,  // ✅ Явно включаем блюр для заголовка
+        child: Container(),
+      ),
+      title: Row(
+        children: [
+          if (widget.logoAsset != null)
+            Image.asset(
+              widget.logoAsset!,
+              height: widget.logoHeight ?? 32,
+            )
+          else
+            const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
+          const SizedBox(width: 8),
+          Flexible(  // ✅ Добавили Flexible чтобы текст не переполнял
+            child: Opacity(
+              opacity: titleOpacity,
+              child: Text(
+                widget.title.toUpperCase(), 
+                style: TextStyle(
+                  color: isDark ? Colors.white : Colors.black,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2,
+                  fontSize: 20,
                 ),
-              ],
-              // Показываем текст только если нет логотипа
-              if (widget.logoAsset == null)
-                Flexible(  // Добавили Flexible чтобы текст не переполнял
-                  child: Opacity(
-                    opacity: titleOpacity,
-                    child: Text(
-                      widget.title.toUpperCase(), 
-                      style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black.withOpacity(0.9), // Явный контраст для светлой темы
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2,
-                        fontSize: 20
-                      ),
-                      overflow: TextOverflow.ellipsis,  // Защита от overflow
-                    ),
-                  ),
-                ),
-            ],
+                overflow: TextOverflow.ellipsis,  // ✅ Защита от overflow
+              ),
+            ),
           ),
-          actions: widget.actions ?? [],
-          // Заменили небезопасное распаковывание на безопасное
-          bottom: widget.showScrollAnimation
-              ? PreferredSize(
-                  preferredSize: const Size.fromHeight(0),
-                  child: ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: GestureDetector(
-                        onTapDown: (_) => _animateAvatar(),
-                        onTapUp: (_) => _avatarController.reverse(),
-                        onTapCancel: () => _avatarController.reverse(),
-                        onTap: () => Navigator.pushNamed(context, '/settings'),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: isDark ? Colors.white24 : Colors.black12,
-                              width: 2,
-                            ),
-                          ),
-                          child: CircleAvatar(
-                            radius: 16,
-                            backgroundColor: Colors.blue.withOpacity(0.7),
-                            child: const Icon(Icons.person, color: Colors.white),
-                          ),
+        ],
+      ),
+        actions: widget.actions ?? [],
+      // ✅ Заменили небезопасное распаковывание на безопасное
+      bottom: widget.showScrollAnimation
+          ? PreferredSize(
+              preferredSize: const Size.fromHeight(0),
+              child: ScaleTransition(
+                scale: _scaleAnimation,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: GestureDetector(
+                    onTapDown: (_) => _animateAvatar(),
+                    onTapUp: (_) => _avatarController.reverse(),
+                    onTapCancel: () => _avatarController.reverse(),
+                    onTap: () => Navigator.pushNamed(context, '/settings'),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isDark ? Colors.white24 : Colors.black12,
+                          width: 2,
                         ),
                       ),
+                      child: CircleAvatar(
+                        radius: 16,
+                        backgroundColor: Colors.blue.withOpacity(0.7),
+                        child: const Icon(Icons.person, color: Colors.white),
+                      ),
                     ),
                   ),
-                )
-              : null,
-        );
-      },
+                ),
+              ),
+            )
+          : null,
     );
   }
 }

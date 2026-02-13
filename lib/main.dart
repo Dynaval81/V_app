@@ -1,26 +1,16 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'theme_provider.dart';
 import 'providers/user_provider.dart';
-import 'screens/auth_screen.dart';
 import 'screens/tabs/chats_screen.dart';
 import 'screens/tabs/vpn_screen.dart';
 import 'screens/tabs/ai_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/chat_room_screen.dart';
-
-class MyHttpOverrides extends HttpOverrides {
-  @override
-  HttpClient createHttpClient(SecurityContext? context) {
-    return super.createHttpClient(context)
-      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
-  }
-}
+import 'widgets/premium_guard.dart';
 
 void main() {
-  HttpOverrides.global = MyHttpOverrides(); // 🎯 SSL OVERRIDE ДЛЯ DUCKDNS
   runApp(
     MultiProvider(
       providers: [
@@ -42,7 +32,7 @@ class VtalkApp extends StatelessWidget {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: themeProvider.currentTheme,
-          home: const AuthScreen(),
+          home: const MainScreen(),
           onGenerateRoute: (settings) {
             switch (settings.name) {
               case '/chat':
@@ -77,17 +67,17 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
-  bool _isDarkMode = true; // Добавляем переменную темы
 
   @override
   void initState() {
     super.initState();
     // Получаем состояние темы из ThemeProvider
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-      setState(() {
-        _isDarkMode = themeProvider.isDarkMode;
-      });
+      // Load user data if not already present
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      if (userProvider.user == null && !userProvider.isLoading) {
+        userProvider.refreshUserData();
+      }
     });
   }
 
@@ -109,8 +99,8 @@ class _MainScreenState extends State<MainScreen> {
         index: _currentIndex,
         children: [
           const ChatsScreen(),
-          const AIScreen(),
-          const VPNScreen(),
+          PremiumGuard(child: const AIScreen()),
+          PremiumGuard(child: const VPNScreen()),
           DashboardScreen(onTabSwitch: _switchTab),
         ],
       ),

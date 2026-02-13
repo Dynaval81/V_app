@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -20,20 +21,40 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   String _userStatus = ""; // will populate from provider
   String _userAvatar = "${AppConstants.defaultAvatarUrl}?u=me"; // default avatar
   
+  bool _loadError = false;
+  Timer? _loadTimer;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final user = Provider.of<UserProvider>(context).user;
+    final userProvider = Provider.of<UserProvider>(context);
+    final user = userProvider.user;
     if (user != null) {
       _nicknameController.text = user.username;
       _emailController.text = user.email;
       _userAvatar = user.avatar ?? _userAvatar;
       _userStatus = user.status ?? _userStatus;
     }
+    // start loading new data if necessary
+    if (!userProvider.isLoading) {
+      userProvider.refreshUserData();
+    }
+    // start timeout for loading error if there is no user yet
+    _loadTimer?.cancel();
+    if (user == null) {
+      _loadTimer = Timer(const Duration(seconds: 3), () {
+        if (mounted && userProvider.isLoading && userProvider.user == null) {
+          setState(() {
+            _loadError = true;
+          });
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
+    _loadTimer?.cancel();
     _nicknameController.dispose();
     _emailController.dispose();
     super.dispose();
@@ -212,19 +233,48 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     final userProvider = Provider.of<UserProvider>(context);
     final user = userProvider.user;
 
-    if (userProvider.isLoading || user == null) {
+    // if no user yet, show loader or error
+    if (user == null) {
+      if (_loadError) {
+        return Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Ошибка загрузки профиля'),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _loadError = false;
+                    });
+                    userProvider.refreshUserData();
+                  },
+                  child: const Text('Повторить'),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+      // show loading indicator while waiting
       return Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(child: const CircularProgressIndicator()),
       );
     }
 
+    // at this point user is non-null
+    final currentUser = user;
+
     return Scaffold(
-      body: Container(
-        decoration: GlassKit.mainBackground(isDark),
-        child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-            children: [
+      body: Stack(
+        children: [
+          Container(
+            decoration: GlassKit.mainBackground(isDark),
+            child: SafeArea(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                children: [
               // Header with back button
               Padding(
                 padding: const EdgeInsets.only(bottom: 28, top: 8),
@@ -234,13 +284,16 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
                       onPressed: () => Navigator.pop(context),
                     ),
-                    Text(
-                      'Account Settings',
-                      style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.5,
+                    Flexible(
+                      child: Text(
+                        'Account Settings',
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.5,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
@@ -286,7 +339,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'VT#${user.vtNumber}',
+                      'VT#${currentUser.vtNumber}',
                       style: TextStyle(
                         color: isDark ? Colors.white60 : Colors.black54,
                         fontSize: 12,
@@ -374,7 +427,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
               _buildInfoTile(
                 label: 'VT Number',
-                value: user.vtNumber,
+                value: currentUser.vtNumber,
                 icon: Icons.badge,
                 isDark: isDark,
               ),
@@ -450,6 +503,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
             ],
           ),
         ),
+      ),
+        ], // end of Stack children
       ),
     );
   }

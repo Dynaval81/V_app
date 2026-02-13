@@ -21,7 +21,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
   final ScrollController _scrollController = ScrollController();
   final ValueNotifier<double> _searchOpacity = ValueNotifier(0.0);
   double _lastOffset = 0.0;
-  // Simple in-memory storage for newly created chats/groups in this session
+  // In-memory chat list (would normally come from backend)
   final List<Map<String, dynamic>> _customChats = [];
   
   // User status storage
@@ -139,19 +139,33 @@ class _ChatsScreenState extends State<ChatsScreen> {
                   const SizedBox(width: 16),
                 ],
               ),
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    if (index < _customChats.length) {
+              if (_customChats.isEmpty)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('No chats yet', style: TextStyle(color: isDark ? Colors.white60 : Colors.black54, fontSize: 18)),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () => _showSearch(context, isDark),
+                          child: const Text('Find first contact'),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
                       final chat = _customChats[index];
                       return _buildCustomChatTile(chat, isDark);
-                    }
-                    final generatedIndex = index - _customChats.length;
-                    return _buildChatTile(generatedIndex, isDark);
-                  },
-                  childCount: _customChats.length + 20,
+                    },
+                    childCount: _customChats.length,
+                  ),
                 ),
-              ),
             ],
           ),
         ),
