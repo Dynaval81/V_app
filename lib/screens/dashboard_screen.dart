@@ -648,6 +648,168 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                         );
                       },
                     ),
+                    
+                    const SizedBox(height: 20),
+                    
+                    // 🎯 ListTile: О программе
+                    GlassKit.liquidGlass(
+                      radius: 16,
+                      isDark: isDark,
+                      opacity: 0.15,
+                      child: ListTile(
+                        leading: Icon(Icons.info_outline, color: Colors.blueAccent),
+                        title: Text(
+                          'О программе',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : Colors.black,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        subtitle: Text(
+                          'VTalk App v1.0.0',
+                          style: TextStyle(
+                            color: isDark ? Colors.white70 : Colors.black54,
+                            fontSize: 14,
+                          ),
+                        ),
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => Dialog(
+                              backgroundColor: Colors.transparent,
+                              child: GlassKit.liquidGlass(
+                                isDark: isDark,
+                                radius: 16,
+                                child: Container(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'VTalk App',
+                                        style: TextStyle(
+                                          color: isDark ? Colors.white : Colors.black,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Version: 1.0.0',
+                                        style: TextStyle(
+                                          color: isDark ? Colors.white70 : Colors.black54,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'Secure messaging & VPN application',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          color: isDark ? Colors.white70 : Colors.black54,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 20),
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: const Text('Close'),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 12),
+                    
+                    // 🎯 ListTile: Поддержать проект
+                    GlassKit.liquidGlass(
+                      radius: 16,
+                      isDark: isDark,
+                      opacity: 0.15,
+                      child: ListTile(
+                        leading: Icon(Icons.favorite_outline, color: Colors.pinkAccent),
+                        title: Text(
+                          'Поддержать проект',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : Colors.black,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        subtitle: Text(
+                          'Помощь в развитии приложения',
+                          style: TextStyle(
+                            color: isDark ? Colors.white70 : Colors.black54,
+                            fontSize: 14,
+                          ),
+                        ),
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => Dialog(
+                              backgroundColor: Colors.transparent,
+                              child: GlassKit.liquidGlass(
+                                isDark: isDark,
+                                radius: 16,
+                                child: Container(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'Поддержать VTalk',
+                                        style: TextStyle(
+                                          color: isDark ? Colors.white : Colors.black,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'Ваша поддержка помогает нам поддерживать и улучшать приложение.',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          color: isDark ? Colors.white70 : Colors.black54,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 20),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(context),
+                                            child: const Text('Может позже'),
+                                          ),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(content: Text('Спасибо за вашу поддержку!')),
+                                              );
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.pinkAccent,
+                                              foregroundColor: Colors.white,
+                                            ),
+                                            child: const Text('Поддержать'),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                   ]),
                 ),
               ),

@@ -9,7 +9,6 @@ import '../../services/auth_service.dart';
 import '../../services/api_service.dart';
 import '../../theme_provider.dart';
 import '../../constants/app_constants.dart';
-import '../models/chat_room.dart';
 import '../chat_room_screen.dart';
 import '../account_settings_screen.dart';
 
@@ -25,7 +24,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
   final ValueNotifier<double> _searchOpacity = ValueNotifier(0.0);
   double _lastOffset = 0.0;
   // In-memory chat list (would normally come from backend)
-  List<ChatRoom> _chatRooms = [];
+  List<Map<String, dynamic>> _chatRooms = [];
   bool _isLoadingChats = false;
   
   // User status storage
@@ -70,7 +69,15 @@ class _ChatsScreenState extends State<ChatsScreen> {
       
       final rooms = List<Map<String, dynamic>>.from(roomsList);
       setState(() {
-        _chatRooms = rooms.map((r) => ChatRoom.fromMap(r)).toList();
+        _chatRooms = rooms.map((r) {
+          return {
+            'id': r['id'],
+            'name': r['name'] ?? r['title'] ?? '',
+            'isGroup': r['isGroup'] ?? false,
+            'isOnline': r['isOnline'] ?? true,
+            'unread': r['unread'] ?? 0,
+          };
+        }).toList();
       });
     } else {
       // failed to load, keep empty list or show snackbar
@@ -216,10 +223,10 @@ class _ChatsScreenState extends State<ChatsScreen> {
     );
   }
 
-  Widget _buildCustomChatTile(ChatRoom chat, bool isDark) {
-    final isGroup = chat.isGroup;
-    final isOnline = chat.isOnline;
-    final unreadCount = chat.unread;
+  Widget _buildCustomChatTile(Map<String, dynamic> chat, bool isDark) {
+    final isGroup = chat['isGroup'] as bool? ?? false;
+    final isOnline = chat['isOnline'] as bool? ?? false;
+    final unreadCount = chat['unread'] as int? ?? 0;
 
     return GlassKit.liquidGlass(
       context: context, // Добавляем context для debug mode
@@ -231,15 +238,15 @@ class _ChatsScreenState extends State<ChatsScreen> {
           Navigator.push(
             context,
             CupertinoPageRoute(builder: (context) => ChatRoomScreen(
-              chatId: chat.id,
-              chatName: chat.name,
-              isGroupChat: chat.isGroup,
+              chatId: chat['id'].toString(),
+              chatName: chat['name'] ?? 'Unknown',
+              isGroupChat: chat['isGroup'] ?? false,
             )),
           );
         },
         leading: Stack(
           children: [
-            CircleAvatar(radius: 28, backgroundImage: CachedNetworkImageProvider("${AppConstants.defaultAvatarUrl}?u=custom${chat.id}"),),
+            CircleAvatar(radius: 28, backgroundImage: CachedNetworkImageProvider("${AppConstants.defaultAvatarUrl}?u=custom${chat['id']}"),),
             if (!isGroup && isOnline) // Рисуем точку только если это НЕ группа и пользователь онлайн
               Positioned(
                 right: 0,
@@ -252,7 +259,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
           children: [
             if (isGroup) Icon(Icons.group, size: 16, color: Colors.blueAccent),
             if (isGroup) const SizedBox(width: 6),
-            Expanded(child: Text(chat.name, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.bold))),
+            Expanded(child: Text(chat['name'] as String, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.bold))),
           ],
         ),
         subtitle: Text(
@@ -963,23 +970,25 @@ class ChatSearchDelegate extends SearchDelegate<String> {
       'AI Assistant',
     ].where((suggestion) => suggestion.toLowerCase().contains(query.toLowerCase())).toList();
 
-    return ListView.builder(
-      itemCount: suggestions.length,
-      itemBuilder: (context, index) {
-        return ListTile(
-          leading: Icon(Icons.search, color: isDark ? Colors.blue : Colors.blue),
-          title: Text(
-            suggestions.elementAt(index),
-            style: TextStyle(
-              color: isDark ? Colors.white : Colors.black,
+    return Expanded(
+      child: ListView.builder(
+        itemCount: suggestions.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            leading: Icon(Icons.search, color: isDark ? Colors.blue : Colors.blue),
+            title: Text(
+              suggestions.elementAt(index),
+              style: TextStyle(
+                color: isDark ? Colors.white : Colors.black,
+              ),
             ),
-          ),
-          onTap: () {
-            query = suggestions.elementAt(index);
-            showResults(context);
-          },
-        );
-      },
+            onTap: () {
+              query = suggestions.elementAt(index);
+              showResults(context);
+            },
+          );
+        },
+      ),
     );
   }
 }

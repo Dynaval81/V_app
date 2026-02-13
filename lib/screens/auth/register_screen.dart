@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../constants/app_constants.dart';
 import 'login_screen.dart';
@@ -55,7 +56,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
+          CupertinoPageRoute(
             builder: (context) => RegistrationSuccessScreen(
               nickname: _nicknameController.text.isEmpty 
                   ? _emailController.text.split('@')[0] 
@@ -229,7 +230,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 onPressed: () {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => LoginScreen()),
+                    CupertinoPageRoute(builder: (context) => LoginScreen()),
                   );
                 },
                 child: Text(

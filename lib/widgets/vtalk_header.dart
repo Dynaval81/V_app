@@ -139,7 +139,7 @@ class _VtalkHeaderState extends State<VtalkHeader>
                   color: isDark ? Colors.white : Colors.black,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 2,
-                  fontSize: 22,
+                  fontSize: 22.0,
                 ),
                 overflow: TextOverflow.ellipsis,  // ✅ Защита от overflow
               ),

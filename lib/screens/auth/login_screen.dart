@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'register_screen.dart';
 import '../main_app.dart';
@@ -40,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
       
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => MainApp()),
+        CupertinoPageRoute(builder: (context) => MainApp()),
       );
     } catch (e) {
       if (!mounted) return;
@@ -185,7 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: () {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => RegisterScreen()),
+                    CupertinoPageRoute(builder: (context) => RegisterScreen()),
                   );
                 },
                 child: Text(
