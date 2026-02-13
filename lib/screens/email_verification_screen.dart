@@ -192,16 +192,11 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // ⭐ ЗАДЕРЖКА 2 СЕКУНДЫ МЕЖДУ ЗАПРОСАМИ
-      await Future.delayed(const Duration(seconds: 2));
+      // ⭐ ПРОВЕРЯЕМ СВЕЖИЙ СТАТУС ВЕРИФИКАЦИИ
+      final verificationResult = await ApiService().checkVerificationStatus(widget.email);
       
-      // Повторный запрос login для проверки подтверждения
-      final result = await ApiService().login(
-        email: widget.email,
-        password: '', // Будет заменено на реальный пароль
-      );
-
-      if (result['success']) {
+      if (verificationResult['success'] && verificationResult['verified'] == true) {
+        // ✅ ВЕРИФИКАЦИЯ ПОДТВЕРЖДЕНА - ЛОГИНИМ
         setState(() {
           _isLoading = false;
           _isConfirmed = true;
@@ -222,8 +217,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
           );
         }
       } else {
+        // ❌ ВЕРИФИКАЦИЯ ЕЩЕ НЕ ПОДТВЕРЖДЕНА
         setState(() => _isLoading = false);
-        _showError('Email not verified yet. Please try again in a moment.');
+        _showError('Email еще не подтвержден. Попробуйте позже.');
       }
     } catch (e) {
       setState(() => _isLoading = false);

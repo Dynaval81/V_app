@@ -238,6 +238,39 @@ class ApiService {
     }
   }
 
+  // ⭐ ПРОВЕРКА СТАТУСА ВЕРИФИКАЦИИ
+  Future<Map<String, dynamic>> checkVerificationStatus(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/api/v1/auth/check-verification'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'email': email}),
+      ).timeout(_timeout);
+
+      final data = jsonDecode(response.body);
+      
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'verified': data['verified'] ?? false,
+          'message': data['message'] ?? 'Verification checked',
+        };
+      } else {
+        return {
+          'success': false,
+          'error': data['message'] ?? 'Verification check failed',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
   // Восстановление доступа
   Future<void> recoverAccess(String email) async {
     final response = await http.post(
