@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:async';
 import '../../utils/glass_kit.dart';
+import '../../services/auth_service.dart';
 import '../../theme_provider.dart';
 import '../../constants/app_constants.dart';
 import '../chat_room_screen.dart';
@@ -85,35 +87,24 @@ class _ChatsScreenState extends State<ChatsScreen> {
                 ),
                 title: Row(
                   children: [
-                    // Mercury Sphere с адаптивными тенями
+                    // Mercury Sphere увеличенная с усиленными тенями
                     Container(
-                      height: 54, // Увеличиваем с 44 до 54
-                      width: 54,
+                      height: 44, // Увеличиваем с 34 до 44
+                      width: 44,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        boxShadow: isDark 
-                          ? [
-                                // Для ТЕМНОЙ темы: оставляем магическое фиолетовое свечение
-                                BoxShadow(
-                                  color: Colors.purpleAccent.withOpacity(0.4),
-                                  blurRadius: 40,
-                                  spreadRadius: 5,
-                                ),
-                              ]
-                          : [
-                                // Для СВЕТЛОЙ темы: минималистичный "стеклянный" блик
-                                BoxShadow(
-                                  color: Colors.blueAccent.withOpacity(0.08), // Почти прозрачный голубой
-                                  blurRadius: 15, 
-                                  spreadRadius: 1,
-                                  offset: const Offset(0, 4), // Смещаем тень чуть вниз для объема
-                                ),
-                              ],
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.purpleAccent.withOpacity(0.3), // Усиливаем сияние
+                            blurRadius: 15, // Больше размытия
+                            spreadRadius: 2, // Больше распространения
+                          ),
+                        ],
                       ),
                       child: Image.asset(
                         'assets/images/app_logo_mercury.png',
-                        height: 54,
-                        width: 54,
+                        height: 44,
+                        width: 44,
                         fit: BoxFit.contain,
                         filterQuality: FilterQuality.high,
                       ),
@@ -123,8 +114,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
                       child: Text("TALK", style: TextStyle(
                         color: isDark ? Colors.white : Colors.black87,
                         fontWeight: FontWeight.w900,
-                        letterSpacing: 2, // Возвращаем оригинальный letterSpacing
-                        fontSize: 20, // Возвращаем оригинальный fontSize
+                        letterSpacing: 2.0, // Растягиваем для премиальности
+                        fontSize: 24, // Увеличиваем шрифт
                       )),
                     ),
                   ],
@@ -148,54 +139,19 @@ class _ChatsScreenState extends State<ChatsScreen> {
                   const SizedBox(width: 16),
                 ],
               ),
-              // 🎯 ПРОВЕРКА НА ПУСТЫЕ ЧАТЫ
-              if (_customChats.isEmpty) ...[
-                SliverFillRemaining(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.chat_bubble_outline,
-                          size: 64,
-                          color: isDark ? Colors.white24 : Colors.black12,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No chats yet',
-                          style: TextStyle(
-                            color: isDark ? Colors.white54 : Colors.black45,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Create your first chat to get started',
-                          style: TextStyle(
-                            color: isDark ? Colors.white38 : Colors.black38,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    if (index < _customChats.length) {
+                      final chat = _customChats[index];
+                      return _buildCustomChatTile(chat, isDark);
+                    }
+                    final generatedIndex = index - _customChats.length;
+                    return _buildChatTile(generatedIndex, isDark);
+                  },
+                  childCount: _customChats.length + 20,
                 ),
-              ] else ...[
-                SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (index < _customChats.length) {
-                        final chat = _customChats[index];
-                        return _buildCustomChatTile(chat, isDark);
-                      }
-                      // 🎯 УБИРАЕМ СТАТИЧЕСКИЙ СПИСОК - ТОЛЬКО ПОЛЬЗОВАТЕЛЬСКИЕ ЧАТЫ
-                      return null;
-                    },
-                    childCount: _customChats.length, // 🎯 ТОЛЬКО ПОЛЬЗОВАТЕЛЬСКИЕ ЧАТЫ
-                  ),
-                ),
-              ],
+              ),
             ],
           ),
         ),
@@ -548,6 +504,7 @@ Widget _buildMenuOption({
     final TextEditingController searchCtrl = TextEditingController();
     final Set<String> selectedParticipants = {};
     String? selectedContact; // For 1-on-1 chats
+    // list of mocked contacts used only for group creation (participants selection)
     final List<String> availableContacts = [
       'Alice Johnson',
       'Bob Smith',
@@ -558,6 +515,10 @@ Widget _buildMenuOption({
       'Grace Taylor',
       'Henry Davis',
     ];
+    // search state
+    List<Map<String, dynamic>> searchResults = [];
+    bool isSearching = false;
+    Timer? _debounce;
 
     showDialog(
       context: context,
@@ -566,24 +527,6 @@ Widget _buildMenuOption({
         final isDark = Provider.of<ThemeProvider>(dialogContext).isDarkMode;
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            // For 1-on-1 chats, filter contacts based on search
-            final filteredContacts = !isGroup
-                ? availableContacts
-                    .where((contact) =>
-                        contact.toLowerCase().contains(searchCtrl.text.toLowerCase()) ||
-                        '@${contact.toLowerCase().replaceAll(' ', '')}' == searchCtrl.text.toLowerCase() ||
-                        searchCtrl.text.isEmpty)
-                    .toList()
-                : [];
-
-            // Check if search matches any contact
-            final foundContact = !isGroup && searchCtrl.text.isNotEmpty
-                ? availableContacts.firstWhere(
-                    (contact) =>
-                        contact.toLowerCase().startsWith(searchCtrl.text.toLowerCase()) ||
-                        '@${contact.toLowerCase().replaceAll(' ', '')}' == searchCtrl.text.toLowerCase(),
-                    orElse: () => '')
-                : '';
 
             return Dialog(
               backgroundColor: Colors.transparent,
@@ -671,7 +614,31 @@ Widget _buildMenuOption({
                             TextField(
                               controller: searchCtrl,
                               style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                              onChanged: (_) => setDialogState(() {}),
+                              onChanged: (val) {
+                                // debounce search
+                                if (_debounce?.isActive ?? false) _debounce!.cancel();
+                                _debounce = Timer(const Duration(milliseconds: 300), () async {
+                                  if (val.trim().isEmpty) {
+                                    setDialogState(() {
+                                      searchResults.clear();
+                                      isSearching = false;
+                                    });
+                                    return;
+                                  }
+                                  setDialogState(() {
+                                    isSearching = true;
+                                  });
+                                  final result = await AuthService().searchUsers(val.trim());
+                                  setDialogState(() {
+                                    isSearching = false;
+                                    if (result['success'] == true) {
+                                      searchResults = List<Map<String, dynamic>>.from(result['users'] ?? []);
+                                    } else {
+                                      searchResults.clear();
+                                    }
+                                  });
+                                });
+                              },
                               decoration: InputDecoration(
                                 labelText: 'Search contact',
                                 labelStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
@@ -679,72 +646,71 @@ Widget _buildMenuOption({
                                 filled: true,
                                 fillColor: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                                hintText: '@username or name',
+                                hintText: '@username or VT number',
                                 hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
                               ),
                             ),
                             const SizedBox(height: 16),
 
-                            // Search results or "not found" message
-                            if (searchCtrl.text.isNotEmpty)
-                              foundContact.isNotEmpty
-                                  ? Container(
-                                      padding: const EdgeInsets.all(14),
-                                      decoration: BoxDecoration(
-                                        color: Colors.blueAccent.withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          CircleAvatar(
-                                            radius: 22,
-                                            backgroundImage: NetworkImage(
-                                              "${AppConstants.defaultAvatarUrl}?u=${foundContact.toLowerCase().replaceAll(' ', '')}",
-                                            ),
-                                          ),
-                                          const SizedBox(width: 14),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  foundContact,
-                                                  style: TextStyle(
-                                                    color: isDark ? Colors.white : Colors.black,
-                                                    fontWeight: FontWeight.w600,
-                                                    fontSize: 16,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  '@${foundContact.toLowerCase().replaceAll(' ', '')}',
-                                                  style: TextStyle(
-                                                    color: isDark ? Colors.white54 : Colors.black54,
-                                                    fontSize: 12,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                  : Container(
-                                      padding: const EdgeInsets.all(14),
-                                      decoration: BoxDecoration(
-                                        color: Colors.red.withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
-                                      ),
-                                      child: Text(
-                                        'нет такого пользователя',
-                                        style: TextStyle(
-                                          color: Colors.red.shade400,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
+                            // Search results or message
+                            if (isSearching)
+                              Center(child: CircularProgressIndicator())
+                            else if (searchCtrl.text.isNotEmpty)
+                              ...searchResults.map((userMap) {
+                                final name = userMap['username'] ?? '';
+                                final vt = userMap['vtNumber'] ?? '';
+                                return GestureDetector(
+                                  onTap: () {
+                                    selectedContact = name;
+                                    // you could also handle vtNumber etc.
+                                    setDialogState(() {});
+                                  },
+                                  child: Container(
+                                    margin: const EdgeInsets.symmetric(vertical: 6),
+                                    padding: const EdgeInsets.all(14),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blueAccent.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
                                     ),
+                                    child: Row(
+                                      children: [
+                                        CircleAvatar(
+                                          radius: 22,
+                                          backgroundImage: NetworkImage(
+                                            "${AppConstants.defaultAvatarUrl}?u=$name",
+                                          ),
+                                        ),
+                                        const SizedBox(width: 14),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                name,
+                                                style: TextStyle(
+                                                  color: isDark ? Colors.white : Colors.black,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                              Text(
+                                                'VT#$vt',
+                                                style: TextStyle(
+                                                  color: isDark ? Colors.white54 : Colors.black54,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList()
+                            else
+                              const SizedBox(),
                             const SizedBox(height: 16),
                           ],
                         ),
@@ -907,7 +873,7 @@ Widget _buildMenuOption({
                                 });
                               } else {
                                 // 1-on-1 chat
-                                if (foundContact.isEmpty) {
+                                if (selectedContact == null || selectedContact!.isEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(content: Text('Please select a valid contact')),
                                   );
@@ -916,11 +882,11 @@ Widget _buildMenuOption({
                                 setState(() {
                                   _customChats.insert(0, {
                                     'id': DateTime.now().millisecondsSinceEpoch.remainder(1000000),
-                                    'name': foundContact,
+                                    'name': selectedContact!,
                                     'isGroup': false,
                                     'isOnline': true,
                                     'unread': 0,
-                                    'contact': foundContact,
+                                    'contact': selectedContact!,
                                   });
                                 });
                               }
@@ -929,7 +895,9 @@ Widget _buildMenuOption({
                             icon: const Icon(Icons.done),
                             label: Text(isGroup ? 'Create Group' : 'Create Chat'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: foundContact.isNotEmpty || isGroup ? Colors.blueAccent : Colors.grey,
+                              backgroundColor: ((selectedContact != null && selectedContact!.isNotEmpty) || isGroup)
+                                  ? Colors.blueAccent
+                                  : Colors.grey,
                               foregroundColor: Colors.white,
                             ),
                           ),

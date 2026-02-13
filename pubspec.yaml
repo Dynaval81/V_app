@@ -30,17 +30,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.2
-  provider: ^6.1.2
-  http: ^1.1.0
+  cupertino_icons: ^1.0.8
   shared_preferences: ^2.2.2
   flutter_secure_storage: ^9.0.0
+  provider: ^6.1.2
   flutter_svg: ^2.0.9
   cached_network_image: ^3.2.3
   image_picker: ^1.2.1
   flutter_launcher_icons: ^0.13.1
   flutter_native_splash: ^2.3.6
-  app_links: ^3.0.2  # ⭐ DEEP LINK ОБРАБОТКА (НОВЫЙ ПАКЕТ)
 
 dev_dependencies:
   flutter_test:

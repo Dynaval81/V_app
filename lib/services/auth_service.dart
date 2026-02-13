@@ -93,7 +93,16 @@ class AuthService {
   // 🎯 ГЛОБАЛЬНЫЙ ПОИСК ПОЛЬЗОВАТЕЛЕЙ
   Future<Map<String, dynamic>> searchUsers(String query) async {
     try {
+      // проксируем к ApiService, который теперь строит URI корректно
       final result = await _apiService.searchUsers(query);
+      if (result['success'] == true) {
+        // на всякий случай убедимся, что возвращается список
+        final users = result['users'];
+        return {
+          'success': true,
+          'users': users is List ? users : [],
+        };
+      }
       return result;
     } catch (e) {
       return {

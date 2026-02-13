@@ -310,13 +310,17 @@ class ApiService {
   Future<Map<String, dynamic>> searchUsers(String query) async {
     try {
       final token = await _secureStorage.read(key: _tokenKey);
-      
       if (token == null) {
         return {'success': false, 'error': 'No token found'};
       }
 
+      // строим URI безопасно, чтобы избежать проблем с пробелами и спецсимволами
+      final uri = Uri.parse('$_baseUrl/users/search').replace(
+        queryParameters: {'query': query},
+      );
+
       final response = await http.get(
-        Uri.parse('$_baseUrl/users/search?query=$query'),
+        uri,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -324,14 +328,17 @@ class ApiService {
       ).timeout(_timeout);
 
       final data = jsonDecode(response.body);
-      
+
+      print('🔍 Search Users Request URI: $uri');
       print('🔍 Search Users Response: ${response.body}'); // 🎯 DEBUG PRINT
       print('🔍 Search Users Status Code: ${response.statusCode}'); // 🎯 DEBUG PRINT
-      
+
       if (response.statusCode == 200) {
+        // поддерживаем обе возможные структуры ответа
+        final usersList = data['data']?['users'] ?? data['users'] ?? [];
         return {
           'success': true,
-          'users': data['data']['users'] ?? [], // 🚨 ИСПРАВЛЕНО: правильная вложенность JSON
+          'users': usersList,
         };
       } else {
         return {

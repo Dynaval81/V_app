@@ -6,7 +6,6 @@ import '../theme_provider.dart';
 import '../utils/glass_kit.dart';
 import '../constants/app_constants.dart';
 import '../providers/user_provider.dart';
-import '../screens/username_change_screen.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
   const AccountSettingsScreen({Key? key}) : super(key: key);
@@ -16,11 +15,23 @@ class AccountSettingsScreen extends StatefulWidget {
 }
 
 class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
-  final TextEditingController _nicknameController = TextEditingController(text: 'John Doe');
-  final TextEditingController _emailController = TextEditingController(text: 'john@vtalk.app');
-  String _userStatus = "at work / traveling"; // Добавляем переменную статуса
-  String _userAvatar = "${AppConstants.defaultAvatarUrl}?u=me"; // Добавляем переменную аватара
+  final TextEditingController _nicknameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  String _userStatus = ""; // will populate from provider
+  String _userAvatar = "${AppConstants.defaultAvatarUrl}?u=me"; // default avatar
   
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final user = Provider.of<UserProvider>(context).user;
+    if (user != null) {
+      _nicknameController.text = user.username;
+      _emailController.text = user.email;
+      _userAvatar = user.avatar ?? _userAvatar;
+      _userStatus = user.status ?? _userStatus;
+    }
+  }
+
   @override
   void dispose() {
     _nicknameController.dispose();
@@ -198,7 +209,15 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   Widget build(BuildContext context) {
     final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
     final themeProvider = Provider.of<ThemeProvider>(context);
-    
+    final userProvider = Provider.of<UserProvider>(context);
+    final user = userProvider.user;
+
+    if (userProvider.isLoading || user == null) {
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       body: Container(
         decoration: GlassKit.mainBackground(isDark),
@@ -256,8 +275,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
+                    // user is non-null because of early return
                     Text(
-                      'VTalk User',
+                      user.username,
                       style: TextStyle(
                         color: isDark ? Colors.white : Colors.black,
                         fontSize: 20,
@@ -266,7 +286,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'VT-12345',
+                      'VT#${user.vtNumber}',
                       style: TextStyle(
                         color: isDark ? Colors.white60 : Colors.black54,
                         fontSize: 12,
@@ -354,7 +374,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
               _buildInfoTile(
                 label: 'VT Number',
-                value: '1234567890',
+                value: user.vtNumber,
                 icon: Icons.badge,
                 isDark: isDark,
               ),
@@ -383,16 +403,6 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   ),
                 ),
               ),
-
-              _buildInfoTile(
-                label: 'Change Username',
-                value: 'Update your username',
-                icon: Icons.edit,
-                isDark: isDark,
-                onTap: () => _showUsernameChangeDialog(context, isDark),
-              ),
-
-              const SizedBox(height: 12),
 
               _buildInfoTile(
                 label: 'Change Password',
@@ -706,14 +716,6 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  // ⭐ ДИАЛОГ СМЕНЫ ИМЕНИ
-  void _showUsernameChangeDialog(BuildContext context, bool isDark) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const UsernameChangeScreen()),
     );
   }
 

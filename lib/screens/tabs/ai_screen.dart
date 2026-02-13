@@ -7,9 +7,7 @@ import '../../utils/glass_kit.dart';
 import '../../theme_provider.dart';
 import '../../constants/app_constants.dart';
 import '../../widgets/vtalk_header.dart';
-import '../../widgets/grace_period_banner.dart';
 import '../account_settings_screen.dart';
-import '../../providers/user_provider.dart';
 
 class ChatMessage {
   final String text;
@@ -101,86 +99,28 @@ class _AIScreenState extends State<AIScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<ThemeProvider, UserProvider>(
-      builder: (context, themeProvider, userProvider, child) {
-        final isDark = themeProvider.isDarkMode;
-        
-        // 🚨 РЕАЛЬНАЯ ПРОВЕРКА ПРЕМИУМ
-        if (!(userProvider.user?.isPremium ?? false)) {
-          return _buildLockedContent(isDark);
-        }
-        
-        return Scaffold(
-          extendBody: true, // Позволяет контенту затекать под BottomNavigationBar
-          extendBodyBehindAppBar: true, // Позволяет фону быть под шапкой
-          body: Column(
-            children: [
-              // ⭐ GRACE PERIOD BANNER
-              const GracePeriodBanner(),
-              Expanded(
-                child: _buildChatInterface(isDark),
-              ),
-            ],
-          ),
-        );
-      }
-    );
-  }
-
-  Widget _buildLockedContent(bool isDark) {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: GlassKit.mainBackground(isDark),
-      child: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.lock,
-                size: 64,
-                color: Colors.orange,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'AI доступ заблокирован',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.orange,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Активируйте Premium для разблокировки',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white70,
-                ),
-              ),
-            ],
-          ),
+    final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
+    
+    return Scaffold(
+      extendBody: true, // Позволяет контенту затекать под BottomNavigationBar
+      extendBodyBehindAppBar: true, // Позволяет фону быть под шапкой
+      body: Container(
+        // Растягиваем фон на весь экран, ИГНОРИРУЯ SafeArea
+        width: double.infinity,
+        height: double.infinity,
+        decoration: GlassKit.mainBackground(isDark), 
+        child: Column(
+          children: [
+            Expanded(
+              child: _buildMessagesList(), // Твои сообщения
+            ),
+            // Нижнюю панель оборачиваем в SafeArea только снизу
+            SafeArea(
+              top: false,
+              child: _buildChatStyleInput(isDark),
+            ),
+          ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildChatInterface(bool isDark) {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: GlassKit.mainBackground(isDark),
-      child: Column(
-        children: [
-          Expanded(
-            child: _buildMessagesList(),
-          ),
-          SafeArea(
-            top: false,
-            child: _buildChatStyleInput(isDark),
-          ),
-        ],
       ),
     );
   }
@@ -191,12 +131,9 @@ class _AIScreenState extends State<AIScreen> {
       physics: const BouncingScrollPhysics(),
       slivers: [
         VtalkHeader(
-          title: 'AI', // Убираем Vtalk, оставляем AI
+          title: 'TALK AI', // Убираем "V", оставляем "TALK AI"
           showScrollAnimation: false,
-          scrollController: null, // Без анимации скролла
-          // Mercury Sphere увеличенная до 54px
-          logoAsset: 'assets/images/app_logo_mercury.png',
-          logoHeight: 54, // Увеличиваем с 44 до 54
+          // Mercury logo customizations handled internally now
           actions: [
             GestureDetector(
               onTap: () => Navigator.push(
