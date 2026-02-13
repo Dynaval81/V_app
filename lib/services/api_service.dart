@@ -100,6 +100,9 @@ class ApiService {
 
       final data = jsonDecode(response.body);
       
+      print('🔍 Login Server Response: ${response.body}'); // 🎯 DEBUG PRINT
+      print('🔍 Login Status Code: ${response.statusCode}'); // 🎯 DEBUG PRINT
+      
       if (response.statusCode == 200) {
         // Сохраняем токен
         await _secureStorage.write(key: _tokenKey, value: data['token']);
@@ -256,6 +259,9 @@ class ApiService {
       ).timeout(_timeout);
 
       final data = jsonDecode(response.body);
+      
+      print('🔍 getUserData Server Response: ${response.body}'); // 🎯 DEBUG PRINT
+      print('🔍 getUserData Status Code: ${response.statusCode}'); // 🎯 DEBUG PRINT
       
       if (response.statusCode == 200) {
         return {

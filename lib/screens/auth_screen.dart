@@ -393,8 +393,11 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       final result = await _apiService.login(email: email, password: password);
 
       if (result['success']) {
-        // 🎯 ПРОВЕРКА isFirstLogin ФЛАГА
-        final isFirstLogin = result['isFirstLogin'] ?? false;
+        // 🎯 ПРОВЕРКА isFirstLogin ФЛАГА (БЕЗОПАСНОЕ ПРИВЕДЕНИЕ)
+        final isFirstLogin = result['isFirstLogin']?.toString() == 'true' || result['isFirstLogin'] == true;
+        
+        print('🔍 Login Response: $result'); // 🎯 DEBUG PRINT
+        print('🔍 isFirstLogin: $isFirstLogin'); // 🎯 DEBUG PRINT
         
         if (isFirstLogin) {
           // 🔥 ПЕРВЫЙ ВХОД - ПРОФИЛЬ
