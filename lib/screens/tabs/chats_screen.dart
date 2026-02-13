@@ -9,6 +9,7 @@ import '../../services/auth_service.dart';
 import '../../services/api_service.dart';
 import '../../theme_provider.dart';
 import '../../constants/app_constants.dart';
+import '../models/chat_room.dart';
 import '../chat_room_screen.dart';
 import '../account_settings_screen.dart';
 
@@ -24,7 +25,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
   final ValueNotifier<double> _searchOpacity = ValueNotifier(0.0);
   double _lastOffset = 0.0;
   // In-memory chat list (would normally come from backend)
-  List<Map<String, dynamic>> _chatRooms = [];
+  List<ChatRoom> _chatRooms = [];
   bool _isLoadingChats = false;
   
   // User status storage
@@ -69,15 +70,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
       
       final rooms = List<Map<String, dynamic>>.from(roomsList);
       setState(() {
-        _chatRooms = rooms.map((r) {
-          return {
-            'id': r['id'],
-            'name': r['name'] ?? r['title'] ?? '',
-            'isGroup': r['isGroup'] ?? false,
-            'isOnline': r['isOnline'] ?? true,
-            'unread': r['unread'] ?? 0,
-          };
-        }).toList();
+        _chatRooms = rooms.map((r) => ChatRoom.fromMap(r)).toList();
       });
     } else {
       // failed to load, keep empty list or show snackbar
@@ -210,7 +203,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
-                        final chat = _chatRooms[index];
+                        final chat = _chatRooms[index]; // ChatRoom instance
                         return _buildCustomChatTile(chat, isDark);
                       },
                       childCount: _chatRooms.length,
@@ -223,10 +216,10 @@ class _ChatsScreenState extends State<ChatsScreen> {
     );
   }
 
-  Widget _buildCustomChatTile(Map<String, dynamic> chat, bool isDark) {
-    final isGroup = chat['isGroup'] as bool? ?? false;
-    final isOnline = chat['isOnline'] as bool? ?? false;
-    final unreadCount = chat['unread'] as int? ?? 0;
+  Widget _buildCustomChatTile(ChatRoom chat, bool isDark) {
+    final isGroup = chat.isGroup;
+    final isOnline = chat.isOnline;
+    final unreadCount = chat.unread;
 
     return GlassKit.liquidGlass(
       context: context, // Добавляем context для debug mode
@@ -235,19 +228,18 @@ class _ChatsScreenState extends State<ChatsScreen> {
       opacity: 0.05, // Уменьшаем opacity до уровня Dashboard
       child: ListTile(
         onTap: () async {
-          final id = chat['id'].toString();
           Navigator.push(
             context,
             CupertinoPageRoute(builder: (context) => ChatRoomScreen(
-              chatId: id,
-              chatName: chat['name'] ?? 'Unknown',
-              isGroupChat: chat['isGroup'] ?? false,
+              chatId: chat.id,
+              chatName: chat.name,
+              isGroupChat: chat.isGroup,
             )),
           );
         },
         leading: Stack(
           children: [
-            CircleAvatar(radius: 28, backgroundImage: CachedNetworkImageProvider("${AppConstants.defaultAvatarUrl}?u=custom${chat['id']}"),),
+            CircleAvatar(radius: 28, backgroundImage: CachedNetworkImageProvider("${AppConstants.defaultAvatarUrl}?u=custom${chat.id}"),),
             if (!isGroup && isOnline) // Рисуем точку только если это НЕ группа и пользователь онлайн
               Positioned(
                 right: 0,
@@ -260,7 +252,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
           children: [
             if (isGroup) Icon(Icons.group, size: 16, color: Colors.blueAccent),
             if (isGroup) const SizedBox(width: 6),
-            Expanded(child: Text(chat['name'] as String, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.bold))),
+            Expanded(child: Text(chat.name, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.bold))),
           ],
         ),
         subtitle: Text(

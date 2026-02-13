@@ -5,12 +5,14 @@ import '../services/api_service.dart';
 
 class UserProvider with ChangeNotifier {
   User? _user;
+  String? _token;
   bool _isLoading = false;
   String? _error;
   final ApiService _apiService = ApiService();
   final _storage = const FlutterSecureStorage();
 
   User? get user => _user;
+  String? get token => _token;
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get isPremium => _user?.isPremium ?? false;
@@ -140,15 +142,22 @@ class UserProvider with ChangeNotifier {
     return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
   }
 
+  /// Removes all user-related data and stored token. Used during logout.
   Future<void> clearUser() async {
     _user = null;
+    _token = null;
     _error = null;
     _isLoading = false;
     
-    // 🚨 ИСПРАВЛЕНО: Стираем токен при logout
+    // 🚨 Стираем токен при logout
     await _storage.delete(key: 'auth_token');
     
     notifyListeners();
+  }
+
+  /// Convenience method named explicitly for logout semantics.
+  Future<void> logout() async {
+    await clearUser();
   }
 
   // ⭐ ОБНОВЛЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЯ

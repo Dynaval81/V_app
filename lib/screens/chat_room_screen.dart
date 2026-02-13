@@ -11,6 +11,7 @@ import '../widgets/vtalk_message_bubble.dart';
 import '../widgets/vtalk_url_preview.dart';
 import '../widgets/vtalk_compact_input.dart';
 import '../models/message_model.dart';
+import '../widgets/empty_chat_placeholder.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final String chatId;
@@ -651,7 +652,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 
                 // Messages list (scrollable, expanded)
                 Expanded(
-                  child: CustomScrollView(
+                  child: _messages.isEmpty
+                      ? const EmptyChatPlaceholder()
+                      : CustomScrollView(
                     controller: _customScrollController,
                     physics: const BouncingScrollPhysics(),
                     slivers: [

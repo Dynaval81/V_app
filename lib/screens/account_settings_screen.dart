@@ -551,7 +551,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                     onPressed: () async {
                                       Navigator.pop(ctx);
                                       final userProvider = Provider.of<UserProvider>(context, listen: false);
-                                      await userProvider.clearUser(); // 🚨 ИСПРАВЛЕНО: Добавил await
+                                      await userProvider.logout(); // use explicit logout method
                                       Navigator.pushNamedAndRemoveUntil(
                                         context,
                                         '/login',
