@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
@@ -10,7 +11,16 @@ import 'screens/tabs/ai_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/chat_room_screen.dart';
 
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+  }
+}
+
 void main() {
+  HttpOverrides.global = MyHttpOverrides(); // 🎯 SSL OVERRIDE ДЛЯ DUCKDNS
   runApp(
     MultiProvider(
       providers: [

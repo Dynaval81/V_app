@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiService {
-  static const String _baseUrl = 'http://57.128.239.33:3000'; // 🎯 РЕЛИЗНЫЙ СЕРВЕР
+  static const String _baseUrl = 'https://hypermax.duckdns.org/api/v1'; // 🎯 НОВЫЙ ДОМЕН БЕЗ СЛЭША
   static const String _tokenKey = 'auth_token';
   static const Duration _timeout = Duration(seconds: 30); // ⭐ ТАЙМАУТ 30 СЕКУНД
   
@@ -18,7 +18,7 @@ class ApiService {
   }) async {
     try {
       final response = await http.post(
-        Uri.parse('$_baseUrl/api/v1/auth/register'),
+        Uri.parse('$_baseUrl/auth/register'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -88,7 +88,7 @@ class ApiService {
   }) async {
     try {
       final response = await http.post(
-        Uri.parse('$_baseUrl/api/v1/auth/login'),
+        Uri.parse('$_baseUrl/auth/login'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -151,7 +151,7 @@ class ApiService {
       }
 
       final response = await http.get(
-        Uri.parse('$_baseUrl/api/user/me'),
+        Uri.parse('$_baseUrl/users/me'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -197,7 +197,7 @@ class ApiService {
       }
       
       final response = await http.put(
-        Uri.parse('$_baseUrl/api/v1/users/me'),
+        Uri.parse('$_baseUrl/users/me'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -248,7 +248,7 @@ class ApiService {
       }
 
       final response = await http.get(
-        Uri.parse('$_baseUrl/api/v1/users/me'),
+        Uri.parse('$_baseUrl/users/me'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -280,7 +280,7 @@ class ApiService {
   Future<Map<String, dynamic>> checkVerificationStatus(String email) async {
     try {
       final response = await http.post(
-        Uri.parse('$_baseUrl/api/v1/auth/check-verification'),
+        Uri.parse('$_baseUrl/auth/check-verification'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -318,7 +318,7 @@ class ApiService {
       }
 
       final response = await http.post(
-        Uri.parse('$_baseUrl/api/v1/premium/activate'),
+        Uri.parse('$_baseUrl/premium/activate'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -350,7 +350,7 @@ class ApiService {
   // Восстановление доступа
   Future<void> recoverAccess(String email) async {
     final response = await http.post(
-      Uri.parse('$_baseUrl/api/v1/auth/recovery'),
+      Uri.parse('$_baseUrl/auth/recovery'),
       headers: {
         'Content-Type': 'application/json',
       },
