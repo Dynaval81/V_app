@@ -331,7 +331,7 @@ class ApiService {
       if (response.statusCode == 200) {
         return {
           'success': true,
-          'users': data['users'] ?? [],
+          'users': data['data']['users'] ?? [], // 🚨 ИСПРАВЛЕНО: правильная вложенность JSON
         };
       } else {
         return {

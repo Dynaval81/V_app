@@ -9,6 +9,7 @@ import '../../constants/app_constants.dart';
 import '../../widgets/vtalk_header.dart';
 import '../../widgets/grace_period_banner.dart';
 import '../account_settings_screen.dart';
+import '../../providers/user_provider.dart';
 
 class ChatMessage {
   final String text;
@@ -19,9 +20,7 @@ class ChatMessage {
 }
 
 class AIScreen extends StatefulWidget {
-  final bool isLocked;
-  
-  const AIScreen({super.key, this.isLocked = false});
+  const AIScreen({super.key});
   
   @override
   _AIScreenState createState() => _AIScreenState();
@@ -102,22 +101,29 @@ class _AIScreenState extends State<AIScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
-    
-    return Scaffold(
-      extendBody: true, // Позволяет контенту затекать под BottomNavigationBar
-      extendBodyBehindAppBar: true, // Позволяет фону быть под шапкой
-      body: Column(
-        children: [
-          // ⭐ GRACE PERIOD BANNER
-          const GracePeriodBanner(),
-          Expanded(
-            child: widget.isLocked
-                ? _buildLockedContent(isDark)
-                : _buildChatInterface(isDark),
+    return Consumer2<ThemeProvider, UserProvider>(
+      builder: (context, themeProvider, userProvider, child) {
+        final isDark = themeProvider.isDarkMode;
+        
+        // 🚨 РЕАЛЬНАЯ ПРОВЕРКА ПРЕМИУМ
+        if (!(userProvider.user?.isPremium ?? false)) {
+          return _buildLockedContent(isDark);
+        }
+        
+        return Scaffold(
+          extendBody: true, // Позволяет контенту затекать под BottomNavigationBar
+          extendBodyBehindAppBar: true, // Позволяет фону быть под шапкой
+          body: Column(
+            children: [
+              // ⭐ GRACE PERIOD BANNER
+              const GracePeriodBanner(),
+              Expanded(
+                child: _buildChatInterface(isDark),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      }
     );
   }
 
