@@ -35,8 +35,8 @@ class _MainAppState extends State<MainApp> {
   // ПРАВИЛЬНЫЙ ПОРЯДОК ВКЛАДОК
   List<Widget> get _screens => [
     const ChatsScreen(),      // 0. Мессенджер (Первый)
-    AIScreen(isLocked: !_hasAccess()),         // 1. Vtalk AI
-    VPNScreen(isLocked: !_hasAccess()),        // 2. VPN
+    AIScreen(isLocked: false),         // 1. Vtalk AI - РАЗБЛОКИРОВАНО
+    VPNScreen(isLocked: false),        // 2. VPN - РАЗБЛОКИРОВАНО
     DashboardScreen(          // 3. Dashboard (Последний)
       onTabSwitch: (i) => _changeTab(i),
     ),

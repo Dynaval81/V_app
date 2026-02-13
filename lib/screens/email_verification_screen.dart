@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../utils/glass_kit.dart';
 import '../theme_provider.dart';
+import '../providers/user_provider.dart';
+import '../models/user_model.dart';
 import 'main_app.dart';
 
 class EmailVerificationScreen extends StatefulWidget {
@@ -201,11 +203,18 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       if (userResult['success']) {
         final user = userResult['user'];
         if (user['emailVerified'] == true) {
-          // ✅ ВЕРИФИКАЦИЯ ПОДТВЕРЖДЕНА - ЛОГИНИМ
+          // ✅ ВЕРИФИКАЦИЯ ПОДТВЕРЖДЕНА - ОБНОВЛЯЕМ STATE
           setState(() {
             _isLoading = false;
             _isConfirmed = true;
           });
+
+          // 🎯 ОБНОВЛЯЕМ USER PROVIDER STATE
+          final userProvider = Provider.of<UserProvider>(context, listen: false);
+          userProvider.setUser(User.fromJson(user));
+          userProvider.notifyListeners();
+          
+          print('🔍 User state updated: ${userProvider.user}'); // 🎯 DEBUG LOG
 
           // Задержка перед переходом
           await Future.delayed(const Duration(seconds: 2));
