@@ -100,17 +100,30 @@ class ApiService {
 
       final data = jsonDecode(response.body);
       
-      print('🔍 Login Server Response: ${response.body}'); // 🎯 DEBUG PRINT
-      print('🔍 Login Status Code: ${response.statusCode}'); // 🎯 DEBUG PRINT
+      print('🔍 DEBUG LOGIN RESPONSE: ${response.body}'); // 🎯 DETAILED RESPONSE LOG
+      print('🔍 DECODED DATA: $data'); // 🎯 DECODED JSON LOG
+      print('🔍 TOKEN LOCATION: ${data['token']}'); // 🎯 TOKEN LOCATION LOG
+      print('🔍 USER DATA: ${data['user']}'); // 🎯 USER DATA LOG
       
       if (response.statusCode == 200) {
-        // Сохраняем токен
-        await _secureStorage.write(key: _tokenKey, value: data['token']);
+        // 🎯 ПРАВИЛЬНЫЙ ПАРСИНГ ОТВЕТА БЭКЕНДА
+        final token = data['token'] ?? data['data']?['token'];
+        final userData = data['user'] ?? data['data']?['user'];
+        
+        print('🔍 FINAL TOKEN: $token'); // 🎯 FINAL TOKEN LOG
+        print('🔍 FINAL USER DATA: $userData'); // 🎯 FINAL USER DATA LOG
+        
+        if (token != null) {
+          await _secureStorage.write(key: _tokenKey, value: token);
+        } else {
+          print('🔍 TOKEN NOT FOUND IN RESPONSE!'); // 🎯 TOKEN ERROR LOG
+        }
+        
         return {
           'success': true,
-          'user': data['user'],
-          'token': data['token'],
-          'isFirstLogin': data['user']['isFirstLogin'] ?? false,
+          'user': userData,
+          'token': token,
+          'isFirstLogin': userData?['isFirstLogin'] ?? false,
         };
       } else if (response.statusCode == 403) {
         return {

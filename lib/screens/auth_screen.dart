@@ -484,7 +484,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           PageRouteBuilder(
             pageBuilder: (context, anim1, anim2) => EmailVerificationScreen(
               email: email,
-              username: username.isEmpty ? email.split('@')[0] : username,
+              username: username.isEmpty ? email : username,
             ),
             transitionsBuilder: (context, anim1, anim2, child) => 
                 FadeTransition(opacity: anim1, child: child),
