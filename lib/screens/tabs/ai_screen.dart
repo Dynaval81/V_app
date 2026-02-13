@@ -267,53 +267,6 @@ class _AIScreenState extends State<AIScreen> {
     );
   }
 
-  Widget _buildInputArea() {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
-        final isDark = themeProvider.isDarkMode;
-        
-        return GlassKit.liquidGlass(
-          radius: 25,
-          child: Container(
-            padding: EdgeInsets.all(12),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: Icon(Icons.add_rounded, color: Colors.blueAccent), // ЕДИНЫЙ СТИЛЬ - ПЛЮС
-                  onPressed: () => _showAIAttachmentMenu(),
-                ),
-                Expanded(
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.transparent,
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    child: TextField(
-                      controller: _textController,
-                      style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                      decoration: InputDecoration(
-                        hintText: "Message or /draw...", 
-                        hintStyle: TextStyle(
-                          color: isDark ? Colors.white54 : Colors.black54
-                        ), 
-                        border: InputBorder.none
-                      ),
-                      onSubmitted: _handleSubmitted,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.send, color: Colors.blueAccent), 
-                  onPressed: () => _handleSubmitted(_textController.text)
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
 
   void _showAIAttachmentMenu() {
     HapticFeedback.mediumImpact();
@@ -410,32 +363,6 @@ class _AIScreenState extends State<AIScreen> {
     );
   }
 
-  Widget _aiAction(IconData i, String l, Color c) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
-        final isDark = themeProvider.isDarkMode;
-        
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircleAvatar(
-              radius: 30, 
-              backgroundColor: c.withOpacity(0.1), 
-              child: Icon(i, color: c, size: 30)
-            ),
-            SizedBox(height: 8),
-            Text(
-              l, 
-              style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.black54, 
-                fontSize: 12
-              )
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   Widget _aiTile(IconData icon, String label, Color color, VoidCallback onTap) {
     return GestureDetector(

@@ -18,7 +18,6 @@ class _EmojiPreviewOverlayState extends State<EmojiPreviewOverlay>
   OverlayEntry? _overlayEntry;
   // Removed unused field: String? _currentEmoji;
   late AnimationController _previewController;
-  late Animation<double> _fadeAnimation;
   Timer? _hideTimer;
   
   @override
@@ -28,14 +27,6 @@ class _EmojiPreviewOverlayState extends State<EmojiPreviewOverlay>
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _previewController,
-      curve: Curves.easeOutCubic,
-    ));
   }
   
   @override

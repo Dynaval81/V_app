@@ -23,6 +23,14 @@ class _VPNScreenState extends State<VPNScreen> {
   int _incomingTraffic = 0;
   int _outgoingTraffic = 0;
   bool _splitTunneling = false;
+  // apps available for split tunneling
+  final List<String> _availableApps = [
+    'Browser',
+    'Messenger',
+    'PaymentApp',
+    'Maps',
+  ];
+  final Set<String> _selectedApps = {};
   // only server selection remains
   final List<String> _servers = [
     'United States',
@@ -203,12 +211,42 @@ class _VPNScreenState extends State<VPNScreen> {
                             onChanged: (v) {
                               setState(() {
                                 _splitTunneling = v;
+                                if (!v) _selectedApps.clear();
                               });
                             },
                           ),
                         ],
                       ),
                     ),
+                    if (_splitTunneling)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Select apps to bypass VPN', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 12)),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 8,
+                              children: _availableApps.map((app) {
+                                final selected = _selectedApps.contains(app);
+                                return ChoiceChip(
+                                  label: Text(app),
+                                  selected: selected,
+                                  onSelected: (v) {
+                                    setState(() {
+                                      if (v)
+                                        _selectedApps.add(app);
+                                      else
+                                        _selectedApps.remove(app);
+                                    });
+                                  },
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        ),
+                      ),
                     SizedBox(height: 20),
 
                     // Server selector dropdown

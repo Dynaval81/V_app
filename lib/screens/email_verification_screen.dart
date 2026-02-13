@@ -212,7 +212,6 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
           // 🎯 ОБНОВЛЯЕМ USER PROVIDER STATE
           final userProvider = Provider.of<UserProvider>(context, listen: false);
           userProvider.setUser(User.fromJson(user));
-          userProvider.notifyListeners();
           
           print('🔍 User state updated: ${userProvider.user}'); // 🎯 DEBUG LOG
 

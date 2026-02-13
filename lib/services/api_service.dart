@@ -177,8 +177,9 @@ class ApiService {
         return {'success': false, 'error': 'No token found'};
       }
 
+      // 🔄 новый путь
       final response = await http.get(
-        Uri.parse('$_baseUrl/users/me'),
+        Uri.parse('$_baseUrl/auth/me'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -188,9 +189,11 @@ class ApiService {
       final data = jsonDecode(response.body);
       
       if (response.statusCode == 200) {
+        // теперь данные лежат глубже
+        final userJson = data['data']?['user'] ?? data['user'];
         return {
           'success': true,
-          'user': data['user'],
+          'user': userJson,
         };
       } else {
         // Токен протух, удаляем его
@@ -275,7 +278,7 @@ class ApiService {
       }
 
       final response = await http.get(
-        Uri.parse('$_baseUrl/users/me'),
+        Uri.parse('$_baseUrl/auth/me'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -288,9 +291,10 @@ class ApiService {
       print('🔍 getUserData Status Code: ${response.statusCode}'); // 🎯 DEBUG PRINT
       
       if (response.statusCode == 200) {
+        final userJson = data['data']?['user'] ?? data['user'];
         return {
           'success': true,
-          'user': data['user'],
+          'user': userJson,
         };
       } else {
         return {
@@ -435,6 +439,69 @@ class ApiService {
       body: jsonEncode({'email': email}),
     );
     if (response.statusCode != 200) throw Exception('Recovery failed');
+  }
+
+  // ⭐ СОЗДАНИЕ ЧАТА
+  Future<Map<String, dynamic>> createChat(String userId) async {
+    try {
+      final token = await _secureStorage.read(key: _tokenKey);
+      if (token == null) return {'success': false, 'error': 'No token'};
+
+      final response = await http.post(
+        Uri.parse('$_baseUrl/chats/create'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'userId': userId}),
+      ).timeout(_timeout);
+
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          'success': true,
+          'roomId': data['roomId'] ?? data['data']?['roomId'],
+        };
+      } else {
+        return {
+          'success': false,
+          'error': data['message'] ?? 'Failed to create chat',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'error': 'Network error: ${e.toString()}'};
+    }
+  }
+
+  // ⭐ ПОЛУЧЕНИЕ СПИСКА ЧАТОВ
+  Future<Map<String, dynamic>> listChats() async {
+    try {
+      final token = await _secureStorage.read(key: _tokenKey);
+      if (token == null) return {'success': false, 'error': 'No token'};
+
+      final response = await http.get(
+        Uri.parse('$_baseUrl/chats/list'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(_timeout);
+
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'rooms': data['rooms'] ?? data['data']?['rooms'] ?? [],
+        };
+      } else {
+        return {
+          'success': false,
+          'error': data['message'] ?? 'Failed to load chats',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'error': 'Network error: ${e.toString()}'};
+    }
   }
 
   // Выход

@@ -81,6 +81,7 @@ class AuthService {
   Future<Map<String, dynamic>> getMe() async {
     try {
       final result = await _apiService.getUserData();
+      // ApiService already unwrapped data['data']['user'] if needed
       return result;
     } catch (e) {
       return {

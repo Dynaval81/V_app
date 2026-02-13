@@ -26,3 +26,9 @@ linter:
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
+
+analyzer:
+  exclude:
+    - lib/main_demo.dart
+    - lib/main_simple_demo.dart
+    - lib/screens/tabs/ai_screen_old.dart

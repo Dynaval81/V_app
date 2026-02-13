@@ -261,39 +261,4 @@ class VTalkCompactInput extends StatelessWidget {
     );
   }
 
-  Future<void> _pickImage(BuildContext context) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Галерея')),
-    );
-  }
-
-  Future<void> _openCamera(BuildContext context) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Камера')),
-    );
-  }
-
-  Future<void> _pickFile(BuildContext context) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Файл')),
-    );
-  }
-
-  Future<void> _shareLocation(BuildContext context) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Геолокация')),
-    );
-  }
-
-  Future<void> _createPoll(BuildContext context) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Создание опроса')),
-    );
-  }
-
-  Future<void> _shareContact(BuildContext context) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Поделиться контактом')),
-    );
-  }
 }

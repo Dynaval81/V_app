@@ -1,45 +1,5 @@
-import 'package:flutter/material.dart';
-import 'dart:math';
-
-void main() {
-  runApp(const VtalkSimpleDemo());
-}
-
-class VtalkSimpleDemo extends StatelessWidget {
-  const VtalkSimpleDemo({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'VTalk Simple Demo',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
-      themeMode: ThemeMode.system,
-      home: const AuthScreenSimple(),
-    );
-  }
-}
-
-class AuthScreenSimple extends StatefulWidget {
-  const AuthScreenSimple({super.key});
-
-  @override
-  State<AuthScreenSimple> createState() => _AuthScreenSimpleState();
-}
-
-class _AuthScreenSimpleState extends State<AuthScreenSimple> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-  bool _isLogin = true;
-  bool _isLoading = false;
-  String? _generatedVTID;
-  
-  // Контроллеры для полей ввода
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+// Simple demo stub - not referenced by the app
+void main() {}
 
   @override
   void initState() {

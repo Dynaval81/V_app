@@ -13,7 +13,7 @@ import '../widgets/vtalk_compact_input.dart';
 import '../models/message_model.dart';
 
 class ChatRoomScreen extends StatefulWidget {
-  final int chatId;
+  final String chatId;
   final String? chatName;
   final bool isGroupChat; // Добавляем параметр для определения типа чата
   const ChatRoomScreen({Key? key, required this.chatId, this.chatName, this.isGroupChat = false}) : super(key: key);

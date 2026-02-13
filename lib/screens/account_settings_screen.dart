@@ -44,8 +44,13 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     if (user == null) {
       _loadTimer = Timer(const Duration(seconds: 3), () {
         if (mounted && userProvider.isLoading && userProvider.user == null) {
-          setState(() {
-            _loadError = true;
+          // 🚨 ИСПРАВЛЕНО: Используем WidgetsBinding вместо setState
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {
+                _loadError = true;
+              });
+            }
           });
         }
       });
@@ -714,60 +719,6 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               color: isDark ? Colors.white70 : Colors.black54,
               fontSize: 12,
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showStatusEditDialog(bool isDark) {
-    final TextEditingController statusController = TextEditingController(text: _userStatus);
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: isDark ? const Color(0xFF1A1A2E) : Colors.white,
-        title: Text(
-          'Share what\'s on your mind...',
-          style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-        ),
-        content: TextField(
-          controller: statusController,
-          style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-          decoration: InputDecoration(
-            hintText: 'How are you feeling today?',
-            hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.black12),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.blueAccent, width: 2),
-            ),
-          ),
-          maxLength: 50,
-          maxLines: 2,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: isDark ? Colors.white54 : Colors.black54)),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                _userStatus = statusController.text.trim();
-              });
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Status updated! $_userStatus'),
-                  backgroundColor: Colors.green.withOpacity(0.7),
-                ),
-              );
-            },
-            child: Text('Share', style: TextStyle(color: Colors.blueAccent)),
           ),
         ],
       ),

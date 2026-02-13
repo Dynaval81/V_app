@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/vtalk_header.dart';
+import '../../utils/glass_kit.dart';
 
 class VPNScreen extends StatelessWidget {
   final bool isLocked;
@@ -77,12 +78,12 @@ class VPNScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      _buildFeatureItem('🌍 Global Servers', '50+ locations worldwide'),
-                      _buildFeatureItem('⚡ Ultra Fast Speed', '10Gbps connection speed'),
-                      _buildFeatureItem('🔒 Military-Grade Encryption', 'AES-256 encryption'),
-                      _buildFeatureItem('📱 No-Log Policy', 'Complete privacy protection'),
-                      _buildFeatureItem('🎮 Gaming Mode', 'Optimized for low latency'),
-                      _buildFeatureItem('📊 Bandwidth Monitoring', 'Real-time usage stats'),
+                      _buildFeatureItem(context, '🌍 Global Servers', '50+ locations worldwide'),
+                      _buildFeatureItem(context, '⚡ Ultra Fast Speed', '10Gbps connection speed'),
+                      _buildFeatureItem(context, '🔒 Military-Grade Encryption', 'AES-256 encryption'),
+                      _buildFeatureItem(context, '📱 No-Log Policy', 'Complete privacy protection'),
+                      _buildFeatureItem(context, '🎮 Gaming Mode', 'Optimized for low latency'),
+                      _buildFeatureItem(context, '📊 Bandwidth Monitoring', 'Real-time usage stats'),
                     ],
                   ),
                 ),
@@ -101,7 +102,13 @@ class VPNScreen extends StatelessWidget {
             snap: true,
             backgroundColor: Colors.transparent,
             elevation: 0,
-            flexibleSpace: 100,
+            flexibleSpace: GlassKit.liquidGlass(
+              radius: 0,
+              isDark: isDark,
+              opacity: 0.3,
+              useBlur: true,
+              child: Container(),
+            ),
             expandedHeight: 200,
             title: VtalkHeader(
               title: 'VTalk VPN',
@@ -117,7 +124,7 @@ class VPNScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: isDark ? Colors.white10 : Colors.black12),
               ),
-              child: const Center(
+              child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -153,7 +160,7 @@ class VPNScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureItem(String title, String description) {
+  Widget _buildFeatureItem(BuildContext context, String title, String description) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Padding(

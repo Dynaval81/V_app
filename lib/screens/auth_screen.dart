@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'dart:math';
 import '../utils/glass_kit.dart';
 import 'main_app.dart';
-import 'dashboard_screen.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
 import '../screens/email_verification_screen.dart';
@@ -22,7 +21,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   late Animation<double> _animation;
   bool _isLoading = false;
   bool _isLogin = true; // Переключатель между Входом и Регистрацией
-  String? _generatedVTID; // Для хранения сгенерированного VT-ID
   
   // Контроллеры для полей ввода
   final TextEditingController _usernameController = TextEditingController();
@@ -491,7 +489,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           // 🎯 ОБНОВЛЯЕМ USER PROVIDER
           final userProvider = Provider.of<UserProvider>(context, listen: false);
           userProvider.setUser(User.fromJson(userData));
-          userProvider.notifyListeners();
           
           print('🔍 User Provider Updated: ${userProvider.user}'); // 🎯 DEBUG LOG
         }
@@ -865,136 +862,4 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     );
   }
 
-  // Показать успешную регистрацию
-  void _showSuccessRegistrationModal(String vtNumber) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark 
-                ? Colors.black.withOpacity(0.8)
-                : Colors.white.withOpacity(0.9),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Colors.green.withOpacity(0.3),
-              width: 1,
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Зеленая галочка
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                  size: 40,
-                ),
-              ),
-              const SizedBox(height: 20),
-              
-              // Заголовок
-              const Text(
-                'IDENTITY CREATED',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green,
-                ),
-              ),
-              const SizedBox(height: 12),
-              
-              // Текст
-              Text(
-                'Your unique VTalk identifier:',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white70
-                      : Colors.black54,
-                ),
-              ),
-              const SizedBox(height: 16),
-              
-              // VT-ID
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.blueAccent.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blueAccent.withOpacity(0.3)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      vtNumber,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blueAccent,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    IconButton(
-                      onPressed: () {
-                        // TODO: Добавить копирование в буфер
-                      },
-                      icon: const Icon(Icons.copy, color: Colors.blueAccent),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              
-              // Кнопка
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context); // Закрываем диалог
-                    Navigator.pushReplacement(
-                      context, 
-                      PageRouteBuilder(
-                        pageBuilder: (context, anim1, anim2) => MainApp(initialTab: 0),
-                        transitionsBuilder: (context, anim1, anim2, child) => FadeTransition(opacity: anim1, child: child),
-                        transitionDuration: const Duration(milliseconds: 800),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'FINALIZE SETUP',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

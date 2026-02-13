@@ -37,7 +37,7 @@ class VtalkApp extends StatelessWidget {
             switch (settings.name) {
               case '/chat':
                 return CupertinoPageRoute(
-                  builder: (_) => ChatRoomScreen(chatId: 1),
+                  builder: (_) => ChatRoomScreen(chatId: '1'),
                   title: 'Chat',
                 );
               case '/settings':

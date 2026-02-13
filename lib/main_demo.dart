@@ -1,55 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'screens/auth_screen.dart';
-import 'screens/main_app.dart';
-import 'theme_provider.dart';
-
-void main() {
-  runApp(const VtalkDemoApp());
-}
-
-class VtalkDemoApp extends StatelessWidget {
-  const VtalkDemoApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => ThemeProvider(),
-      child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, child) {
-          return MaterialApp(
-            title: 'VTalk Demo',
-            debugShowCheckedModeBanner: false,
-            theme: ThemeData.light(),
-            darkTheme: ThemeData.dark(),
-            themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-            home: const AuthScreenDemo(),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class AuthScreenDemo extends StatefulWidget {
-  const AuthScreenDemo({super.key});
-
-  @override
-  State<AuthScreenDemo> createState() => _AuthScreenDemoState();
-}
-
-class _AuthScreenDemoState extends State<AuthScreenDemo> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-  bool _isLogin = true;
-  bool _isLoading = false;
-  String? _generatedVTID;
-  
-  // Контроллеры для полей ввода
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+// Demo file stub - not used in production
+void main() {}
 
   @override
   void initState() {

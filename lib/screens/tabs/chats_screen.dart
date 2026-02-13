@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:async';
 import '../../utils/glass_kit.dart';
 import '../../services/auth_service.dart';
+import '../../services/api_service.dart';
 import '../../theme_provider.dart';
 import '../../constants/app_constants.dart';
 import '../chat_room_screen.dart';
@@ -22,7 +23,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
   final ValueNotifier<double> _searchOpacity = ValueNotifier(0.0);
   double _lastOffset = 0.0;
   // In-memory chat list (would normally come from backend)
-  final List<Map<String, dynamic>> _customChats = [];
+  List<Map<String, dynamic>> _chatRooms = [];
+  bool _isLoadingChats = false;
   
   // User status storage
   String _userStatus = "at work / traveling";
@@ -31,6 +33,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    _loadChatRooms();
   }
 
   void _onScroll() {
@@ -43,6 +46,38 @@ class _ChatsScreenState extends State<ChatsScreen> {
         _searchOpacity.value = newOpacity;
       }
     }
+  }
+
+  Future<void> _loadChatRooms() async {
+    setState(() {
+      _isLoadingChats = true;
+    });
+    final api = ApiService();
+    final result = await api.listChats();
+    if (result['success'] == true) {
+      final rooms = List<Map<String, dynamic>>.from(result['rooms'] ?? []);
+      setState(() {
+        _chatRooms = rooms.map((r) {
+          return {
+            'id': r['id'],
+            'name': r['name'] ?? r['title'] ?? '',
+            'isGroup': r['isGroup'] ?? false,
+            'isOnline': r['isOnline'] ?? true,
+            'unread': r['unread'] ?? 0,
+          };
+        }).toList();
+      });
+    } else {
+      // failed to load, keep empty list or show snackbar
+      if (result['error'] != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result['error'])),
+        );
+      }
+    }
+    setState(() {
+      _isLoadingChats = false;
+    });
   }
 
   @override
@@ -139,7 +174,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                   const SizedBox(width: 16),
                 ],
               ),
-              if (_customChats.isEmpty)
+              if (_chatRooms.isEmpty && !_isLoadingChats)
                 SliverFillRemaining(
                   hasScrollBody: false,
                   child: Center(
@@ -157,15 +192,18 @@ class _ChatsScreenState extends State<ChatsScreen> {
                   ),
                 )
               else
-                SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final chat = _customChats[index];
-                      return _buildCustomChatTile(chat, isDark);
-                    },
-                    childCount: _customChats.length,
+                if (_isLoadingChats)
+                  SliverFillRemaining(child: Center(child: CircularProgressIndicator()))
+                else
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final chat = _chatRooms[index];
+                        return _buildCustomChatTile(chat, isDark);
+                      },
+                      childCount: _chatRooms.length,
+                    ),
                   ),
-                ),
             ],
           ),
         ),
@@ -184,14 +222,17 @@ class _ChatsScreenState extends State<ChatsScreen> {
       radius: 16,
       opacity: 0.05, // Уменьшаем opacity до уровня Dashboard
       child: ListTile(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => ChatRoomScreen(
-            chatId: chat['id'] as int, 
-            chatName: chat['name'] as String,
-            isGroupChat: false, // Личные чаты
-          )),
-        ),
+        onTap: () async {
+          final id = chat['id'].toString();
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => ChatRoomScreen(
+              chatId: id,
+              chatName: chat['name'] as String,
+              isGroupChat: false,
+            )),
+          );
+        },
         leading: Stack(
           children: [
             CircleAvatar(radius: 28, backgroundImage: CachedNetworkImageProvider("${AppConstants.defaultAvatarUrl}?u=custom${chat['id']}"),),
@@ -228,159 +269,6 @@ class _ChatsScreenState extends State<ChatsScreen> {
             const SizedBox(height: 4),
             if (unreadCount > 0)
               Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.blueAccent, borderRadius: BorderRadius.circular(10)), child: Text(unreadCount > 99 ? '99+' : unreadCount.toString(), style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Добавляем кнопку редактирования статуса в хедер
-  Widget _buildStatusEditButton(bool isDark) {
-    return IconButton(
-      icon: Icon(Icons.edit, size: 16, color: isDark ? Colors.white54 : Colors.black54),
-      onPressed: () => _showStatusEditDialog(isDark),
-      tooltip: 'Edit Status',
-    );
-  }
-
-  void _showStatusEditDialog(bool isDark) {
-    final TextEditingController statusController = TextEditingController(text: _userStatus);
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: isDark ? const Color(0xFF1A1A2E) : Colors.white,
-        title: Text(
-          'Edit Status',
-          style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-        ),
-        content: TextField(
-          controller: statusController,
-          style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-          decoration: InputDecoration(
-            hintText: 'Enter your status...',
-            hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.black12),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.blueAccent, width: 2),
-            ),
-          ),
-          maxLength: 50,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: isDark ? Colors.white54 : Colors.black54)),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                _userStatus = statusController.text.trim();
-              });
-              Navigator.pop(context);
-            },
-            child: Text('Save', style: TextStyle(color: Colors.blueAccent)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChatTile(int i, bool isDark) {
-    bool isGroup = i % 3 == 0;
-    bool isOnline = i % 4 == 0;
-    int unreadCount = i % 5 == 0 ? (i % 7 + 1) : 0;
-    final chatName = isGroup ? "Project Group $i" : "Contact $i";
-    
-    return GlassKit.liquidGlass(
-      context: context, // Добавляем context для debug mode
-      useBlur: false, // Отключаем блюр для плавного скролла
-      radius: 16,
-      opacity: 0.05, // Уменьшаем opacity до уровня Dashboard
-      child: ListTile(
-        onTap: () => Navigator.push(
-          context, 
-          MaterialPageRoute(builder: (context) => ChatRoomScreen(
-            chatId: i, 
-            chatName: chatName,
-            isGroupChat: isGroup, // Групповые чаты
-          )),
-        ),
-        leading: Stack(
-          children: [
-            CircleAvatar(
-              radius: 28, 
-              backgroundImage: CachedNetworkImageProvider("${AppConstants.defaultAvatarUrl}?u=chat$i")
-            ),
-            if (!isGroup && isOnline) // Рисуем точку только если это НЕ группа и пользователь онлайн
-              Positioned(
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    border: Border.all(color: Colors.white, width: 2),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                ),
-              ),
-          ],
-        ),
-        title: Row(
-          children: [
-            if (isGroup) 
-              Icon(Icons.group, size: 16, color: Colors.blueAccent),
-            if (isGroup) const SizedBox(width: 6),
-            Expanded(
-              child: Text(
-                isGroup ? "Project Group $i" : "Contact $i", 
-                style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black87, // Исправляем контраст
-                  fontWeight: FontWeight.bold
-                )
-              ),
-            ),
-          ],
-        ),
-        subtitle: Text(
-            isGroup ? "Group description..." : _userStatus, // Используем пользовательский статус
-            style: TextStyle(
-              fontSize: 11, // Мельче, чем имя
-              fontWeight: FontWeight.w400,
-              color: isDark ? Colors.white54 : Colors.black45, // Приглушенный цвет
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text("${12 + (i % 12)}:${45 + (i % 15)}", 
-                   style: TextStyle(color: isDark ? Colors.white24 : Colors.black26, fontSize: 11)),
-            const SizedBox(height: 4),
-            if (unreadCount > 0)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.blueAccent, 
-                  borderRadius: BorderRadius.circular(10)
-                ),
-                child: Text(
-                  unreadCount > 99 ? "99+" : unreadCount.toString(), 
-                  style: const TextStyle(
-                    color: Colors.white, 
-                    fontSize: 10, 
-                    fontWeight: FontWeight.bold
-                  )
-                ),
-              ),
           ],
         ),
       ),
@@ -517,7 +405,8 @@ Widget _buildMenuOption({
     final TextEditingController descriptionCtrl = TextEditingController(); // Добавляем поле для описания группы
     final TextEditingController searchCtrl = TextEditingController();
     final Set<String> selectedParticipants = {};
-    String? selectedContact; // For 1-on-1 chats
+    String selectedContact = ''; // For 1-on-1 chats (empty until chosen)
+    String selectedContactId = ''; // UUID from search result
     // list of mocked contacts used only for group creation (participants selection)
     final List<String> availableContacts = [
       'Alice Johnson',
@@ -860,7 +749,7 @@ Widget _buildMenuOption({
                           ),
                           const SizedBox(width: 12),
                           ElevatedButton.icon(
-                            onPressed: () {
+                            onPressed: () async {
                               if (isGroup) {
                                 final name = nameCtrl.text.trim();
                                 if (name.isEmpty) {
@@ -875,41 +764,42 @@ Widget _buildMenuOption({
                                   );
                                   return;
                                 }
-                                setState(() {
-                                  _customChats.insert(0, {
-                                    'id': DateTime.now().millisecondsSinceEpoch.remainder(1000000),
-                                    'name': name,
-                                    'isGroup': true,
-                                    'isOnline': true,
-                                    'unread': 0,
-                                    'participants': List<String>.from(selectedParticipants),
-                                  });
-                                });
+                                // groups are not yet handled by backend; just close dialog
+                                // you may refresh list if API supports it later
+                                await _loadChatRooms();
                               } else {
                                 // 1-on-1 chat
-                                if (selectedContact == null || selectedContact!.isEmpty) {
+                                if (selectedContact.isEmpty || selectedContactId.isEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(content: Text('Please select a valid contact')),
                                   );
                                   return;
                                 }
-                                setState(() {
-                                  _customChats.insert(0, {
-                                    'id': DateTime.now().millisecondsSinceEpoch.remainder(1000000),
-                                    'name': selectedContact!,
-                                    'isGroup': false,
-                                    'isOnline': true,
-                                    'unread': 0,
-                                    'contact': selectedContact!,
-                                  });
-                                });
+                                // call backend to create chat
+                                final api = ApiService();
+                                final result = await api.createChat(selectedContactId);
+                                if (result['success'] == true) {
+                                  final roomId = result['roomId']?.toString() ?? '';
+                                  Navigator.pop(context); // close dialog
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => ChatRoomScreen(
+                                      chatId: roomId,
+                                      chatName: selectedContact,
+                                      isGroupChat: false,
+                                    )),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(result['error'] ?? 'Failed to create chat')),
+                                  );
+                                }
                               }
-                              Navigator.pop(context);
                             },
                             icon: const Icon(Icons.done),
                             label: Text(isGroup ? 'Create Group' : 'Create Chat'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: ((selectedContact != null && selectedContact!.isNotEmpty) || isGroup)
+                              backgroundColor: ((selectedContact.isNotEmpty) || isGroup)
                                   ? Colors.blueAccent
                                   : Colors.grey,
                               foregroundColor: Colors.white,
