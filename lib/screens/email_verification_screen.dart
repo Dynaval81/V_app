@@ -195,34 +195,40 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       // ⭐ ЗАДЕРЖКА ДЛЯ ОБНОВЛЕНИЯ БАЗЫ ДАННЫХ
       await Future.delayed(const Duration(seconds: 2));
       
-      // ⭐ ПРОВЕРЯЕМ СВЕЖИЙ СТАТУС ВЕРИФИКАЦИИ
-      final verificationResult = await ApiService().checkVerificationStatus(widget.email);
+      // ⭐ ЗАПРАШИВАЕМ СВЕЖИЕ ДАННЫЕ ПОЛЬЗОВАТЕЛЯ
+      final userResult = await ApiService().getUserData();
       
-      if (verificationResult['success'] && verificationResult['verified'] == true) {
-        // ✅ ВЕРИФИКАЦИЯ ПОДТВЕРЖДЕНА - ЛОГИНИМ
-        setState(() {
-          _isLoading = false;
-          _isConfirmed = true;
-        });
+      if (userResult['success']) {
+        final user = userResult['user'];
+        if (user['emailVerified'] == true) {
+          // ✅ ВЕРИФИКАЦИЯ ПОДТВЕРЖДЕНА - ЛОГИНИМ
+          setState(() {
+            _isLoading = false;
+            _isConfirmed = true;
+          });
 
-        // Задержка перед переходом
-        await Future.delayed(const Duration(seconds: 2));
+          // Задержка перед переходом
+          await Future.delayed(const Duration(seconds: 2));
 
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            PageRouteBuilder(
-              pageBuilder: (context, anim1, anim2) => MainApp(initialTab: 0),
-              transitionsBuilder: (context, anim1, anim2, child) => 
-                  FadeTransition(opacity: anim1, child: child),
-              transitionDuration: const Duration(milliseconds: 800),
-            ),
-          );
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (context, anim1, anim2) => MainApp(initialTab: 0),
+                transitionsBuilder: (context, anim1, anim2, child) => 
+                    FadeTransition(opacity: anim1, child: child),
+                transitionDuration: const Duration(milliseconds: 800),
+              ),
+            );
+          }
+        } else {
+          // ❌ ВЕРИФИКАЦИЯ ЕЩЕ НЕ ПОДТВЕРЖДЕНА
+          setState(() => _isLoading = false);
+          _showError('Email not verified yet. Check your inbox.');
         }
       } else {
-        // ❌ ВЕРИФИКАЦИЯ ЕЩЕ НЕ ПОДТВЕРЖДЕНА
         setState(() => _isLoading = false);
-        _showError('Email not verified yet. Check your inbox.');
+        _showError(userResult['error'] ?? 'Failed to check verification status');
       }
     } catch (e) {
       setState(() => _isLoading = false);

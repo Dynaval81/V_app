@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import '../utils/glass_kit.dart';
 import 'main_app.dart';
+import 'dashboard_screen.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
 import '../screens/email_verification_screen.dart';
@@ -388,23 +389,34 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         return;
       }
 
-      if (!_authService.isValidEmail(email)) {
-        _showGlassError('Invalid email format');
-        return;
-      }
-
       // Вызываем реальное API
       final result = await _apiService.login(email: email, password: password);
 
       if (result['success']) {
-        Navigator.pushReplacement(
-          context, 
-          PageRouteBuilder(
-            pageBuilder: (context, anim1, anim2) => MainApp(initialTab: 0),
-            transitionsBuilder: (context, anim1, anim2, child) => FadeTransition(opacity: anim1, child: child),
-            transitionDuration: const Duration(milliseconds: 800),
-          ),
-        );
+        // 🎯 ПРОВЕРКА isFirstLogin ФЛАГА
+        final isFirstLogin = result['isFirstLogin'] ?? false;
+        
+        if (isFirstLogin) {
+          // 🔥 ПЕРВЫЙ ВХОД - ПРОФИЛЬ
+          Navigator.pushReplacement(
+            context, 
+            PageRouteBuilder(
+              pageBuilder: (context, anim1, anim2) => DashboardScreen(onTabSwitch: (index) {}),
+              transitionsBuilder: (context, anim1, anim2, child) => FadeTransition(opacity: anim1, child: child),
+              transitionDuration: const Duration(milliseconds: 800),
+            ),
+          );
+        } else {
+          // 🚀 ОБЫЧНЫЙ ВХОД - CHATS
+          Navigator.pushReplacement(
+            context, 
+            PageRouteBuilder(
+              pageBuilder: (context, anim1, anim2) => MainApp(initialTab: 0),
+              transitionsBuilder: (context, anim1, anim2, child) => FadeTransition(opacity: anim1, child: child),
+              transitionDuration: const Duration(milliseconds: 800),
+            ),
+          );
+        }
       } else {
         // ⭐ ПРОВЕРКА НА EMAIL NOT VERIFIED
         if (result['isEmailNotVerified'] == true) {

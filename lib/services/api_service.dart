@@ -107,6 +107,7 @@ class ApiService {
           'success': true,
           'user': data['user'],
           'token': data['token'],
+          'isFirstLogin': data['user']['isFirstLogin'] ?? false,
         };
       } else if (response.statusCode == 403) {
         return {
@@ -238,6 +239,43 @@ class ApiService {
     }
   }
 
+  // ⭐ ПОЛУЧЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЯ
+  Future<Map<String, dynamic>> getUserData() async {
+    try {
+      final token = await _secureStorage.read(key: _tokenKey);
+      if (token == null) {
+        return {'success': false, 'error': 'No token found'};
+      }
+
+      final response = await http.get(
+        Uri.parse('$_baseUrl/api/v1/users/me'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(_timeout);
+
+      final data = jsonDecode(response.body);
+      
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'user': data['user'],
+        };
+      } else {
+        return {
+          'success': false,
+          'error': data['message'] ?? 'Failed to get user data',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
   // ⭐ ПРОВЕРКА СТАТУСА ВЕРИФИКАЦИИ
   Future<Map<String, dynamic>> checkVerificationStatus(String email) async {
     try {
@@ -261,6 +299,44 @@ class ApiService {
         return {
           'success': false,
           'error': data['message'] ?? 'Verification check failed',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  // ⭐ АКТИВАЦИЯ PREMIUM
+  Future<Map<String, dynamic>> activatePremium(String code) async {
+    try {
+      final token = await _secureStorage.read(key: _tokenKey);
+      if (token == null) {
+        return {'success': false, 'error': 'No token found'};
+      }
+
+      final response = await http.post(
+        Uri.parse('$_baseUrl/api/v1/premium/activate'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'code': code}),
+      ).timeout(_timeout);
+
+      final data = jsonDecode(response.body);
+      
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Premium activated successfully',
+        };
+      } else {
+        return {
+          'success': false,
+          'error': data['message'] ?? 'Activation failed',
         };
       }
     } catch (e) {

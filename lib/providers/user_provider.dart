@@ -143,4 +143,23 @@ class UserProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
   }
+
+  // ⭐ ОБНОВЛЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЯ
+  Future<void> refreshUserData() async {
+    try {
+      setLoading(true);
+      final result = await _apiService.getUserData();
+      
+      if (result['success']) {
+        _user = User.fromJson(result['user']);
+        _error = null;
+      } else {
+        _error = result['error'] ?? 'Failed to refresh user data';
+      }
+    } catch (e) {
+      _error = 'Network error: ${e.toString()}';
+    } finally {
+      setLoading(false);
+    }
+  }
 }
