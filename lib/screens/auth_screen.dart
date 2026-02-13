@@ -494,7 +494,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         );
       } else {
         // 🎯 ДЕТАЛЬНАЯ ОШИБКА РЕГИСТРАЦИИ
-        final errorMessage = result['error'] ?? 'Ошибка регистрации';
+        final errorMessage = result['error'] ?? 'Registration error';
         print('Registration error: $errorMessage'); // ⭐ ДЕБАГ ЛОГ
         _showGlassError(errorMessage);
       }

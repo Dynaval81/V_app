@@ -62,7 +62,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                     
                     // Заголовок
                     const Text(
-                      'Проверьте почту',
+                      'Check your email',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -187,9 +187,14 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   }
 
   Future<void> _handleConfirmation() async {
+    if (_isLoading) return; // ⭐ ЗАЩИТА ОТ МНОГОКРАТНЫХ КЛИКОВ
+    
     setState(() => _isLoading = true);
 
     try {
+      // ⭐ ЗАДЕРЖКА 2 СЕКУНДЫ МЕЖДУ ЗАПРОСАМИ
+      await Future.delayed(const Duration(seconds: 2));
+      
       // Повторный запрос login для проверки подтверждения
       final result = await ApiService().login(
         email: widget.email,
@@ -218,7 +223,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
         }
       } else {
         setState(() => _isLoading = false);
-        _showError('Email еще не подтвержден. Попробуйте позже.');
+        _showError('Email not verified yet. Please try again in a moment.');
       }
     } catch (e) {
       setState(() => _isLoading = false);
