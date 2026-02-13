@@ -55,7 +55,18 @@ class _ChatsScreenState extends State<ChatsScreen> {
     final api = ApiService();
     final result = await api.listChats();
     if (result['success'] == true) {
-      final rooms = List<Map<String, dynamic>>.from(result['rooms'] ?? []);
+      // 🚨 ИСПРАВЛЕНО: Проверяем тип данных перед преобразованием
+      List<dynamic> roomsList = [];
+      if (result['rooms'] != null) {
+        if (result['rooms'] is List) {
+          roomsList = result['rooms'] as List<dynamic>;
+        } else if (result['rooms'] is String) {
+          // Если rooms это строка, создаем пустой список
+          roomsList = [];
+        }
+      }
+      
+      final rooms = List<Map<String, dynamic>>.from(roomsList);
       setState(() {
         _chatRooms = rooms.map((r) {
           return {
@@ -428,12 +439,12 @@ Widget _buildMenuOption({
                 radius: 20,
                 child: Container(
                   width: MediaQuery.of(context).size.width * 0.9,
-                  constraints: const BoxConstraints(maxHeight: 600),
+                  constraints: const BoxConstraints(maxHeight: 700),
                   padding: const EdgeInsets.all(20),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisSize: MainAxisSize.max,
                     children: [
-                      // Header
+                      // Header (fixed, not scrollable)
                       SizedBox(
                         height: 50,
                         child: Row(
@@ -457,9 +468,17 @@ Widget _buildMenuOption({
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       Divider(color: isDark ? Colors.white12 : Colors.black12),
-                      const SizedBox(height: 16),
+
+                      // Scrollable content area
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const SizedBox(height: 12),
+
 
                       // Name field (only for groups)
                       if (isGroup)
@@ -508,10 +527,11 @@ Widget _buildMenuOption({
                               controller: searchCtrl,
                               style: TextStyle(color: isDark ? Colors.white : Colors.black),
                               onChanged: (val) {
-                                // debounce search
+                                // debounce search - 500ms delay, min 3 chars
                                 if (_debounce?.isActive ?? false) _debounce!.cancel();
-                                _debounce = Timer(const Duration(milliseconds: 300), () async {
-                                  if (val.trim().isEmpty) {
+                                _debounce = Timer(const Duration(milliseconds: 500), () async {
+                                  final trimmed = val.trim();
+                                  if (trimmed.length < 3) {
                                     setDialogState(() {
                                       searchResults.clear();
                                       isSearching = false;
@@ -521,7 +541,7 @@ Widget _buildMenuOption({
                                   setDialogState(() {
                                     isSearching = true;
                                   });
-                                  final result = await AuthService().searchUsers(val.trim());
+                                  final result = await AuthService().searchUsers(trimmed);
                                   setDialogState(() {
                                     isSearching = false;
                                     if (result['success'] == true) {
@@ -532,6 +552,7 @@ Widget _buildMenuOption({
                                   });
                                 });
                               },
+
                               decoration: InputDecoration(
                                 labelText: 'Search contact',
                                 labelStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
@@ -803,6 +824,12 @@ Widget _buildMenuOption({
                           ),
                         ),
 
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // Action buttons (fixed at bottom)
                       const SizedBox(height: 16),
                       Divider(color: isDark ? Colors.white12 : Colors.black12),
                       const SizedBox(height: 12),
