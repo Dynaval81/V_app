@@ -36,7 +36,7 @@ class _MainAppState extends State<MainApp> {
   List<Widget> get _screens => [
     const ChatsScreen(),      // 0. Мессенджер (Первый)
     AIScreen(isLocked: false),         // 1. Vtalk AI - РАЗБЛОКИРОВАНО
-    VPNScreen(isLocked: false),        // 2. VPN - РАЗБЛОКИРОВАНО
+    VPNScreen(),        // 2. VPN - РАЗБЛОКИРОВАНО
     DashboardScreen(          // 3. Dashboard (Последний)
       onTabSwitch: (i) => _changeTab(i),
     ),

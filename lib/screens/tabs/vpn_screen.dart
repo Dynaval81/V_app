@@ -10,9 +10,7 @@ import '../../providers/user_provider.dart';
 import '../account_settings_screen.dart';
 
 class VPNScreen extends StatefulWidget {
-  final bool isLocked;
-  
-  const VPNScreen({super.key, this.isLocked = false});
+  const VPNScreen({super.key});
   
   @override
   _VPNScreenState createState() => _VPNScreenState();
@@ -305,7 +303,7 @@ class _VPNScreenState extends State<VPNScreen> {
 
   // 🎯 АКТИВАЦИЯ PREMIUM
   void _activatePremium() async {
-    // TODO: Реализовать активацию промокода
+    // TODO: Реализовать активацию промокода через API
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Premium activation coming soon!')),
     );
@@ -365,9 +363,14 @@ class _VPNScreenState extends State<VPNScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
+    return Consumer2<ThemeProvider, UserProvider>(
+      builder: (context, themeProvider, userProvider, child) {
         final isDark = themeProvider.isDarkMode;
+        
+        // 🚨 РЕАЛЬНАЯ ПРОВЕРКА ПРЕМИУМ
+        if (!(userProvider.user?.isPremium ?? false)) {
+          return _buildLockedContent(isDark);
+        }
         
         return Scaffold(
           extendBody: true,
@@ -377,9 +380,7 @@ class _VPNScreenState extends State<VPNScreen> {
               // ⭐ GRACE PERIOD BANNER
               const GracePeriodBanner(),
               Expanded(
-                child: widget.isLocked
-                    ? _buildLockedContent(isDark)
-                    : _buildVpnInterface(isDark),
+                child: _buildVpnInterface(isDark),
               ),
             ],
           ),
@@ -402,8 +403,6 @@ class _VPNScreenState extends State<VPNScreen> {
               // 🎯 УПРОЩЕННЫЕ НАСТРОЙКИ VPN
               _glassTile(Icons.vpn_lock, "Status", isConnected ? "Connected" : "Disconnected", null),
               _glassTile(Icons.public, "Location", "$selectedFlag $selectedLocation", () => _showLocationPicker()),
-              _glassTile(Icons.security, "Protocol", "OpenVPN (Hardcoded)", null),
-              _glassTile(Icons.speed, "Encryption", "AES-256 (Hardcoded)", null),
               
               const SizedBox(height: 20),
 

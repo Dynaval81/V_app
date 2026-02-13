@@ -7,6 +7,8 @@ class User {
   final String? activationCode;
   final DateTime? createdAt;
   final DateTime? premiumExpiresAt;  // ⭐ ДОБАВИТЬ
+  final String? avatar;  // 🚨 ДОБАВИТЬ АВАТАР
+  final String? status;  // 🚨 ДОБАВИТЬ СТАТУС
 
   User({
     required this.id,
@@ -17,6 +19,8 @@ class User {
     this.activationCode,
     this.createdAt,
     this.premiumExpiresAt,  // ⭐ ДОБАВИТЬ
+    this.avatar,  // 🚨 ДОБАВИТЬ АВАТАР
+    this.status,  // 🚨 ДОБАВИТЬ СТАТУС
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -41,6 +45,8 @@ class User {
           ? DateTime.parse(json['createdAt']) 
           : null,
       premiumExpiresAt: premiumExpiresAt,  // ⭐ ДОБАВИТЬ
+      avatar: json['avatar'],  // 🚨 ДОБАВИТЬ АВАТАР
+      status: json['status'],  // 🚨 ДОБАВИТЬ СТАТУС
     );
   }
 
@@ -54,6 +60,8 @@ class User {
       'activationCode': activationCode,
       'createdAt': createdAt?.toIso8601String(),
       'premiumExpiresAt': premiumExpiresAt?.toIso8601String(),  // ⭐ ДОБАВИТЬ
+      'avatar': avatar,  // 🚨 ДОБАВИТЬ АВАТАР
+      'status': status,  // 🚨 ДОБАВИТЬ СТАТУС
     };
   }
 
@@ -97,6 +105,8 @@ class User {
     String? activationCode,
     DateTime? createdAt,
     DateTime? premiumExpiresAt,  // ⭐ ДОБАВИТЬ
+    String? avatar,  // 🚨 ДОБАВИТЬ АВАТАР
+    String? status,  // 🚨 ДОБАВИТЬ СТАТУС
   }) {
     return User(
       id: id ?? this.id,
@@ -107,6 +117,8 @@ class User {
       activationCode: activationCode ?? this.activationCode,
       createdAt: createdAt ?? this.createdAt,
       premiumExpiresAt: premiumExpiresAt ?? this.premiumExpiresAt,  // ⭐ ДОБАВИТЬ
+      avatar: avatar ?? this.avatar,  // 🚨 ДОБАВИТЬ АВАТАР
+      status: status ?? this.status,  // 🚨 ДОБАВИТЬ СТАТУС
     );
   }
 }
