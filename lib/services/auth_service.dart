@@ -89,4 +89,17 @@ class AuthService {
       };
     }
   }
+
+  // 🎯 ГЛОБАЛЬНЫЙ ПОИСК ПОЛЬЗОВАТЕЛЕЙ
+  Future<Map<String, dynamic>> searchUsers(String query) async {
+    try {
+      final result = await _apiService.searchUsers(query);
+      return result;
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Failed to search users: ${e.toString()}',
+      };
+    }
+  }
 }

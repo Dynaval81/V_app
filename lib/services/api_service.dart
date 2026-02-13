@@ -306,6 +306,47 @@ class ApiService {
     }
   }
 
+  // 🎯 ГЛОБАЛЬНЫЙ ПОИСК ПОЛЬЗОВАТЕЛЕЙ
+  Future<Map<String, dynamic>> searchUsers(String query) async {
+    try {
+      final token = await _secureStorage.read(key: _tokenKey);
+      
+      if (token == null) {
+        return {'success': false, 'error': 'No token found'};
+      }
+
+      final response = await http.get(
+        Uri.parse('$_baseUrl/users/search?query=$query'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(_timeout);
+
+      final data = jsonDecode(response.body);
+      
+      print('🔍 Search Users Response: ${response.body}'); // 🎯 DEBUG PRINT
+      print('🔍 Search Users Status Code: ${response.statusCode}'); // 🎯 DEBUG PRINT
+      
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'users': data['users'] ?? [],
+        };
+      } else {
+        return {
+          'success': false,
+          'error': data['message'] ?? 'Failed to search users',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
   // ⭐ ПРОВЕРКА СТАТУСА ВЕРИФИКАЦИИ
   Future<Map<String, dynamic>> checkVerificationStatus(String email) async {
     try {
