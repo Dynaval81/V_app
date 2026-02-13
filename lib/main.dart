@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'theme_provider.dart';
+import 'providers/user_provider.dart';
 import 'screens/auth_screen.dart';
 import 'screens/tabs/chats_screen.dart';
 import 'screens/tabs/vpn_screen.dart';
@@ -14,6 +15,7 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
       ],
       child: const VtalkApp(),
     ),

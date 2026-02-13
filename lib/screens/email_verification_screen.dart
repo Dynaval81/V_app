@@ -93,7 +93,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                     
                     // Описание
                     Text(
-                      'Мы отправили вам письмо для подтверждения регистрации.\nПроверьте папку "Спам" если письмо не пришло.',
+                      'We sent you a confirmation email. Please check your inbox (including spam folder).',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 14,
@@ -192,6 +192,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     setState(() => _isLoading = true);
 
     try {
+      // ⭐ ЗАДЕРЖКА ДЛЯ ОБНОВЛЕНИЯ БАЗЫ ДАННЫХ
+      await Future.delayed(const Duration(seconds: 2));
+      
       // ⭐ ПРОВЕРЯЕМ СВЕЖИЙ СТАТУС ВЕРИФИКАЦИИ
       final verificationResult = await ApiService().checkVerificationStatus(widget.email);
       
@@ -219,7 +222,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       } else {
         // ❌ ВЕРИФИКАЦИЯ ЕЩЕ НЕ ПОДТВЕРЖДЕНА
         setState(() => _isLoading = false);
-        _showError('Email еще не подтвержден. Попробуйте позже.');
+        _showError('Email not verified yet. Check your inbox.');
       }
     } catch (e) {
       setState(() => _isLoading = false);

@@ -284,17 +284,6 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           color: isDark ? Colors.white : Colors.black87,
           fontSize: 16,
         ),
-        onChanged: isPassword ? null : (text) {
-          // ⭐ АВТОПОДСТАНОВКА VT- ДЛЯ ЦИФР
-          if (text.isNotEmpty && !text.toLowerCase().contains('vt') && 
-              RegExp(r'^\d+$').hasMatch(text)) {
-            final cursorPosition = controller?.selection.baseOffset ?? text.length;
-            controller?.value = TextEditingValue(
-              text: 'VT-$text',
-              selection: TextSelection.collapsed(offset: cursorPosition + 3),
-            );
-          }
-        },
         decoration: InputDecoration(
           prefixIcon: Icon(icon, color: isDark ? Colors.white54 : Colors.black54),
           hintText: hint,
@@ -448,18 +437,13 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       }
 
       // 🎯 ДЕМО КОСТЫЛЬ - БЫСТРЫЙ ВХОД
-      if (username == "1" && email == "1" && password == "1" && confirmPassword == "1") {
+      if (email == "1" && password == "1") {
         setState(() => _isLoading = false);
         _showDemoSuccessDialog();
         return;
       }
 
-      // Валидация
-      if (!_authService.isValidEmail(email)) {
-        _showGlassError('Invalid email format');
-        return;
-      }
-
+      // Валидация пароля
       if (!_authService.isValidPassword(password)) {
         _showGlassError('Password must be at least 6 characters');
         return;
