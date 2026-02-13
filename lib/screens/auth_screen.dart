@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'dart:math';
 import '../utils/glass_kit.dart';
 import 'main_app.dart';
@@ -6,6 +7,8 @@ import 'dashboard_screen.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
 import '../screens/email_verification_screen.dart';
+import '../providers/user_provider.dart';
+import '../models/user_model.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -400,11 +403,11 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         print('🔍 isFirstLogin: $isFirstLogin'); // 🎯 DEBUG PRINT
         
         if (isFirstLogin) {
-          // 🔥 ПЕРВЫЙ ВХОД - ПРОФИЛЬ
+          // 🔥 ПЕРВЫЙ ВХОД - MAINAPP С ОТКРЫТЫМ ПРОФИЛЕМ
           Navigator.pushReplacement(
             context, 
             PageRouteBuilder(
-              pageBuilder: (context, anim1, anim2) => DashboardScreen(onTabSwitch: (index) {}),
+              pageBuilder: (context, anim1, anim2) => MainApp(initialTab: 3), // 3 = Dashboard
               transitionsBuilder: (context, anim1, anim2, child) => FadeTransition(opacity: anim1, child: child),
               transitionDuration: const Duration(milliseconds: 800),
             ),
@@ -477,7 +480,23 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       );
 
       if (result['success']) {
-        // ⭐ НОВЫЙ ФЛОУ - НЕ ПУСКАЕМ В ПРИЛОЖЕНИЕ
+        // 🎯 СОХРАНЯЕМ ТОКЕН СРАЗУ ПОСЛЕ РЕГИСТРАЦИИ
+        final token = result['token'];
+        final userData = result['user'];
+        
+        print('🔍 Register Token: $token'); // 🎯 DEBUG LOG
+        print('🔍 Register User Data: $userData'); // 🎯 DEBUG LOG
+        
+        if (token != null && userData != null) {
+          // 🎯 ОБНОВЛЯЕМ USER PROVIDER
+          final userProvider = Provider.of<UserProvider>(context, listen: false);
+          userProvider.setUser(User.fromJson(userData));
+          userProvider.notifyListeners();
+          
+          print('🔍 User Provider Updated: ${userProvider.user}'); // 🎯 DEBUG LOG
+        }
+        
+        // ⭐ НОВЫЙ ФЛОУ - ПЕРЕХОДИМ НА ВЕРИФИКАЦИЮ
         setState(() => _isLoading = false);
         Navigator.pushReplacement(
           context,
