@@ -22,8 +22,7 @@ class _VPNScreenState extends State<VPNScreen> {
   bool isConnecting = false;
   int _secondsActive = 0;
   Timer? _timer;
-  String selectedProtocol = "OpenVPN"; // ⭐ ДОБАВЛЯЮ ПЕРЕМЕННУЮ
-  String selectedMode = "Stealth"; // ⭐ ДОБАВЛЯЮ ПЕРЕМЕННУЮ
+  String selectedLocation = "Frankfurt, Germany"; // 🎯 ТОЛЬКО ВЫБОР ЛОКАЦИИ
 
   void toggleConnection() async {
     if (isConnected) {
@@ -58,8 +57,8 @@ class _VPNScreenState extends State<VPNScreen> {
     return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 
-  // ⭐ ПОКАЗ ВЫБОРА ПРОТОКОЛА
-  void _showProtocolPicker() {
+  // 🎯 ВЫБОР ЛОКАЦИИ
+  void _showLocationPicker() {
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -75,68 +74,23 @@ class _VPNScreenState extends State<VPNScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Выберите протокол', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text('Select Server Location', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
-              ...['OpenVPN', 'WireGuard', 'IKEv2'].map((protocol) => 
+              ...['Frankfurt, Germany', 'Amsterdam, Netherlands', 'London, UK', 'Paris, France'].map((location) => 
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: GestureDetector(
                     onTap: () {
-                      setState(() => selectedProtocol = protocol);
+                      setState(() => selectedLocation = location);
                       Navigator.pop(context);
                     },
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: selectedProtocol == protocol ? Colors.blue : Colors.transparent,
+                        color: selectedLocation == location ? Colors.blue : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(protocol),
-                    ),
-                  ),
-                ),
-              ).toList(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ⭐ ПОКАЗ ВЫБОРА РЕЖИМА
-  void _showModePicker() {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark 
-                ? Colors.black.withOpacity(0.9)
-                : Colors.white.withOpacity(0.9),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Выберите режим', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              ...['Stealth', 'Standard'].map((mode) => 
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() => selectedMode = mode);
-                      Navigator.pop(context);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: selectedMode == mode ? Colors.blue : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(mode),
+                      child: Text(location),
                     ),
                   ),
                 ),
@@ -346,11 +300,11 @@ class _VPNScreenState extends State<VPNScreen> {
 
                   const SizedBox(height: 40),
 
-                  // Настройки VPN
-                  _glassTile(Icons.security, "Protocol", selectedProtocol, () => _showProtocolPicker()),
-                  _glassTile(Icons.speed, "Encryption", "AES-256", null),
-                  _glassTile(Icons.alt_route, "Tunneling Mode", selectedMode, () => _showModePicker()),
-                  _glassTile(Icons.public, "Location", "Frankfurt, Germany", null),
+                  // 🎯 УПРОЩЕННЫЕ НАСТРОЙКИ VPN
+                  _glassTile(Icons.vpn_lock, "Status", isConnected ? "Connected" : "Disconnected", null),
+                  _glassTile(Icons.public, "Location", selectedLocation, () => _showLocationPicker()),
+                  _glassTile(Icons.security, "Protocol", "OpenVPN (Hardcoded)", null),
+                  _glassTile(Icons.speed, "Encryption", "AES-256 (Hardcoded)", null),
                   
                   const SizedBox(height: 20),
                 ],
@@ -408,9 +362,8 @@ class _VPNScreenState extends State<VPNScreen> {
         
         return ListTile(
           title: Text(mode, style: TextStyle(color: isDark ? Colors.white : Colors.black)),
-          trailing: selectedMode == mode ? Icon(Icons.check, color: Colors.blue) : null,
+          trailing: mode == "Stealth" ? Icon(Icons.check, color: Colors.blue) : null, // 🎯 HARDCODED
           onTap: () {
-            setState(() => selectedMode = mode);
             Navigator.pop(context);
           },
         );

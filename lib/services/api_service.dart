@@ -33,12 +33,23 @@ class ApiService {
       final data = jsonDecode(response.body);
       
       if (response.statusCode == 201) {
-        // Сохраняем токен
-        await _secureStorage.write(key: _tokenKey, value: data['token']);
+        // 🎯 ПРАВИЛЬНЫЙ ПАРСИНГ ОТВЕТА БЭКЕНДА (КАК В LOGIN)
+        final token = data['token'] ?? data['data']?['token'];
+        final userData = data['user'] ?? data['data']?['user'];
+        
+        print('🔍 Register Token: $token'); // 🎯 DEBUG LOG
+        print('🔍 Register User Data: $userData'); // 🎯 DEBUG LOG
+        
+        if (token != null) {
+          await _secureStorage.write(key: _tokenKey, value: token);
+        } else {
+          print('🔍 REGISTER TOKEN NOT FOUND!'); // 🎯 TOKEN ERROR LOG
+        }
+        
         return {
           'success': true,
-          'user': data['user'],
-          'token': data['token'],
+          'user': userData,
+          'token': token,
         };
       } else if (response.statusCode == 400) {
         final errorData = jsonDecode(response.body);

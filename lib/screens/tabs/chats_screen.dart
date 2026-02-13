@@ -148,19 +148,54 @@ class _ChatsScreenState extends State<ChatsScreen> {
                   const SizedBox(width: 16),
                 ],
               ),
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    if (index < _customChats.length) {
-                      final chat = _customChats[index];
-                      return _buildCustomChatTile(chat, isDark);
-                    }
-                    final generatedIndex = index - _customChats.length;
-                    return _buildChatTile(generatedIndex, isDark);
-                  },
-                  childCount: _customChats.length + 20,
+              // 🎯 ПРОВЕРКА НА ПУСТЫЕ ЧАТЫ
+              if (_customChats.isEmpty) ...[
+                SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.chat_bubble_outline,
+                          size: 64,
+                          color: isDark ? Colors.white24 : Colors.black12,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No chats yet',
+                          style: TextStyle(
+                            color: isDark ? Colors.white54 : Colors.black45,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Create your first chat to get started',
+                          style: TextStyle(
+                            color: isDark ? Colors.white38 : Colors.black38,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+              ] else ...[
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      if (index < _customChats.length) {
+                        final chat = _customChats[index];
+                        return _buildCustomChatTile(chat, isDark);
+                      }
+                      // 🎯 УБИРАЕМ СТАТИЧЕСКИЙ СПИСОК - ТОЛЬКО ПОЛЬЗОВАТЕЛЬСКИЕ ЧАТЫ
+                      return null;
+                    },
+                    childCount: _customChats.length, // 🎯 ТОЛЬКО ПОЛЬЗОВАТЕЛЬСКИЕ ЧАТЫ
+                  ),
+                ),
+              ],
             ],
           ),
         ),
