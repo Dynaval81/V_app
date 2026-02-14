@@ -29,94 +29,17 @@ class AiryChatHeader extends StatelessWidget {
       floating: false,
       backgroundColor: Colors.transparent,
       elevation: 0,
-      flexibleSpace: _buildGlassmorphismHeader(context),
-      title: _buildTitle(context),
-      leading: _buildLeading(context),
-      actions: _buildActions(context),
-    );
-  }
-
-  /// 🎨 Build glassmorphism header background
-  Widget _buildGlassmorphismHeader(BuildContext context) {
-    return Container(
-      height: 100, // Extended height for proper blur
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFF000000), // Pure black at top
-            Color(0x1A000000), // Slightly transparent at bottom
-          ],
-        ),
-      ),
-      child: ClipRRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-          child: Container(
-            color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.7),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: Color(0xFF121212).withOpacity(0.1),
-                  width: 0.5,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// 📝 Build title with iOS/Telegram style
-  Widget _buildTitle(BuildContext context) {
-    return Text(
-      title,
-      style: AppTextStyles.h3.copyWith(
-        color: Color(0xFF121212),
-        fontSize: 32, // Large as requested
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.5,
-      ),
-    );
-  }
-
-  /// 🔙 Build leading widget (back button)
-  Widget? _buildLeading(BuildContext context) {
-    if (showBackButton) {
-      return IconButton(
-        icon: Icon(
-          Icons.arrow_back_ios_new,
+      title: Text(
+        title,
+        style: AppTextStyles.h3.copyWith(
           color: Color(0xFF121212),
-          size: 24,
+          fontSize: 32,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.5,
         ),
-        onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
-      );
-    }
-    return null;
-  }
-
-  /// 🔧 Build actions (edit button or custom action)
-  List<Widget> _buildActions(BuildContext context) {
-    final actions = <Widget>[];
-    
-    if (action != null) {
-      actions.add(action!);
-    } else if (onEditPressed != null) {
-      actions.add(
-        IconButton(
-          icon: Icon(
-            Icons.edit_note_rounded,
-            color: Color(0xFF121212),
-            size: 28, // Large as requested
-          ),
-          onPressed: onEditPressed,
-        ),
-      );
-    }
-    
-    return actions;
+      ),
+      centerTitle: true,
+    );
   }
 }
 

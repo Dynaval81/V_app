@@ -79,23 +79,6 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
                 },
               ),
               
-              // 🔍 Search bar (shown when searching)
-              if (_isSearching)
-                SliverToBoxAdapter(
-                  child: Container(
-                    margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                    child: AiryInputField(
-                      controller: _searchController,
-                      label: 'Search chats',
-                      hint: 'Type to search...',
-                      prefixIcon: Icons.search,
-                      onChanged: (value) {
-                        ref.read(chatProvider.notifier).searchChatRooms(value);
-                      },
-                    ),
-                  ),
-                ),
-              
               // 📱 Chat list
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -118,6 +101,25 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
                   ),
                 ),
               ),
+              
+              // TODO: Temporarily commented out for debugging
+              /*
+              // 🔍 Search bar (shown when searching)
+              if (_isSearching)
+                SliverToBoxAdapter(
+                  child: Container(
+                    margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                    child: AiryInputField(
+                      controller: _searchController,
+                      label: 'Search chats',
+                      hint: 'Type to search...',
+                      prefixIcon: Icons.search,
+                      onChanged: (value) {
+                        ref.read(chatProvider.notifier).searchChatRooms(value);
+                      },
+                    ),
+                  ),
+                ),
               
               // 📱 Loading indicator
               if (chatState.isLoading)
@@ -224,6 +226,7 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
                     ),
                   ),
                 ),
+              */
             ],
           ),
           
