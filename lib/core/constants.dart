@@ -1,0 +1,36 @@
+import 'package:flutter/material.dart';
+class AppColors {
+static const Color primary = Color(0xFF00A3FF);
+static const Color onPrimary = Colors.white;
+static const Color surface = Color(0xFFF8F9FA);
+static const Color onSurface = Color(0xFF121212);
+static const Color onSurfaceVariant = Color(0xFF757575);
+static const LinearGradient primaryGradient = LinearGradient(
+colors: [Color(0xFF00A3FF), Color(0xFF0066FF)],
+begin: Alignment.topLeft,
+end: Alignment.bottomRight,
+);
+}
+
+class AppTextStyles {
+static const TextStyle h3 = TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.onSurface);
+static const TextStyle body = TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: AppColors.onSurface);
+static const TextStyle button = TextStyle(fontSize: 16, fontWeight: FontWeight.w600);
+static const TextStyle input = TextStyle(fontSize: 16, color: AppColors.onSurface);
+}
+
+class AppSpacing {
+static const double screenPadding = 20.0;
+static const double buttonPadding = 16.0;
+static const double inputPadding = 12.0;
+}
+
+class AppBorderRadius {
+static const double button = 16.0;
+static const double input = 12.0;
+}
+
+class AppShadows {
+static const BoxShadow md = BoxShadow(color: Color(0x1A000000), blurRadius: 10, offset: Offset(0, 4));
+static const BoxShadow xl = BoxShadow(color: Color(0x26000000), blurRadius: 25, offset: Offset(0, 10));
+}

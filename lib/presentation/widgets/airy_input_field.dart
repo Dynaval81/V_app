@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/theme.dart';
+import '../../core/constants.dart';
 
 /// 📝 HAI3 Airy Input Field
 /// Generous padding and spacing for minimal, clean design
@@ -37,13 +37,14 @@ class AiryInputField extends StatelessWidget {
         // 📝 Label
         Text(
           label,
-          style: AppTextStyles.bodySmall.copyWith(
+          style: AppTextStyles.body.copyWith(
             color: AppColors.onSurface,
             fontWeight: FontWeight.w600,
+            fontSize: 14,
           ),
         ),
         
-        const SizedBox(height: AppSpacing.xs),
+        SizedBox(height: AppSpacing.inputPadding),
         
         // 📱 Input field
         Container(
@@ -51,7 +52,7 @@ class AiryInputField extends StatelessWidget {
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(AppBorderRadius.input),
             border: errorText != null
-                ? Border.all(color: AppColors.error, width: 2)
+                ? Border.all(color: Color(0xFFFF3B30), width: 2)
                 : Border.all(
                     color: AppColors.onSurface.withOpacity(0.2),
                     width: 1,
@@ -60,7 +61,7 @@ class AiryInputField extends StatelessWidget {
               BoxShadow(
                 color: Colors.black.withOpacity(0.1),
                 blurRadius: 8,
-                offset: const Offset(0, 2),
+                offset: Offset(0, 2),
               ),
             ],
           ),
@@ -77,6 +78,7 @@ class AiryInputField extends StatelessWidget {
               hintText: hint,
               hintStyle: AppTextStyles.input.copyWith(
                 color: AppColors.onSurfaceVariant.withOpacity(0.7),
+                fontSize: 14,
               ),
               prefixIcon: prefixIcon != null
                   ? Icon(
@@ -87,18 +89,19 @@ class AiryInputField extends StatelessWidget {
                   : null,
               suffixIcon: suffixIcon,
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.all(AppSpacing.inputPadding),
+              contentPadding: EdgeInsets.all(AppSpacing.inputPadding),
             ),
           ),
         ),
         
         // 🚨 Error text
         if (errorText != null) ...[
-          const SizedBox(height: AppSpacing.xs),
+          SizedBox(height: AppSpacing.inputPadding),
           Text(
             errorText!,
-            style: AppTextStyles.caption.copyWith(
-              color: AppColors.error,
+            style: AppTextStyles.body.copyWith(
+              color: Color(0xFFFF3B30),
+              fontSize: 12,
             ),
           ),
         ],

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/theme.dart';
+import '../../core/constants.dart';
 import '../../core/constants/app_constants.dart';
 
 /// 🎨 HAI3 Splash Screen with animated logo
@@ -71,7 +71,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Color(0xFF000000),
       body: Center(
         child: AnimatedBuilder(
           animation: _animationController,
@@ -85,10 +85,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   children: [
                     // 🎯 Logo with HAI3 styling
                     _buildLogo(),
-                    const SizedBox(height: AppSpacing.lg),
+                    SizedBox(height: AppSpacing.buttonPadding),
                     // 📝 App name with HAI3 typography
                     _buildAppName(),
-                    const SizedBox(height: AppSpacing.xxl),
+                    SizedBox(height: AppSpacing.buttonPadding * 3),
                     // 🔄 Loading indicator with HAI3 colors
                     _buildLoadingIndicator(),
                   ],
@@ -101,22 +101,25 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
   }
 
-  /// 🎯 Build animated logo
+  /// Build animated logo
   Widget _buildLogo() {
     return Container(
       width: 80,
       height: 80,
       decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.circular(AppBorderRadius.lg),
+        gradient: LinearGradient(
+              colors: [Color(0xFF00A3FF), Color(0xFF0066FF)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+        borderRadius: BorderRadius.circular(AppBorderRadius.button),
         boxShadow: [
           AppShadows.md,
-          AppShadows.xl,
         ],
       ),
       child: const Icon(
         Icons.chat_bubble_outline,
-        color: AppColors.onPrimary,
+        color: Color(0xFFFFFFFF),
         size: 40,
       ),
     );
@@ -126,8 +129,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Widget _buildAppName() {
     return Text(
       AppConstants.appName,
-      style: AppTextStyles.h2.copyWith(
-        color: AppColors.onSurface,
+      style: AppTextStyles.h3.copyWith(
+        color: Color(0xFF121212),
         fontWeight: FontWeight.w800,
         letterSpacing: 2.0,
       ),
@@ -141,8 +144,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       height: 24,
       child: CircularProgressIndicator(
         strokeWidth: 2,
-        valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-        backgroundColor: AppColors.onSurface.withOpacity(0.2),
+        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00A3FF)),
+        backgroundColor: Color(0xFF121212).withOpacity(0.2),
       ),
     );
   }

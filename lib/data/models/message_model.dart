@@ -1,3 +1,21 @@
+enum MessageType {
+  text,
+  image,
+  video,
+  audio,
+  file,
+  sticker,
+  system,
+}
+
+enum MessageStatus {
+  sending,
+  sent,
+  delivered,
+  read,
+  failed,
+}
+
 class MessageModel {
   final String id;
   final String text;
@@ -9,12 +27,18 @@ class MessageModel {
   final List<String>? urls;
   final String? imageUrl;
   final MessageType type;
+  final MessageStatus status;
+  final bool isRead;
+  final String? senderId;
 
   MessageModel({
     required this.id,
     required this.text,
-    required this.isMe,
+    this.isMe = false,
     required this.timestamp,
+    required this.status,
+    required this.senderId,
+    this.isRead = false,
     this.reactions,
     this.replyTo,
     this.isDeleted = false,
@@ -27,8 +51,14 @@ class MessageModel {
     return MessageModel(
       id: json['id'] as String,
       text: json['text'] as String,
-      isMe: json['isMe'] as bool,
+      isMe: json['isMe'] as bool? ?? false,
       timestamp: DateTime.parse(json['timestamp'] as String),
+      status: MessageStatus.values.firstWhere(
+        (e) => e.toString() == 'MessageStatus.${json['status']}',
+        orElse: () => MessageStatus.sent,
+      ),
+      senderId: json['senderId'] as String?,
+      isRead: json['isRead'] as bool? ?? false,
       reactions: (json['reactions'] as Map<String, dynamic>?)?.cast<String, int>(),
       replyTo: json['replyTo'] != null 
         ? MessageModel.fromJson(json['replyTo'] as Map<String, dynamic>)
@@ -49,6 +79,9 @@ class MessageModel {
       'text': text,
       'isMe': isMe,
       'timestamp': timestamp.toIso8601String(),
+      'status': status.toString().split('.').last,
+      'senderId': senderId,
+      'isRead': isRead,
       'reactions': reactions,
       'replyTo': replyTo?.toJson(),
       'isDeleted': isDeleted,
@@ -75,12 +108,18 @@ class MessageModel {
     List<String>? urls,
     String? imageUrl,
     MessageType? type,
+    MessageStatus? status,
+    bool? isRead,
+    String? senderId,
   }) {
     return MessageModel(
       id: id ?? this.id,
       text: text ?? this.text,
       isMe: isMe ?? this.isMe,
       timestamp: timestamp ?? this.timestamp,
+      status: status ?? this.status,
+      senderId: senderId ?? this.senderId,
+      isRead: isRead ?? this.isRead,
       reactions: reactions ?? this.reactions,
       replyTo: replyTo ?? this.replyTo,
       isDeleted: isDeleted ?? this.isDeleted,
@@ -89,14 +128,4 @@ class MessageModel {
       type: type ?? this.type,
     );
   }
-}
-
-enum MessageType {
-  text,
-  image,
-  video,
-  audio,
-  file,
-  sticker,
-  system,
 }

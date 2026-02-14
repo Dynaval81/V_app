@@ -140,7 +140,7 @@ class AiryChatListItem extends ConsumerWidget {
                         child: Text(
                           unreadCount > 99 ? '99+' : unreadCount.toString(),
                           style: AppTextStyles.caption.copyWith(
-                            color: AppColors.onPrimary,
+                            color: Colors.white,
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
                           ),
@@ -178,7 +178,7 @@ class AiryChatListItem extends ConsumerWidget {
             child: Text(
               _getInitials(title),
               style: AppTextStyles.h3.copyWith(
-                color: AppColors.onPrimary,
+                color: Colors.white,
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
               ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/theme.dart';
+import '../../core/constants.dart';
 
 /// 🔘 HAI3 Airy Button
 /// Bright blue accent with generous padding and smooth animations
@@ -43,9 +43,9 @@ class AiryButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppBorderRadius.button),
           ),
-          padding: const EdgeInsets.symmetric(
+          padding: EdgeInsets.symmetric(
             horizontal: AppSpacing.buttonPadding,
-            vertical: AppSpacing.md,
+            vertical: AppSpacing.inputPadding,
           ),
         ),
         child: isLoading
@@ -62,7 +62,7 @@ class AiryButton extends StatelessWidget {
       height: 20,
       child: CircularProgressIndicator(
         strokeWidth: 2,
-        valueColor: const AlwaysStoppedAnimation<Color>(AppColors.onPrimary),
+        valueColor: AlwaysStoppedAnimation<Color>(AppColors.onPrimary),
         backgroundColor: AppColors.onPrimary.withOpacity(0.3),
       ),
     );
@@ -76,7 +76,7 @@ class AiryButton extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           icon!,
-          const SizedBox(width: AppSpacing.sm),
+          SizedBox(width: AppSpacing.inputPadding),
           Text(
             text,
             style: AppTextStyles.button.copyWith(

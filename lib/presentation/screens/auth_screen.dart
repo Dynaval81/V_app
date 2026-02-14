@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/theme.dart';
+import '../../core/constants.dart';
 import '../../core/constants/app_constants.dart';
 import '../widgets/airy_input_field.dart';
 import '../widgets/airy_button.dart';
@@ -46,21 +46,21 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Color(0xFF000000),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.screenPadding),
+          padding: EdgeInsets.all(AppSpacing.screenPadding),
           child: Column(
             children: [
               // 🎯 Logo and title
               _buildHeader(),
               
-              const SizedBox(height: AppSpacing.xxl),
+              SizedBox(height: AppSpacing.buttonPadding * 3),
               
               // 📝 Tab bar for Login/Register
               _buildTabBar(),
               
-              const SizedBox(height: AppSpacing.lg),
+              SizedBox(height: AppSpacing.buttonPadding),
               
               // 📱 Form content
               Expanded(
@@ -88,36 +88,41 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
           width: 60,
           height: 60,
           decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
-            borderRadius: BorderRadius.circular(AppBorderRadius.md),
+            gradient: LinearGradient(
+              colors: [Color(0xFF00A3FF), Color(0xFF0066FF)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(AppBorderRadius.input),
             boxShadow: [AppShadows.md],
           ),
           child: const Icon(
             Icons.chat_bubble_outline,
-            color: AppColors.onPrimary,
+            color: Colors.white,
             size: 30,
           ),
         ),
         
-        const SizedBox(height: AppSpacing.md),
+        SizedBox(height: AppSpacing.inputPadding),
         
         // 📝 App name
         Text(
           AppConstants.appName,
           style: AppTextStyles.h3.copyWith(
-            color: AppColors.onSurface,
+            color: Color(0xFF121212),
             fontWeight: FontWeight.w700,
             letterSpacing: 1.5,
           ),
         ),
         
-        const SizedBox(height: AppSpacing.sm),
+        SizedBox(height: AppSpacing.inputPadding / 2),
         
         // 📝 Tagline
         Text(
           'Secure messaging redefined',
-          style: AppTextStyles.bodySmall.copyWith(
-            color: AppColors.onSurfaceVariant,
+          style: AppTextStyles.body.copyWith(
+            color: Color(0xFF757575),
+            fontSize: 14,
           ),
         ),
       ],
@@ -128,20 +133,24 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
   Widget _buildTabBar() {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppBorderRadius.md),
+        color: Color(0xFFF8F9FA),
+        borderRadius: BorderRadius.circular(AppBorderRadius.input),
       ),
       child: TabBar(
         controller: _tabController,
         indicator: BoxDecoration(
-          gradient: AppColors.primaryGradient,
-          borderRadius: BorderRadius.circular(AppBorderRadius.md),
+          gradient: LinearGradient(
+              colors: [Color(0xFF00A3FF), Color(0xFF0066FF)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          borderRadius: BorderRadius.circular(AppBorderRadius.input),
         ),
-        labelColor: AppColors.onPrimary,
-        unselectedLabelColor: AppColors.onSurfaceVariant,
+        labelColor: Colors.white,
+        unselectedLabelColor: Color(0xFF757575),
         labelStyle: AppTextStyles.button,
         unselectedLabelStyle: AppTextStyles.button.copyWith(
-          color: AppColors.onSurfaceVariant,
+          color: Color(0xFF757575),
         ),
         indicatorSize: TabBarIndicatorSize.tab,
         dividerColor: Colors.transparent,
@@ -166,7 +175,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
           prefixIcon: Icons.email_outlined,
         ),
         
-        const SizedBox(height: AppSpacing.md),
+        SizedBox(height: AppSpacing.inputPadding),
         
         // 🔒 Password field
         AiryInputField(
@@ -178,7 +187,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
           suffixIcon: IconButton(
             icon: Icon(
               _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
-              color: AppColors.onSurfaceVariant,
+              color: Color(0xFF757575),
             ),
             onPressed: () {
               setState(() {
@@ -188,7 +197,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
           ),
         ),
         
-        const SizedBox(height: AppSpacing.sm),
+        SizedBox(height: AppSpacing.inputPadding / 2),
         
         // 📝 Remember me checkbox
         Row(
@@ -203,8 +212,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
             ),
             Text(
               'Remember me',
-              style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.onSurfaceVariant,
+              style: AppTextStyles.body.copyWith(
+                color: Color(0xFF757575),
+                fontSize: 14,
               ),
             ),
             const Spacer(),
@@ -214,16 +224,17 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
               },
               child: Text(
                 'Forgot password?',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.primary,
+                style: AppTextStyles.body.copyWith(
+                  color: Color(0xFF00A3FF),
                   fontWeight: FontWeight.w600,
+                  fontSize: 14,
                 ),
               ),
             ),
           ],
         ),
         
-        const SizedBox(height: AppSpacing.lg),
+        SizedBox(height: AppSpacing.buttonPadding),
         
         // 🔐 Login button
         AiryButton(
@@ -248,7 +259,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
           prefixIcon: Icons.person_outline,
         ),
         
-        const SizedBox(height: AppSpacing.md),
+        SizedBox(height: AppSpacing.inputPadding),
         
         // 📧 Email field
         AiryInputField(
@@ -259,7 +270,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
           prefixIcon: Icons.email_outlined,
         ),
         
-        const SizedBox(height: AppSpacing.md),
+        SizedBox(height: AppSpacing.inputPadding),
         
         // 🔒 Password field
         AiryInputField(
@@ -271,7 +282,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
           suffixIcon: IconButton(
             icon: Icon(
               _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
-              color: AppColors.onSurfaceVariant,
+              color: Color(0xFF757575),
             ),
             onPressed: () {
               setState(() {
@@ -281,7 +292,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
           ),
         ),
         
-        const SizedBox(height: AppSpacing.md),
+        SizedBox(height: AppSpacing.inputPadding),
         
         // 🔒 Confirm password field
         AiryInputField(
@@ -293,7 +304,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
           suffixIcon: IconButton(
             icon: Icon(
               _isConfirmPasswordVisible ? Icons.visibility_off : Icons.visibility,
-              color: AppColors.onSurfaceVariant,
+              color: Color(0xFF757575),
             ),
             onPressed: () {
               setState(() {
@@ -303,7 +314,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
           ),
         ),
         
-        const SizedBox(height: AppSpacing.lg),
+        SizedBox(height: AppSpacing.buttonPadding),
         
         // 📝 Register button
         AiryButton(
@@ -390,10 +401,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: AppColors.error,
+        backgroundColor: Color(0xFFFF3B30),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppBorderRadius.md),
+          borderRadius: BorderRadius.circular(AppBorderRadius.input),
         ),
       ),
     );
@@ -404,10 +415,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: AppColors.success,
+        backgroundColor: Color(0xFF30D158),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppBorderRadius.md),
+          borderRadius: BorderRadius.circular(AppBorderRadius.input),
         ),
       ),
     );

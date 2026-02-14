@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/message_model.dart';
-import '../models/chat_room.dart';
+import '../../data/models/message_model.dart';
+import '../../data/models/chat_room.dart';
 import '../services/chat_service.dart';
 import '../../data/models/user_model.dart';
 

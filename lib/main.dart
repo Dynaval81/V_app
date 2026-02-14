@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'core/theme.dart';
+import 'core/constants.dart';
 import 'core/constants/app_constants.dart';
 import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/auth_screen.dart';
@@ -30,8 +30,22 @@ class VTalkApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       
       // 🎨 HAI3 Theme Configuration
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      theme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.light,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Color(0xFF00A3FF),
+          brightness: Brightness.light,
+        ),
+      ),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Color(0xFF00A3FF),
+          brightness: Brightness.dark,
+        ),
+      ),
       themeMode: ThemeMode.dark, // 🌑 Dark theme by default (HAI3)
       
       // 🧭 GoRouter Configuration
@@ -95,9 +109,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       // 🔒 VPN (Placeholder)
       GoRoute(
         path: AppRoutes.vpn,
-        builder: (context, state) => const _ComingSoonScreen(
-          title: 'VPN',
-          message: 'VPN features coming soon...',
+        builder: (context, state) => Scaffold(
+          backgroundColor: Colors.white,
+          body: Center(
+            child: Text(
+              'V-Talk Beta - Ready!',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+          ),
         ),
       ),
       
@@ -139,7 +162,7 @@ class _ComingSoonScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Color(0xFF000000),
       appBar: AppBar(
         title: Text(title),
         backgroundColor: Colors.transparent,
@@ -157,7 +180,7 @@ class _ComingSoonScreen extends ConsumerWidget {
                 height: 80,
                 decoration: BoxDecoration(
                   gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(AppBorderRadius.lg),
+                  borderRadius: BorderRadius.circular(AppBorderRadius.button),
                   boxShadow: [AppShadows.md],
                 ),
                 child: const Icon(
@@ -167,7 +190,7 @@ class _ComingSoonScreen extends ConsumerWidget {
                 ),
               ),
               
-              const SizedBox(height: AppSpacing.lg),
+              SizedBox(height: AppSpacing.buttonPadding),
               
               // 📝 Title
               Text(
@@ -178,7 +201,7 @@ class _ComingSoonScreen extends ConsumerWidget {
                 ),
               ),
               
-              const SizedBox(height: AppSpacing.md),
+              SizedBox(height: AppSpacing.inputPadding),
               
               // 📝 Message
               Text(
@@ -189,7 +212,7 @@ class _ComingSoonScreen extends ConsumerWidget {
                 textAlign: TextAlign.center,
               ),
               
-              const SizedBox(height: AppSpacing.xl),
+              SizedBox(height: AppSpacing.buttonPadding * 3),
               
               // 🔙 Back button
               AiryButton(
@@ -216,7 +239,7 @@ class _ErrorScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Color(0xFF000000),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.screenPadding),
@@ -228,17 +251,17 @@ class _ErrorScreen extends ConsumerWidget {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: AppColors.error.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(AppBorderRadius.lg),
+                  color: Color(0xFFFF3B30).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppBorderRadius.button),
                 ),
                 child: const Icon(
                   Icons.error_outline,
-                  color: AppColors.error,
+                  color: Color(0xFFFF3B30),
                   size: 40,
                 ),
               ),
               
-              const SizedBox(height: AppSpacing.lg),
+              SizedBox(height: AppSpacing.buttonPadding),
               
               // 📝 Error Title
               Text(
@@ -249,7 +272,7 @@ class _ErrorScreen extends ConsumerWidget {
                 ),
               ),
               
-              const SizedBox(height: AppSpacing.md),
+              SizedBox(height: AppSpacing.inputPadding),
               
               // 📝 Error Message
               Text(
@@ -260,7 +283,7 @@ class _ErrorScreen extends ConsumerWidget {
                 textAlign: TextAlign.center,
               ),
               
-              const SizedBox(height: AppSpacing.xl),
+              SizedBox(height: AppSpacing.buttonPadding * 3),
               
               // 🔄 Retry button
               AiryButton(

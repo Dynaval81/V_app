@@ -1,6 +1,7 @@
 import 'dart:convert';
-import '../models/message_model.dart';
-import '../models/chat_room.dart';
+import '../../data/models/message_model.dart';
+import '../../data/models/chat_room.dart';
+import '../constants.dart';
 
 /// 📱 Chat Service - L1 Core Business Logic
 /// Pure Dart - no UI dependencies
@@ -151,15 +152,23 @@ class ChatService {
     }).length;
   }
 
-  /// 📝 Mark messages as read
-  void markMessagesAsRead(ChatRoom chatRoom, String currentUserId) {
+  /// 📝 Mark messages as read - returns updated messages list
+  List<MessageModel> markMessagesAsRead(ChatRoom chatRoom, String currentUserId) {
     final messages = chatRoom.messages ?? [];
-    for (final message in messages) {
-      if (!message.isRead && message.senderId != currentUserId) {
-        message.isRead = true;
-        message.status = MessageStatus.read;
+    final updatedMessages = <MessageModel>[];
+    
+    for (final msg in messages) {
+      if (!msg.isRead && msg.senderId != currentUserId) {
+        updatedMessages.add(msg.copyWith(
+          isRead: true,
+          status: MessageStatus.read,
+        ));
+      } else {
+        updatedMessages.add(msg);
       }
     }
+    
+    return updatedMessages;
   }
 
   /// 📝 Validate message before sending
