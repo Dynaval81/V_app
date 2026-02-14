@@ -8,6 +8,11 @@
 .pub/
 build/
 
+# Environment variables and secrets
+*.env
+.env.*
+google-services.json
+
 # Android related
 **/android/**/gradle-wrapper.jar
 **/android/.gradle

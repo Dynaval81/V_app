@@ -3,7 +3,11 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiService {
-  static const String _baseUrl = 'https://hypermax.duckdns.org/api/v1'; // 🎯 НОВЫЙ ДОМЕН БЕЗ СЛЭША
+  // Используем переменную окружения для базового URL
+  static const String _baseUrl = String.fromEnvironment(
+    'BASE_URL',
+    defaultValue: 'https://hypermax.duckdns.org/api/v1',
+  );
   static const String _tokenKey = 'auth_token';
   static const Duration _timeout = Duration(seconds: 30); // ⭐ ТАЙМАУТ 30 СЕКУНД
   
@@ -37,13 +41,8 @@ class ApiService {
         final token = data['token'] ?? data['data']?['token'];
         final userData = data['user'] ?? data['data']?['user'];
         
-        print('🔍 Register Token: $token'); // 🎯 DEBUG LOG
-        print('🔍 Register User Data: $userData'); // 🎯 DEBUG LOG
-        
         if (token != null) {
           await _secureStorage.write(key: _tokenKey, value: token);
-        } else {
-          print('🔍 REGISTER TOKEN NOT FOUND!'); // 🎯 TOKEN ERROR LOG
         }
         
         return {
@@ -111,23 +110,13 @@ class ApiService {
 
       final data = jsonDecode(response.body);
       
-      print('🔍 DEBUG LOGIN RESPONSE: ${response.body}'); // 🎯 DETAILED RESPONSE LOG
-      print('🔍 DECODED DATA: $data'); // 🎯 DECODED JSON LOG
-      print('🔍 TOKEN LOCATION: ${data['token']}'); // 🎯 TOKEN LOCATION LOG
-      print('🔍 USER DATA: ${data['user']}'); // 🎯 USER DATA LOG
-      
       if (response.statusCode == 200) {
         // 🎯 ПРАВИЛЬНЫЙ ПАРСИНГ ОТВЕТА БЭКЕНДА
         final token = data['token'] ?? data['data']?['token'];
         final userData = data['user'] ?? data['data']?['user'];
         
-        print('🔍 FINAL TOKEN: $token'); // 🎯 FINAL TOKEN LOG
-        print('🔍 FINAL USER DATA: $userData'); // 🎯 FINAL USER DATA LOG
-        
         if (token != null) {
           await _secureStorage.write(key: _tokenKey, value: token);
-        } else {
-          print('🔍 TOKEN NOT FOUND IN RESPONSE!'); // 🎯 TOKEN ERROR LOG
         }
         
         return {
@@ -287,9 +276,6 @@ class ApiService {
 
       final data = jsonDecode(response.body);
       
-      print('🔍 getUserData Server Response: ${response.body}'); // 🎯 DEBUG PRINT
-      print('🔍 getUserData Status Code: ${response.statusCode}'); // 🎯 DEBUG PRINT
-      
       if (response.statusCode == 200) {
         final userJson = data['data']?['user'] ?? data['user'];
         return {
@@ -332,10 +318,6 @@ class ApiService {
       ).timeout(_timeout);
 
       final data = jsonDecode(response.body);
-
-      print('🔍 Search Users Request URI: $uri');
-      print('🔍 Search Users Response: ${response.body}'); // 🎯 DEBUG PRINT
-      print('🔍 Search Users Status Code: ${response.statusCode}'); // 🎯 DEBUG PRINT
 
       if (response.statusCode == 200) {
         // поддерживаем обе возможные структуры ответа
