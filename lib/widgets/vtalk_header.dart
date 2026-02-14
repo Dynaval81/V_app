@@ -120,15 +120,21 @@ class _VtalkHeaderState extends State<VtalkHeader>
       title: Row(
         children: [
           // 🚨 НОВОЕ: Актуальный ассет логотипа
-          Image.asset(
-            'assets/images/app_logo_classic.png',
-            height: 32,
-            width: 32,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) {
-              // Fallback к иконке если логотип не загрузится
-              return const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32);
-            },
+          ColorFiltered(
+            colorFilter: ColorFilter.mode(
+              Theme.of(context).textTheme.bodyLarge?.color ?? Colors.blueAccent,
+              BlendMode.srcIn,
+            ),
+            child: Image.asset(
+              'assets/images/app_logo_classic.png',
+              height: 32,
+              width: 32,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                // Fallback к иконке если логотип не загрузится
+                return Icon(Icons.blur_on, color: Colors.blueAccent, size: 32);
+              },
+            ),
           ),
           const SizedBox(width: 8),
           Flexible(  // ✅ Добавили Flexible чтобы текст не переполнял
@@ -137,7 +143,8 @@ class _VtalkHeaderState extends State<VtalkHeader>
               child: Text(
                 widget.title.toUpperCase(), 
                 style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black,
+                  // 🚨 НОВОЕ: Синхронизация цветов с BottomNavigationBar
+                  color: isDark ? Colors.white54 : Colors.black54,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 2,
                   fontSize: 20,

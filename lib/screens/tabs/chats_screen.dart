@@ -9,6 +9,7 @@ import '../../services/auth_service.dart';
 import '../../services/api_service.dart';
 import '../../theme_provider.dart';
 import '../../constants/app_constants.dart';
+import '../../providers/user_provider.dart';
 import '../chat_room_screen.dart';
 import '../account_settings_screen.dart';
 
@@ -910,6 +911,10 @@ Widget _buildMenuOption({
                                 if (result['success'] == true) {
                                   final roomId = result['roomId']?.toString() ?? '';
                                   Navigator.pop(context); // close dialog
+                                  
+                                  // 🚨 НОВОЕ: Обновляем список чатов после создания
+                                  _loadChatRooms();
+                                  
                                   Navigator.push(
                                     context,
                                     CupertinoPageRoute(builder: (context) => ChatRoomScreen(

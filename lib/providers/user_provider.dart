@@ -20,7 +20,29 @@ class UserProvider with ChangeNotifier {
   void setUser(User user) {
     _user = user;
     _error = null;
+    
+    // 🚨 НОВОЕ: Автоматическое создание чата с самим собой при первой авторизации
+    _createSavedMessagesChat(user);
+    
     notifyListeners();
+  }
+
+  // 🚨 НОВОЕ: Создание чата "Saved Messages"
+  Future<void> _createSavedMessagesChat(User user) async {
+    try {
+      final api = ApiService();
+      final result = await api.createChat(
+        name: "Saved Messages",
+        isGroup: false,
+        participantIds: [user.id], // Только сам пользователь
+      );
+      
+      if (result['success'] != true) {
+        print('Failed to create Saved Messages chat: ${result['error']}');
+      }
+    } catch (e) {
+      print('Error creating Saved Messages chat: $e');
+    }
   }
 
   void setLoading(bool loading) {
@@ -156,7 +178,7 @@ class UserProvider with ChangeNotifier {
   }
 
   /// Convenience method named explicitly for logout semantics.
-  Future<void> logout() async {
+  Future<void> logout({BuildContext? context}) async {
     _isLoading = true;
     notifyListeners();
 
@@ -167,12 +189,23 @@ class UserProvider with ChangeNotifier {
       _error = null;          // Обнуляем ошибки
       _isLoading = false;     // Выключаем "колесо"
       notifyListeners();      // Сообщаем приложению, что мы вышли
+      
+      // 🚨 НОВОЕ: Принудительный переход на экран логина
+      if (context != null) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+      }
     } catch (e) {
       _user = null;           // Гарантируем обнуление при ошибке
       _token = null;          // Гарантируем обнуление при ошибке
       _error = null;          // Гарантируем обнуление при ошибке
       _isLoading = false;
       notifyListeners();
+      
+      // 🚨 НОВОЕ: Принудительный переход на экран логина даже при ошибке
+      if (context != null) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+      }
+      
       rethrow;
     }
   }

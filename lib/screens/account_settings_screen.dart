@@ -551,12 +551,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                     onPressed: () async {
                                       Navigator.pop(ctx);
                                       final userProvider = Provider.of<UserProvider>(context, listen: false);
-                                      await userProvider.logout(); // use explicit logout method
-                                      Navigator.pushNamedAndRemoveUntil(
-                                        context,
-                                        '/login',
-                                        (route) => false,
-                                      );
+                                      // 🚨 НОВОЕ: Передаем context в logout для принудительного перехода
+                                      await userProvider.logout(context: context);
                                     },
                                     child: const Text(
                                       'Log Out',

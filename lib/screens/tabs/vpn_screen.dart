@@ -239,95 +239,111 @@ class _VPNScreenState extends State<VPNScreen> {
                     if (_splitTunneling)
                       Column(
                         children: [
-                          // 🚨 НОВОЕ: Раздел "Сайты" как в Amnezia
+                          // 🚨 НОВОЕ: Split Tunneling под ExpansionTile
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                             child: GlassKit.liquidGlass(
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                              child: ExpansionTile(
+                                title: Row(
                                   children: [
-                                    Row(
-                                      children: [
-                                        Icon(Icons.language, color: Colors.blueAccent, size: 20),
-                                        const SizedBox(width: 8),
-                                        Text('Сайты', style: TextStyle(
-                                          color: isDark ? Colors.white : Colors.black,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 16,
-                                        )),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 12),
-                                    TextField(
-                                      controller: _sitesController,
-                                      decoration: InputDecoration(
-                                        hintText: 'example.com, site.org',
-                                        hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8),
-                                          borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.black12),
-                                        ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8),
-                                          borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.black12),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8),
-                                          borderSide: BorderSide(color: Colors.blueAccent),
-                                        ),
-                                      ),
-                                      style: TextStyle(color: isDark ? Colors.white : Colors.black),
-                                      maxLines: 3,
-                                    ),
+                                    Icon(Icons.tune, color: Colors.greenAccent, size: 20),
+                                    const SizedBox(width: 8),
+                                    Text('Split Tunneling', style: TextStyle(
+                                      color: isDark ? Colors.white : Colors.black,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16,
+                                    )),
                                   ],
                                 ),
-                              ),
-                            ),
-                          ),
-                          
-                          // 🚨 НОВОЕ: Раздел "Приложения" как в Amnezia
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                            child: GlassKit.liquidGlass(
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
+                                tilePadding: EdgeInsets.zero,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Icon(Icons.apps, color: Colors.greenAccent, size: 20),
-                                        const SizedBox(width: 8),
-                                        Text('Приложения', style: TextStyle(
-                                          color: isDark ? Colors.white : Colors.black,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 16,
-                                        )),
+                                        // 🚨 НОВОЕ: Раздел "Сайты" как в Amnezia
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Icon(Icons.language, color: Colors.blueAccent, size: 20),
+                                                const SizedBox(width: 8),
+                                                Text('Сайты', style: TextStyle(
+                                                  color: isDark ? Colors.white : Colors.black,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 16,
+                                                )),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 12),
+                                            TextField(
+                                              controller: _sitesController,
+                                              decoration: InputDecoration(
+                                                hintText: 'example.com, site.org',
+                                                hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
+                                                border: OutlineInputBorder(
+                                                  borderRadius: BorderRadius.circular(8),
+                                                  borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.black12),
+                                                ),
+                                                enabledBorder: OutlineInputBorder(
+                                                  borderRadius: BorderRadius.circular(8),
+                                                  borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.black12),
+                                                ),
+                                                focusedBorder: OutlineInputBorder(
+                                                  borderRadius: BorderRadius.circular(8),
+                                                  borderSide: BorderSide(color: Colors.blueAccent),
+                                                ),
+                                              ),
+                                              style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                                              maxLines: 3,
+                                            ),
+                                          ],
+                                        ),
+                                        
+                                        const SizedBox(height: 20),
+                                        
+                                        // 🚨 НОВОЕ: Раздел "Приложения" как в Amnezia
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Icon(Icons.apps, color: Colors.greenAccent, size: 20),
+                                                const SizedBox(width: 8),
+                                                Text('Приложения', style: TextStyle(
+                                                  color: isDark ? Colors.white : Colors.black,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 16,
+                                                )),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 12),
+                                            ..._availableApps.map((app) {
+                                              final selected = _selectedApps.contains(app);
+                                              return CheckboxListTile(
+                                                title: Text(app, style: TextStyle(color: isDark ? Colors.white : Colors.black)),
+                                                value: selected,
+                                                onChanged: (v) {
+                                                  setState(() {
+                                                    if (v == true)
+                                                      _selectedApps.add(app);
+                                                    else
+                                                      _selectedApps.remove(app);
+                                                  });
+                                                },
+                                                activeColor: Colors.blueAccent,
+                                                checkColor: Colors.white,
+                                                contentPadding: EdgeInsets.zero,
+                                              );
+                                            }).toList(),
+                                          ],
+                                        ),
                                       ],
                                     ),
-                                    const SizedBox(height: 12),
-                                    ..._availableApps.map((app) {
-                                      final selected = _selectedApps.contains(app);
-                                      return CheckboxListTile(
-                                        title: Text(app, style: TextStyle(color: isDark ? Colors.white : Colors.black)),
-                                        value: selected,
-                                        onChanged: (v) {
-                                          setState(() {
-                                            if (v == true)
-                                              _selectedApps.add(app);
-                                            else
-                                              _selectedApps.remove(app);
-                                          });
-                                        },
-                                        activeColor: Colors.blueAccent,
-                                        checkColor: Colors.white,
-                                        contentPadding: EdgeInsets.zero,
-                                      );
-                                    }).toList(),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -348,16 +364,28 @@ class _VPNScreenState extends State<VPNScreen> {
                                 children: [
                                   Icon(Icons.dns, color: Colors.orangeAccent, size: 20),
                                   const SizedBox(width: 8),
-                                  Text(
-                                    isConnected 
-                                      ? 'Текущий сервер: $_selectedServer' 
-                                      : 'Выберите сервер',
-                                    style: TextStyle(
-                                      color: isDark ? Colors.white : Colors.black,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 16,
+                                  // 🚨 НОВОЕ: Только [Icon] Auto [Arrow Down] без текста
+                                  if (!isConnected) ...[
+                                    Text(
+                                      'Auto',
+                                      style: TextStyle(
+                                        color: isDark ? Colors.white : Colors.black,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16,
+                                      ),
                                     ),
-                                  ),
+                                    const SizedBox(width: 8),
+                                    Icon(Icons.keyboard_arrow_down, color: isDark ? Colors.white54 : Colors.black54),
+                                  ] else ...[
+                                    Text(
+                                      _selectedServer,
+                                      style: TextStyle(
+                                        color: isDark ? Colors.white : Colors.black,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
                                   if (isConnected) ...[
                                     const SizedBox(width: 12),
                                     Container(
