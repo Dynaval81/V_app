@@ -31,11 +31,39 @@ class AiryChatHeader extends StatelessWidget {
       floating: false,
       backgroundColor: Colors.transparent,
       elevation: 0,
-      expandedHeight: 120, // Increased to 120 for better proportions
+      expandedHeight: 120.0, // Set to 120.0 for proper proportions
       flexibleSpace: FlexibleSpaceBar(
         background: _buildGlassmorphismBackground(context),
       ),
-      title: _buildTitle(context),
+      title: Row(
+        children: [
+          // 👤 User avatar (32x32)
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: theme.colorScheme.primary.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Center(
+              child: Icon(
+                Icons.person,
+                color: theme.colorScheme.primary,
+                size: 18,
+              ),
+            ),
+          ),
+          
+          const SizedBox(width: 12),
+          
+          // 📝 Title
+          _buildTitle(context),
+        ],
+      ),
       centerTitle: false, // Title to the left
       leading: _buildLeading(context),
       actions: _buildActions(context),

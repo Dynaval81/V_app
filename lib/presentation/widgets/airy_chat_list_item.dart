@@ -109,24 +109,30 @@ class AiryChatListItem extends ConsumerWidget {
                   ),
                 ),
                 
-                // 🔔 Unread indicator and status
+                const SizedBox(width: 12),
+                
+                // 🏰 Trailing widget with structured Column
                 Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // 📝 Message status icon
+                    // ⏰ Timestamp (top element)
                     if (lastMessage != null)
                       Text(
-                        chatService.getMessageStatusIcon(lastMessage!.status),
-                        style: const TextStyle(
-                          fontSize: 12,
+                        chatService.formatMessageTime(lastMessage!.timestamp),
+                        style: AppTextStyles.body.copyWith(
+                          color: Color(0xFF757575), // Grey, font size 12-13
+                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                     
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 4), // ONLY spacer between time and status
                     
-                    // 🔴 Unread count badge
-                    if (showUnreadIndicator && unreadCount > 0)
+                    // 🔴 Status indicator (bottom element)
+                    if (showUnreadIndicator)
+                      // Unread count badge
                       Container(
                         constraints: const BoxConstraints(
                           minWidth: 20,
@@ -146,6 +152,27 @@ class AiryChatListItem extends ConsumerWidget {
                           ),
                           textAlign: TextAlign.center,
                         ),
+                      )
+                    else if (lastMessage != null)
+                      // Message status indicators
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (lastMessage!.isRead)
+                            // Two blue checkmarks (read)
+                            Icon(
+                              Icons.done_all,
+                              color: Color(0xFF00A3FF),
+                              size: 16,
+                            )
+                          else
+                            // One grey checkmark (sent but not read)
+                            Icon(
+                              Icons.done,
+                              color: Color(0xFF757575),
+                              size: 16,
+                            ),
+                        ],
                       ),
                   ],
                 ),
