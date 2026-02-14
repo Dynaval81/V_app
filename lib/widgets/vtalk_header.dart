@@ -9,16 +9,12 @@ class VtalkHeader extends StatefulWidget {
   final bool showScrollAnimation;
   final List<Widget>? actions;
   final double? scrollOffset;
-  final String? logoAsset;
-  final double? logoHeight;
   
   const VtalkHeader({
     required this.title,
     this.showScrollAnimation = true,
     this.actions,
     this.scrollOffset,
-    this.logoAsset,
-    this.logoHeight,
   });
 
   @override
@@ -122,13 +118,7 @@ class _VtalkHeaderState extends State<VtalkHeader>
       ),
       title: Row(
         children: [
-          if (widget.logoAsset != null)
-            Image.asset(
-              widget.logoAsset!,
-              height: widget.logoHeight ?? 32,
-            )
-          else
-            const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
+          const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
           const SizedBox(width: 8),
           Flexible(  // ✅ Добавили Flexible чтобы текст не переполнял
             child: Opacity(
@@ -137,9 +127,9 @@ class _VtalkHeaderState extends State<VtalkHeader>
                 widget.title.toUpperCase(), 
                 style: TextStyle(
                   color: isDark ? Colors.white : Colors.black,
-                  fontWeight: FontWeight.w800, // Сделать жирным, но компактным
-                  letterSpacing: 1.2,
-                  fontSize: 22.0, // Установить жестко 22.0
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2,
+                  fontSize: 20,
                 ),
                 overflow: TextOverflow.ellipsis,  // ✅ Защита от overflow
               ),

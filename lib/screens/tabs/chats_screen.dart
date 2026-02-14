@@ -78,6 +78,11 @@ class _ChatsScreenState extends State<ChatsScreen> {
             'unread': r['unread'] ?? 0,
           };
         }).toList();
+        
+        // 🚨 НОВОЕ: Если список пуст - выключаем isLoading
+        if (_chatRooms.isEmpty) {
+          _isLoadingChats = false;
+        }
       });
     } else {
       // failed to load, keep empty list or show snackbar
@@ -86,10 +91,10 @@ class _ChatsScreenState extends State<ChatsScreen> {
           SnackBar(content: Text(result['error'])),
         );
       }
+      setState(() {
+        _isLoadingChats = false; // 🚨 Выключаем при ошибке
+      });
     }
-    setState(() {
-      _isLoadingChats = false;
-    });
   }
 
   @override
@@ -193,20 +198,23 @@ class _ChatsScreenState extends State<ChatsScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        Icon(Icons.chat_bubble_outline, size: 64, color: isDark ? Colors.white38 : Colors.black26),
+                        const SizedBox(height: 16),
                         Text('No chats yet', style: TextStyle(color: isDark ? Colors.white60 : Colors.black54, fontSize: 18)),
+                        const SizedBox(height: 8),
+                        Text('Start your first conversation', style: TextStyle(color: isDark ? Colors.white38 : Colors.black38, fontSize: 14)),
                         const SizedBox(height: 20),
                         ElevatedButton(
                           onPressed: () => _showSearch(context, isDark),
-                          child: const Text('Find first contact'),
+                          child: const Text('Find contact'),
                         ),
                       ],
                     ),
                   ),
                 )
+              else if (_isLoadingChats)
+                SliverFillRemaining(child: Center(child: CircularProgressIndicator()))
               else
-                if (_isLoadingChats)
-                  SliverFillRemaining(child: Center(child: CircularProgressIndicator()))
-                else
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {

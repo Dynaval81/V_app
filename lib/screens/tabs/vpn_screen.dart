@@ -18,29 +18,46 @@ class VPNScreen extends StatefulWidget {
 class _VPNScreenState extends State<VPNScreen> {
   bool isConnected = false;
   bool isConnecting = false;
-  int _secondsActive = 0; // duration since connected
+  int _secondsActive = 0;
   Timer? _timer;
-  // traffic stats (bytes)
   int _incomingTraffic = 0;
   int _outgoingTraffic = 0;
+  
+  // 🚨 НОВОЕ: Split tunneling как в Amnezia
   bool _splitTunneling = false;
-  // apps available for split tunneling
+  final TextEditingController _sitesController = TextEditingController();
   final List<String> _availableApps = [
     'Browser',
     'Messenger',
     'PaymentApp',
     'Maps',
+    'Social Media',
+    'Banking App',
+    'Email Client',
+    'Video Streaming',
   ];
   final Set<String> _selectedApps = {};
-  // only server selection remains
-  final List<String> _servers = [
-    'United States',
-    'Germany',
-    'Singapore',
-    'Japan',
-    'Brazil',
+  
+  // 🚨 НОВОЕ: Серверы с флагами и пингом
+  final List<Map<String, dynamic>> _servers = [
+    {'name': 'Auto', 'flag': '🌐', 'ping': '45ms'},
+    {'name': 'United States', 'flag': '🇺🇸', 'ping': '120ms'},
+    {'name': 'Germany', 'flag': '🇩🇪', 'ping': '65ms'},
+    {'name': 'Singapore', 'flag': '🇸🇬', 'ping': '180ms'},
+    {'name': 'Japan', 'flag': '🇯🇵', 'ping': '150ms'},
+    {'name': 'Brazil', 'flag': '🇧🇷', 'ping': '200ms'},
+    {'name': 'United Kingdom', 'flag': '🇬🇧', 'ping': '95ms'},
+    {'name': 'Netherlands', 'flag': '🇳🇱', 'ping': '75ms'},
   ];
-  String _selectedServer = 'United States';
+  String _selectedServer = 'Auto';
+
+  // 🚨 НОВОЕ: Функция для цвета пинга
+  Color _getPingColor(String ping) {
+    final pingValue = int.parse(ping.replaceAll('ms', ''));
+    if (pingValue <= 50) return Colors.green;
+    if (pingValue <= 100) return Colors.orange;
+    return Colors.red;
+  }
 
   void toggleConnection() async {
     if (isConnected) {
@@ -75,6 +92,7 @@ class _VPNScreenState extends State<VPNScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _sitesController.dispose();
     super.dispose();
   }
 
@@ -220,53 +238,156 @@ class _VPNScreenState extends State<VPNScreen> {
                       ),
                     ),
                     if (_splitTunneling)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Select apps to bypass VPN', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 12)),
-                            const SizedBox(height: 8),
-                            Wrap(
-                              spacing: 8,
-                              children: _availableApps.map((app) {
-                                final selected = _selectedApps.contains(app);
-                                return ChoiceChip(
-                                  label: Text(app),
-                                  selected: selected,
-                                  onSelected: (v) {
-                                    setState(() {
-                                      if (v)
-                                        _selectedApps.add(app);
-                                      else
-                                        _selectedApps.remove(app);
-                                    });
-                                  },
-                                );
-                              }).toList(),
+                      Column(
+                        children: [
+                          // 🚨 НОВОЕ: Раздел "Сайты" как в Amnezia
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                            child: GlassKit.liquidGlass(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(Icons.language, color: Colors.blueAccent, size: 20),
+                                        const SizedBox(width: 8),
+                                        Text('Сайты', style: TextStyle(
+                                          color: isDark ? Colors.white : Colors.black,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 16,
+                                        )),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    TextField(
+                                      controller: _sitesController,
+                                      decoration: InputDecoration(
+                                        hintText: 'example.com, site.org',
+                                        hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                          borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.black12),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                          borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.black12),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                          borderSide: BorderSide(color: Colors.blueAccent),
+                                        ),
+                                      ),
+                                      style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                                      maxLines: 3,
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                          ],
-                        ),
+                          ),
+                          
+                          // 🚨 НОВОЕ: Раздел "Приложения" как в Amnezia
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                            child: GlassKit.liquidGlass(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(Icons.apps, color: Colors.greenAccent, size: 20),
+                                        const SizedBox(width: 8),
+                                        Text('Приложения', style: TextStyle(
+                                          color: isDark ? Colors.white : Colors.black,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 16,
+                                        )),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    ..._availableApps.map((app) {
+                                      final selected = _selectedApps.contains(app);
+                                      return CheckboxListTile(
+                                        title: Text(app, style: TextStyle(color: isDark ? Colors.white : Colors.black)),
+                                        value: selected,
+                                        onChanged: (v) {
+                                          setState(() {
+                                            if (v == true)
+                                              _selectedApps.add(app);
+                                            else
+                                              _selectedApps.remove(app);
+                                          });
+                                        },
+                                        activeColor: Colors.blueAccent,
+                                        checkColor: Colors.white,
+                                        contentPadding: EdgeInsets.zero,
+                                      );
+                                    }).toList(),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     SizedBox(height: 20),
 
-                    // Server selector dropdown
+                    // 🚨 НОВОЕ: Server selector с флагами и пингом
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: GlassKit.liquidGlass(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: _selectedServer,
-                              items: _servers.map((s) => DropdownMenuItem(
-                                value: s,
-                                child: Text(s),
-                              )).toList(),
-                              onChanged: (v) {
-                                if (v != null) setState(() => _selectedServer = v);
-                              },
-                            ),
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.dns, color: Colors.orangeAccent, size: 20),
+                                  const SizedBox(width: 8),
+                                  Text('Серверы', style: TextStyle(
+                                    color: isDark ? Colors.white : Colors.black,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                  )),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              ..._servers.map((server) {
+                                final selected = _selectedServer == server['name'];
+                                return ListTile(
+                                  leading: Text(
+                                    server['flag'],
+                                    style: TextStyle(fontSize: 24),
+                                  ),
+                                  title: Text(
+                                    server['name'],
+                                    style: TextStyle(
+                                      color: isDark ? Colors.white : Colors.black,
+                                      fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                                    ),
+                                  ),
+                                  trailing: Text(
+                                    server['ping'],
+                                    style: TextStyle(
+                                      color: _getPingColor(server['ping']),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  selected: selected,
+                                  selectedTileColor: (isDark ? Colors.white12 : Colors.black12),
+                                  onTap: () {
+                                    setState(() => _selectedServer = server['name']);
+                                  },
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                );
+                              }).toList(),
+                            ],
                           ),
                         ),
                       ),
