@@ -113,8 +113,6 @@ class _VPNScreenState extends State<VPNScreen> {
               VtalkHeader(
                 title: 'TALK VPN', // Убираем "V", оставляем "TALK VPN"
                 showScrollAnimation: false,
-                logoAsset: 'assets/images/app_logo_classic.png',
-                logoHeight: 40,
                 actions: [
                   GestureDetector(
                     onTap: () => Navigator.push(

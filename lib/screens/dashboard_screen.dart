@@ -378,9 +378,6 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
               VtalkHeader(
                 title: "Dashboard", // Заменяем VTALK на Dashboard
                 showScrollAnimation: false,
-                // Mercury Sphere увеличенная до 54px
-                logoAsset: 'assets/images/app_logo_mercury.png',
-                logoHeight: 54, // Увеличиваем с 44 до 54
                 actions: [
                   GestureDetector(
                     onTap: () => Navigator.push(

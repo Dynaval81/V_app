@@ -134,8 +134,6 @@ class _AIScreenState extends State<AIScreen> {
         VtalkHeader(
           title: 'TALK AI', // Убираем "V", оставляем "TALK AI"
           showScrollAnimation: false,
-          logoAsset: 'assets/images/app_logo_classic.png',
-          logoHeight: 40,
           // Mercury logo customizations handled internally now
           actions: [
             GestureDetector(
