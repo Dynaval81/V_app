@@ -8,6 +8,7 @@ import 'screens/tabs/vpn_screen.dart';
 import 'screens/tabs/ai_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/chat_room_screen.dart';
+import 'screens/auth_screen.dart';
 import 'widgets/premium_guard.dart';
 
 void main() {
@@ -91,7 +92,13 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     // ПОДПИСЫВАЕМСЯ НА ИЗМЕНЕНИЯ:
     final themeProvider = Provider.of<ThemeProvider>(context);
+    final userProvider = Provider.of<UserProvider>(context);
     final isDark = themeProvider.isDarkMode;
+
+    // 🚨 ПРОВЕРКА АВТОРИЗАЦИИ - если нет пользователя, показываем экран логина
+    if (userProvider.user == null && !userProvider.isLoading) {
+      return const AuthScreen(); // Импортируем AuthScreen
+    }
 
     return Scaffold(
       backgroundColor: Colors.transparent,

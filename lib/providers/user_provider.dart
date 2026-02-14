@@ -157,21 +157,25 @@ class UserProvider with ChangeNotifier {
 
   /// Convenience method named explicitly for logout semantics.
   Future<void> logout() async {
-  _isLoading = true;
-  notifyListeners();
-
-  try {
-    await _storage.delete(key: 'auth_token');
-    _user = null;           // Обнуляем данные пользователя
-    _token = null;          // Обнуляем токен
-    _isLoading = false;     // Выключаем "колесо"
-    notifyListeners();      // Сообщаем приложению, что мы вышли
-  } catch (e) {
-    _isLoading = false;
+    _isLoading = true;
     notifyListeners();
-    rethrow;
+
+    try {
+      await _storage.delete(key: 'auth_token');
+      _user = null;           // Обнуляем данные пользователя
+      _token = null;          // Обнуляем токен
+      _error = null;          // Обнуляем ошибки
+      _isLoading = false;     // Выключаем "колесо"
+      notifyListeners();      // Сообщаем приложению, что мы вышли
+    } catch (e) {
+      _user = null;           // Гарантируем обнуление при ошибке
+      _token = null;          // Гарантируем обнуление при ошибке
+      _error = null;          // Гарантируем обнуление при ошибке
+      _isLoading = false;
+      notifyListeners();
+      rethrow;
+    }
   }
-}
 
   // ⭐ ОБНОВЛЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЯ
   Future<void> refreshUserData() async {
