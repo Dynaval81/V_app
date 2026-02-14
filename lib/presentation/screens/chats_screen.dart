@@ -182,13 +182,17 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
                             width: 80,
                             height: 80,
                             decoration: BoxDecoration(
-                              gradient: AppColors.primaryGradient,
+                              gradient: LinearGradient(
+                              colors: [Color(0xFF00A3FF), Color(0xFF0066FF)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
                               borderRadius: BorderRadius.circular(AppBorderRadius.button),
                               boxShadow: [AppShadows.md],
                             ),
                             child: const Icon(
                               Icons.chat_bubble_outline,
-                              color: AppColors.onPrimary,
+                              color: Colors.white,
                               size: 40,
                             ),
                           ),
@@ -196,14 +200,14 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
                           Text(
                             'No chats yet',
                             style: AppTextStyles.h3.copyWith(
-                              color: AppColors.onSurface,
+                              color: Color(0xFF121212),
                             ),
                           ),
                           const SizedBox(height: AppSpacing.inputPadding),
                           Text(
                             'Start a conversation to see it here',
                             style: AppTextStyles.body.copyWith(
-                              color: AppColors.onSurfaceVariant,
+                              color: Color(0xFF757575),
                             ),
                             textAlign: TextAlign.center,
                           ),

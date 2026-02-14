@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../../core/theme.dart';
+import '../../core/constants.dart';
 
 /// 🎨 Airy Chat Header - L4 UI Component
 /// Glassmorphism effect with HAI3 compliance
@@ -58,7 +58,7 @@ class AiryChatHeader extends StatelessWidget {
             decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(
-                  color: AppColors.onSurface.withOpacity(0.1),
+                  color: Color(0xFF121212).withOpacity(0.1),
                   width: 0.5,
                 ),
               ),
@@ -73,8 +73,8 @@ class AiryChatHeader extends StatelessWidget {
   Widget _buildTitle(BuildContext context) {
     return Text(
       title,
-      style: AppTextStyles.h1.copyWith(
-        color: AppColors.onSurface,
+      style: AppTextStyles.h3.copyWith(
+        color: Color(0xFF121212),
         fontSize: 32, // Large as requested
         fontWeight: FontWeight.w700,
         letterSpacing: -0.5,
@@ -88,7 +88,7 @@ class AiryChatHeader extends StatelessWidget {
       return IconButton(
         icon: Icon(
           Icons.arrow_back_ios_new,
-          color: AppColors.onSurface,
+          color: Color(0xFF121212),
           size: 24,
         ),
         onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
@@ -108,7 +108,7 @@ class AiryChatHeader extends StatelessWidget {
         IconButton(
           icon: Icon(
             Icons.edit_note_rounded,
-            color: AppColors.onSurface,
+            color: Color(0xFF121212),
             size: 28, // Large as requested
           ),
           onPressed: onEditPressed,
@@ -159,7 +159,7 @@ class AiryChatHeaderSimple extends StatelessWidget {
                   ? IconButton(
                       icon: Icon(
                         Icons.arrow_back_ios_new,
-                        color: AppColors.onSurface,
+                        color: Color(0xFF121212),
                         size: 24,
                       ),
                       onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
@@ -170,8 +170,8 @@ class AiryChatHeaderSimple extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: AppTextStyles.h1.copyWith(
-                    color: AppColors.onSurface,
+                  style: AppTextStyles.h3.copyWith(
+                    color: Color(0xFF121212),
                     fontSize: 32, // Large as requested
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.5,
@@ -187,7 +187,7 @@ class AiryChatHeaderSimple extends StatelessWidget {
                 IconButton(
                   icon: Icon(
                     Icons.edit_note_rounded,
-                    color: AppColors.onSurface,
+                    color: Color(0xFF121212),
                     size: 28, // Large as requested
                   ),
                   onPressed: onEditPressed,

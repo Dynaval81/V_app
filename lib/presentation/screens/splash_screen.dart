@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/constants.dart';
 import '../../core/constants/app_constants.dart';
+import '../screens/chats_screen.dart';
 
 /// 🎨 HAI3 Splash Screen with animated logo
 /// Minimalist design with smooth transitions
@@ -60,10 +62,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   void _navigateToAuth() {
-    Future.delayed(const Duration(milliseconds: 2500), () {
+    Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
-        // TODO: Navigate to auth screen using GoRouter
-        // context.go('/auth');
+        // Force navigation to ChatsScreen to bypass splash hang
+        context.go(AppRoutes.chats);
       }
     });
   }

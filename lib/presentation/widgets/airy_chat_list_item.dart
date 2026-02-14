@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/theme.dart';
+import '../../core/constants.dart';
 import '../../core/providers/chat_provider.dart';
 import '../../core/services/chat_service.dart';
 import '../../data/models/message_model.dart';
@@ -36,15 +36,15 @@ class AiryChatListItem extends ConsumerWidget {
       height: 72, // Exact height as requested
       decoration: BoxDecoration(
         color: isSelected 
-            ? AppColors.primary.withOpacity(0.1)
+            ? Color(0xFF00A3FF).withOpacity(0.1)
             : Colors.transparent,
-        borderRadius: BorderRadius.circular(AppBorderRadius.md),
+        borderRadius: BorderRadius.circular(AppBorderRadius.button),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(AppBorderRadius.md),
+          borderRadius: BorderRadius.circular(AppBorderRadius.button),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12), // 16px padding
             child: Row(
@@ -64,7 +64,7 @@ class AiryChatListItem extends ConsumerWidget {
                       Text(
                         title,
                         style: AppTextStyles.body.copyWith(
-                          color: AppColors.onSurface,
+                          color: Color(0xFF121212),
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
                         ),
@@ -81,8 +81,8 @@ class AiryChatListItem extends ConsumerWidget {
                           Expanded(
                             child: Text(
                               preview,
-                              style: AppTextStyles.bodySmall.copyWith(
-                                color: AppColors.onSurfaceVariant, // Gray color as requested
+                              style: AppTextStyles.body.copyWith(
+                                color: Color(0xFF757575), // Gray color as requested
                                 fontSize: 14,
                                 fontWeight: FontWeight.w400,
                               ),
@@ -97,8 +97,8 @@ class AiryChatListItem extends ConsumerWidget {
                           if (lastMessage != null)
                             Text(
                               chatService.formatMessageTime(lastMessage!.timestamp),
-                              style: AppTextStyles.caption.copyWith(
-                                color: AppColors.onSurfaceVariant, // Thin font as requested
+                              style: AppTextStyles.body.copyWith(
+                                color: Color(0xFF757575), // Thin font as requested
                                 fontSize: 12,
                                 fontWeight: FontWeight.w300,
                               ),
@@ -134,12 +134,12 @@ class AiryChatListItem extends ConsumerWidget {
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: AppColors.primary,
+                          color: Color(0xFF00A3FF),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
                           unreadCount > 99 ? '99+' : unreadCount.toString(),
-                          style: AppTextStyles.caption.copyWith(
+                          style: AppTextStyles.body.copyWith(
                             color: Colors.white,
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
@@ -163,17 +163,17 @@ class AiryChatListItem extends ConsumerWidget {
       width: 52,
       height: 52,
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.2),
+        color: Color(0xFF00A3FF).withOpacity(0.2),
         borderRadius: BorderRadius.circular(18), // Squircle shape as requested
         border: Border.all(
-          color: AppColors.primary.withOpacity(0.3),
+          color: Color(0xFF00A3FF).withOpacity(0.3),
           width: 2,
         ),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16), // Slightly smaller for visual appeal
         child: Container(
-          color: AppColors.primary.withOpacity(0.3),
+          color: Color(0xFF00A3FF).withOpacity(0.3),
           child: Center(
             child: Text(
               _getInitials(title),
