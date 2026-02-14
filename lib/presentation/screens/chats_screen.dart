@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/constants.dart';
+import '../../core/constants/app_constants.dart';
 import '../../core/providers/chat_provider.dart';
 import '../../core/services/chat_service.dart';
 import '../widgets/airy_chat_header.dart';
@@ -79,32 +81,7 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
                 },
               ),
               
-              // 📱 Chat list
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final chatRoom = chatRooms[index];
-                      final isSelected = chatState.selectedChatRoomId == chatRoom.id;
-                      
-                      return AiryChatListItem(
-                        chatRoom: chatRoom,
-                        isSelected: isSelected,
-                        onTap: () {
-                          ref.read(chatProvider.notifier).selectChatRoom(chatRoom.id);
-                          // TODO: Navigate to chat room
-                        },
-                      );
-                    },
-                    childCount: chatRooms.length,
-                  ),
-                ),
-              ),
-              
-              // TODO: Temporarily commented out for debugging
-              /*
-              // 🔍 Search bar (shown when searching)
+              // � Search bar (shown when searching)
               if (_isSearching)
                 SliverToBoxAdapter(
                   child: Container(
@@ -121,6 +98,32 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
                   ),
                 ),
               
+              // 📱 Chat list
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final chatRoom = chatRooms[index];
+                      final isSelected = chatState.selectedChatRoomId == chatRoom.id;
+                      
+                      return AiryChatListItem(
+                        chatRoom: chatRoom,
+                        isSelected: isSelected,
+                        onTap: () {
+                          ref.read(chatProvider.notifier).selectChatRoom(chatRoom.id);
+                          // Navigate to individual chat
+                          context.go('${AppRoutes.chat}/${chatRoom.id}');
+                        },
+                      );
+                    },
+                    childCount: chatRooms.length,
+                  ),
+                ),
+              ),
+              
+              // TODO: Temporarily commented out for debugging
+              /*
               // 📱 Loading indicator
               if (chatState.isLoading)
                 const SliverFillRemaining(

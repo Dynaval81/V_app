@@ -97,6 +97,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ChatsScreen(),
       ),
       
+      // 💬 Individual Chat
+      GoRoute(
+        path: '${AppRoutes.chat}/:chatId',
+        builder: (context, state) {
+          final chatId = state.pathParameters['chatId']!;
+          return _ChatScreen(chatId: chatId);
+        },
+      ),
+      
       // 🤖 AI Assistant (Placeholder)
       GoRoute(
         path: AppRoutes.ai,
@@ -295,6 +304,60 @@ class _ErrorScreen extends ConsumerWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 💬 Individual Chat Screen (Placeholder)
+class _ChatScreen extends StatelessWidget {
+  final String chatId;
+  
+  const _ChatScreen({super.key, required this.chatId});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Color(0xFF000000),
+      appBar: AppBar(
+        title: Text('Chat $chatId'),
+        backgroundColor: Colors.transparent,
+        foregroundColor: Color(0xFF121212),
+        elevation: 0,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.chat_bubble_outline,
+              color: Color(0xFF00A3FF),
+              size: 80,
+            ),
+            const SizedBox(height: AppSpacing.buttonPadding),
+            Text(
+              'Chat Room: $chatId',
+              style: AppTextStyles.h3.copyWith(
+                color: Color(0xFF121212),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.inputPadding),
+            Text(
+              'Individual chat screen coming soon...',
+              style: AppTextStyles.body.copyWith(
+                color: Color(0xFF757575),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.buttonPadding),
+            AiryButton(
+              text: 'Back to Chats',
+              onPressed: () {
+                context.go(AppRoutes.chats);
+              },
+              icon: const Icon(Icons.arrow_back, size: 18),
+            ),
+          ],
         ),
       ),
     );

@@ -29,17 +29,97 @@ class AiryChatHeader extends StatelessWidget {
       floating: false,
       backgroundColor: Colors.transparent,
       elevation: 0,
-      title: Text(
-        title,
-        style: AppTextStyles.h3.copyWith(
-          color: Color(0xFF121212),
-          fontSize: 32,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.5,
+      expandedHeight: 100,
+      flexibleSpace: FlexibleSpaceBar(
+        background: _buildGlassmorphismBackground(),
+      ),
+      title: _buildTitle(context),
+      centerTitle: true,
+      leading: _buildLeading(context),
+      actions: _buildActions(context),
+    );
+  }
+
+  /// 🎨 Build safe glassmorphism background
+  Widget _buildGlassmorphismBackground() {
+    return ClipRect(
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF000000), // Pure black at top
+              Color(0x1A000000), // Slightly transparent at bottom
+            ],
+          ),
+        ),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.05),
+              border: Border(
+                bottom: BorderSide(
+                  color: Colors.white.withOpacity(0.1),
+                  width: 0.5,
+                ),
+              ),
+            ),
+          ),
         ),
       ),
-      centerTitle: true,
     );
+  }
+
+  /// 📝 Build title with HAI3 typography
+  Widget _buildTitle(BuildContext context) {
+    return Text(
+      title,
+      style: AppTextStyles.h3.copyWith(
+        color: Color(0xFF121212),
+        fontSize: 32,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.5,
+      ),
+    );
+  }
+
+  /// 🔙 Build leading widget (back button)
+  Widget? _buildLeading(BuildContext context) {
+    if (showBackButton) {
+      return IconButton(
+        icon: Icon(
+          Icons.arrow_back_ios_new,
+          color: Color(0xFF121212),
+          size: 24,
+        ),
+        onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
+      );
+    }
+    return null;
+  }
+
+  /// 🔧 Build actions (edit button or custom action)
+  List<Widget> _buildActions(BuildContext context) {
+    final actions = <Widget>[];
+    
+    if (action != null) {
+      actions.add(action!);
+    } else if (onEditPressed != null) {
+      actions.add(
+        IconButton(
+          icon: Icon(
+            Icons.edit_note_rounded,
+            color: Color(0xFF121212),
+            size: 28,
+          ),
+          onPressed: onEditPressed,
+        ),
+      );
+    }
+    
+    return actions;
   }
 }
 
