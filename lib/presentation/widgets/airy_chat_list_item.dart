@@ -10,6 +10,7 @@ import '../../data/models/chat_room.dart';
 /// 📱 Airy Chat List Item - L4 UI Component
 /// Telegram-style with 72px height and squircle avatar
 import '../../../data/mock/mock_messages.dart';
+import '../../../core/utils/chat_utils.dart';
 
 class AiryChatListItem extends ConsumerWidget {
   final ChatRoom chatRoom;
@@ -70,9 +71,9 @@ class AiryChatListItem extends ConsumerWidget {
                       Text(
                         title,
                         style: AppTextStyles.body.copyWith(
-                          color: Colors.black87, // Black87 for contact name
-                          fontWeight: FontWeight.w600,
-                          fontSize: 20.0, // Updated to 20.0 (bold)
+                          fontSize: 16.0, 
+                          fontWeight: FontWeight.bold,
+                          color: isSelected ? AppColors.primary : AppColors.onSurface,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -93,7 +94,7 @@ class AiryChatListItem extends ConsumerWidget {
                                     preview,
                                     style: AppTextStyles.body.copyWith(
                                       color: Colors.grey, // Grey color for last message
-                                      fontSize: 16.0, // Updated to 16.0
+                                      fontSize: 15.0, // Updated to 15.0
                                       fontWeight: FontWeight.w400,
                                     ),
                                     maxLines: 1,
@@ -110,8 +111,18 @@ class AiryChatListItem extends ConsumerWidget {
                             ),
                           ),
                           // 🕒 Time and unread badge
-                          Row(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
+                              Text(
+                                lastMsg != null ? formatTime(lastMsg!.timestamp) : '',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
                               if (chatRoom.unread != null && chatRoom.unread! > 0)
                                 Container(
                                   width: 20,
@@ -131,16 +142,6 @@ class AiryChatListItem extends ConsumerWidget {
                                     ),
                                   ),
                                 ),
-                              const SizedBox(width: 4),
-                              Text(
-                                lastMsg?.timestamp != null
-                                  ? DateFormat('HH:mm').format(lastMsg!.timestamp)
-                                  : '',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.onSurfaceVariant,
-                                ),
-                              ),
                             ],
                           ),
                         ],

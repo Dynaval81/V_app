@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../data/models/chat_room.dart';
 import '../../../data/models/message_model.dart';
+import '../../../data/mock/mock_messages.dart';
 import '../widgets/chat/message_bubble.dart';
 import '../widgets/chat/chat_input.dart';
 
@@ -19,46 +20,13 @@ class ChatRoomScreen extends StatefulWidget {
 }
 
 class _ChatRoomScreenState extends State<ChatRoomScreen> {
-  late List<MessageModel> messages;
+  late List<MessageModel> chatMessages;
   final ScrollController _scrollController = ScrollController();
-
-  // Mock messages for demonstration
-  List<MessageModel> _getMockMessages(String chatId) {
-    return [
-      MessageModel(
-        id: '1',
-        senderId: 'user1',
-        text: 'Hey, how are you?',
-        chatId: chatId,
-        timestamp: DateTime.now().subtract(const Duration(minutes: 10)),
-        type: MessageType.text,
-        status: MessageStatus.read,
-      ),
-      MessageModel(
-        id: '2',
-        senderId: 'me',
-        text: 'I\'m good, thanks! How about you?',
-        chatId: chatId,
-        timestamp: DateTime.now().subtract(const Duration(minutes: 8)),
-        type: MessageType.text,
-        status: MessageStatus.read,
-      ),
-      MessageModel(
-        id: '3',
-        senderId: 'me',
-        text: 'Doing great! Just working on some projects.',
-        chatId: chatId,
-        timestamp: DateTime.now().subtract(const Duration(minutes: 6)),
-        type: MessageType.text,
-        status: MessageStatus.read,
-      ),
-    ];
-  }
 
   @override
   void initState() {
     super.initState();
-    messages = _getMockMessages(widget.chat.id);
+    chatMessages = mockMessages.where((m) => m.chatId == widget.chat.id).toList();
   }
 
   @override
@@ -109,12 +77,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             child: ListView.builder(
               controller: _scrollController,
               reverse: true,
-              itemCount: messages.length,
+              itemCount: chatMessages.length,
               itemBuilder: (context, index) {
-                final message = messages[messages.length - 1 - index]; // Reverse order
+                final message = chatMessages[chatMessages.length - 1 - index]; // Reverse order
                 final isMe = message.senderId == 'me';
                 final isPreviousFromSameSender = index > 0
-                    ? messages[messages.length - index].senderId == message.senderId
+                    ? chatMessages[chatMessages.length - index].senderId == message.senderId
                     : false;
 
                 return MessageBubble(
@@ -137,8 +105,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 type: MessageType.text,
                 status: MessageStatus.sending,
               );
+              mockMessages.add(newMessage);
               setState(() {
-                messages.add(newMessage);
+                chatMessages.add(newMessage);
               });
               // Scroll to bottom
               WidgetsBinding.instance.addPostFrameCallback((_) {
