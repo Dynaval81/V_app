@@ -8,6 +8,7 @@ import 'core/controllers/chat_controller.dart';
 import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/auth_screen.dart';
 import 'presentation/screens/chats_screen.dart';
+import 'presentation/screens/vpn_screen.dart';
 import 'presentation/widgets/airy_button.dart';
 
 /// 🚀 V-Talk Beta - HAI3 Architecture
@@ -120,22 +121,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       
-      // 🔒 VPN (Placeholder)
+      // 🔒 VPN
       GoRoute(
         path: AppRoutes.vpn,
-        builder: (context, state) => Scaffold(
-          backgroundColor: Colors.white,
-          body: Center(
-            child: Text(
-              'V-Talk Beta - Ready!',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-          ),
-        ),
+        builder: (context, state) => const VpnScreen(),
       ),
       
       // 👤 Profile (Placeholder)
