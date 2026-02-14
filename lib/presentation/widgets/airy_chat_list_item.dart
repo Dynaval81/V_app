@@ -46,7 +46,7 @@ class AiryChatListItem extends ConsumerWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppBorderRadius.button),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12), // 16px padding
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12), // 16px padding to align with title
             child: Row(
               children: [
                 // 📷 Squircle Avatar (52px height, 18px radius)

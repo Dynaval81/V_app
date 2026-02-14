@@ -26,6 +26,9 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
     final theme = Theme.of(context);
     final chatState = ref.watch(chatProvider);
     final chatRooms = chatState.chatRooms;
+    
+    // Debug print to verify data presence
+    print('Chat count: ${chatRooms.length}');
 
     return Scaffold(
       backgroundColor: theme.colorScheme.background,

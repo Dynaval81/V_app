@@ -59,11 +59,12 @@ class AiryChatHeader extends StatelessWidget {
           ),
           onPressed: onSearchPressed ?? () {}, // Use search callback
         ),
-        const SizedBox(width: 8), // Add spacing between icons
+        const SizedBox(width: 12), // Add spacing between icons
         // 👤 Avatar widget with padding and profile action
         InkWell(
           onTap: onAvatarPressed ?? () {}, // Use avatar callback
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(25),
+          radius: 25,
           child: Padding(
             padding: const EdgeInsets.only(right: 16), // Move away from phone edge
             child: Container(
