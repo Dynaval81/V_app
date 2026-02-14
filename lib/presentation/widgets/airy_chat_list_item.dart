@@ -52,7 +52,7 @@ class AiryChatListItem extends ConsumerWidget {
                 // 📷 Squircle Avatar (52px height, 18px radius)
                 _buildSquircleAvatar(title),
                 
-                const SizedBox(width: 16), // Spacing between avatar and content
+                const SizedBox(width: 12.0), // Spacing between avatar and content
                 
                 // 📝 Chat content
                 Expanded(

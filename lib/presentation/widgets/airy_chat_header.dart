@@ -35,10 +35,25 @@ class AiryChatHeader extends StatelessWidget {
       flexibleSpace: FlexibleSpaceBar(
         background: _buildGlassmorphismBackground(context),
       ),
-      title: Row(
-        children: [
-          // 👤 User avatar (32x32)
-          Container(
+      title: _buildTitle(context), // Title only - no avatar here
+      centerTitle: false, // Title to the left
+      leading: _buildLeading(context),
+      actions: [
+        // 🔍 Search icon
+        IconButton(
+          icon: Icon(
+            Icons.search,
+            color: theme.brightness == Brightness.dark 
+                ? Color(0xFF121212) 
+                : Color(0xFF000000),
+            size: 32, // Same size as avatar for balance
+          ),
+          onPressed: onEditPressed ?? () {}, // Ensure not null
+        ),
+        // 👤 Avatar widget with padding
+        Padding(
+          padding: const EdgeInsets.only(right: 16), // Move away from phone edge
+          child: Container(
             width: 32,
             height: 32,
             decoration: BoxDecoration(
@@ -53,48 +68,8 @@ class AiryChatHeader extends StatelessWidget {
               child: Icon(
                 Icons.person,
                 color: theme.colorScheme.primary,
-                size: 18,
+                size: 32, // Same size as search icon
               ),
-            ),
-          ),
-          
-          const SizedBox(width: 12),
-          
-          // 📝 Title
-          _buildTitle(context),
-        ],
-      ),
-      centerTitle: false, // Title to the left
-      leading: _buildLeading(context),
-      actions: [
-        // 🔍 Search icon (before avatar in actions)
-        IconButton(
-          icon: Icon(
-            Icons.search,
-            color: theme.brightness == Brightness.dark 
-                ? Color(0xFF121212) 
-                : Color(0xFF000000),
-            size: 24,
-          ),
-          onPressed: onEditPressed,
-        ),
-        // 👤 Avatar widget in actions
-        Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: theme.colorScheme.primary.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: theme.colorScheme.primary.withOpacity(0.3),
-              width: 1,
-            ),
-          ),
-          child: Center(
-            child: Icon(
-              Icons.person,
-              color: theme.colorScheme.primary,
-              size: 18,
             ),
           ),
         ),
