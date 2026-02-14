@@ -101,10 +101,11 @@ class _VtalkHeaderState extends State<VtalkHeader>
   
   @override
   Widget build(BuildContext context) {
-    final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
-    final titleOpacity = _calculateTitleOpacity();
-    final appBarOpacity = _calculateAppBarOpacity();
-    
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    // 🚨 НОВОЕ: Синхронизируем цвета с BottomNavigationBar
+    final Color activeColor = Theme.of(context).primaryColor; // Голубой
+    final Color inactiveColor = isDark ? Colors.grey : Colors.black54;
+
     return SliverAppBar(
       pinned: true,
       automaticallyImplyLeading: false,
@@ -119,106 +120,55 @@ class _VtalkHeaderState extends State<VtalkHeader>
       ),
       title: Row(
         children: [
-          // 🚨 НОВОЕ: Актуальный ассет логотипа
-          ColorFiltered(
-            colorFilter: ColorFilter.mode(
-              Theme.of(context).textTheme.bodyLarge?.color ?? Colors.blueAccent,
-              BlendMode.srcIn,
-            ),
-            child: Image.asset(
-              'assets/images/app_logo_classic.png',
-              height: 32,
-              width: 32,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) {
-                // Fallback к иконке если логотип не загрузится
-                return Icon(Icons.blur_on, color: Colors.blueAccent, size: 32);
-              },
-            ),
+          // 🚨 НОВОЕ: LOGO с адаптивным цветом
+          Image.asset(
+            'assets/images/app_logo_classic.png',
+            height: 30,
+            color: isDark ? Colors.white : activeColor, // 🚨 Теперь не сливается!
           ),
           const SizedBox(width: 8),
-          Flexible(  // ✅ Добавили Flexible чтобы текст не переполнял
-            child: Opacity(
-              opacity: titleOpacity,
-              child: Text(
-                widget.title.toUpperCase(), 
-                style: TextStyle(
-                  // 🚨 НОВОЕ: Синхронизация цветов с BottomNavigationBar
-                  color: isDark ? Colors.white54 : Colors.black54,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2,
-                  fontSize: 20,
-                ),
-                overflow: TextOverflow.ellipsis,  // ✅ Защита от overflow
-              ),
+          // 🚨 НОВОЕ: Заголовок в тон меню
+          Text(
+            "V-TALK",
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: activeColor, // 🚨 Голубой как внизу
             ),
+          ),
+          const Spacer(),
+          // 🚨 НОВОЕ: Аватарка с плашкой FREE
+          Stack(
+            children: [
+              Consumer<UserProvider>(
+                builder: (context, userProvider, child) {
+                  return CircleAvatar(
+                    radius: 18,
+                    backgroundImage: NetworkImage("${AppConstants.defaultAvatarUrl}?u=me"),
+                  );
+                },
+              ),
+              Consumer<UserProvider>(
+                builder: (context, userProvider, child) {
+                  if (!userProvider.isPremium) {
+                    return Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(4)),
+                        child: const Text("FREE", style: TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold)),
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+            ],
           ),
         ],
       ),
-        actions: [
-        // 🚨 НОВОЕ: Плашка FREE рядом с аватаром
-        if (widget.showScrollAnimation)
-          Consumer<UserProvider>(
-            builder: (context, userProvider, child) {
-              if (!userProvider.isPremium) {
-                return Container(
-                  margin: const EdgeInsets.only(right: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.orange.withOpacity(0.2),
-                        blurRadius: 4,
-                        spreadRadius: 1,
-                      ),
-                    ],
-                  ),
-                  child: Text(
-                    'FREE',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 10,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-        
-        // Оригинальный аватар
-        if (widget.showScrollAnimation)
-          ScaleTransition(
-            scale: _scaleAnimation,
-            child: GestureDetector(
-              onTapDown: (_) => _animateAvatar(),
-              onTapUp: (_) => _avatarController.reverse(),
-              onTapCancel: () => _avatarController.reverse(),
-              onTap: () => Navigator.pushNamed(context, '/settings'),
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isDark ? Colors.white24 : Colors.black12,
-                    width: 2,
-                  ),
-                ),
-                child: CircleAvatar(
-                  radius: 16,
-                  backgroundColor: Colors.blue.withOpacity(0.7),
-                  child: const Icon(Icons.person, color: Colors.white),
-                ),
-              ),
-            ),
-          ),
-        
-        // Дополнительные actions если есть
-        ...(widget.actions ?? []),
-      ],
+      actions: widget.actions ?? [],
       // ✅ Заменили небезопасное распаковывание на безопасное
       bottom: widget.showScrollAnimation
           ? PreferredSize(

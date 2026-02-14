@@ -59,6 +59,13 @@ class _VPNScreenState extends State<VPNScreen> {
     return Colors.red;
   }
 
+  // 🚨 НОВОЕ: Функция выбора сервера
+  void selectServer(Map<String, dynamic> server) {
+    setState(() {
+      _selectedServer = server['name'];
+    });
+  }
+
   void toggleConnection() async {
     if (isConnected) {
       _timer?.cancel();
@@ -357,106 +364,39 @@ class _VPNScreenState extends State<VPNScreen> {
                       child: GlassKit.liquidGlass(
                         child: Column(
                           children: [
-                            // Заголовок серверов
-                            Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.dns, color: Colors.orangeAccent, size: 20),
-                                  const SizedBox(width: 8),
-                                  // 🚨 НОВОЕ: Только [Icon] Auto [Arrow Down] без текста
-                                  if (!isConnected) ...[
-                                    Text(
-                                      'Auto',
-                                      style: TextStyle(
-                                        color: isDark ? Colors.white : Colors.black,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 16,
-                                      ),
+                            // 🚨 НОВОЕ: Вместо кучи текста используем ExpansionTile
+                            ExpansionTile(
+                              leading: const Icon(Icons.language, color: Colors.blue),
+                              title: Text(_selectedServer?.name ?? "Auto (Recommended)"),
+                              subtitle: Text(_selectedServer?.ping != null ? "${_selectedServer!['ping']} ms" : "Best latency"),
+                              children: [
+                                // 🚨 НОВОЕ: Список серверов внутри
+                                ..._servers.map((server) => ListTile(
+                                  leading: Text(
+                                    server['flag'],
+                                    style: TextStyle(fontSize: 24),
+                                  ),
+                                  title: Text(
+                                    server['name'],
+                                    style: TextStyle(
+                                      color: isDark ? Colors.white : Colors.black,
+                                      fontWeight: _selectedServer == server['name'] ? FontWeight.w600 : FontWeight.normal,
                                     ),
-                                    const SizedBox(width: 8),
-                                    Icon(Icons.keyboard_arrow_down, color: isDark ? Colors.white54 : Colors.black54),
-                                  ] else ...[
-                                    Text(
-                                      _selectedServer,
-                                      style: TextStyle(
-                                        color: isDark ? Colors.white : Colors.black,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 16,
-                                      ),
+                                  ),
+                                  trailing: Text(
+                                    server['ping'],
+                                    style: TextStyle(
+                                      color: _getPingColor(server['ping']),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
                                     ),
-                                  ],
-                                  if (isConnected) ...[
-                                    const SizedBox(width: 12),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: Colors.green.withOpacity(0.2),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Text(
-                                        _servers.firstWhere((s) => s['name'] == _selectedServer)['ping'],
-                                        style: TextStyle(
-                                          color: Colors.green,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
+                                  ),
+                                  selected: _selectedServer == server['name'],
+                                  selectedTileColor: (isDark ? Colors.white12 : Colors.black12),
+                                  onTap: () => selectServer(server),
+                                )).toList(),
+                              ],
                             ),
-                            
-                            // ExpansionTile со списком серверов
-                            if (!isConnected)
-                              ExpansionTile(
-                                title: Text(
-                                  'Список серверов',
-                                  style: TextStyle(
-                                    color: isDark ? Colors.white70 : Colors.black54,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                tilePadding: EdgeInsets.zero,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 8),
-                                    child: Column(
-                                      children: _servers.map((server) {
-                                        final selected = _selectedServer == server['name'];
-                                        return ListTile(
-                                          leading: Text(
-                                            server['flag'],
-                                            style: TextStyle(fontSize: 24),
-                                          ),
-                                          title: Text(
-                                            server['name'],
-                                            style: TextStyle(
-                                              color: isDark ? Colors.white : Colors.black,
-                                              fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                                            ),
-                                          ),
-                                          trailing: Text(
-                                            server['ping'],
-                                            style: TextStyle(
-                                              color: _getPingColor(server['ping']),
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                          selected: selected,
-                                          selectedTileColor: (isDark ? Colors.white12 : Colors.black12),
-                                          onTap: () {
-                                            setState(() => _selectedServer = server['name']);
-                                          },
-                                          contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        );
-                                      }).toList(),
-                                    ),
-                                  ),
-                                ],
-                              ),
                           ],
                         ),
                       ),

@@ -33,7 +33,17 @@ class VtalkApp extends StatelessWidget {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: themeProvider.currentTheme,
-          home: const MainScreen(),
+          // 🚨 НОВОЕ: AuthGate - слушаем состояние UserProvider
+          home: Consumer<UserProvider>(
+            builder: (context, auth, _) {
+              // 🚨 НОВОЕ: Если токена нет — ТОЛЬКО экран логина/авторизации
+              if (auth.token == null) {
+                return const AuthScreen(); 
+              }
+              // 🚨 НОВОЕ: Если токен есть — заходим в приложение
+              return const MainScreen();
+            },
+          ),
           onGenerateRoute: (settings) {
             switch (settings.name) {
               case '/chat':
@@ -45,6 +55,11 @@ class VtalkApp extends StatelessWidget {
                 return CupertinoPageRoute(
                   builder: (_) => DashboardScreen(onTabSwitch: (index) {}),
                   title: 'Settings',
+                );
+              case '/login':
+                return CupertinoPageRoute(
+                  builder: (_) => const AuthScreen(),
+                  title: 'Login',
                 );
               default:
                 return CupertinoPageRoute(

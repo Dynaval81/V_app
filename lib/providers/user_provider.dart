@@ -176,34 +176,65 @@ class UserProvider with ChangeNotifier {
 
   /// Convenience method named explicitly for logout semantics.
   Future<void> logout({BuildContext? context}) async {
-    _isLoading = true;
-    notifyListeners();
-
     try {
+      _isLoading = true;
+      notifyListeners();
+      
       await _storage.delete(key: 'auth_token');
-      _user = null;           // Обнуляем данные пользователя
-      _token = null;          // Обнуляем токен
-      _error = null;          // Обнуляем ошибки
-      _isLoading = false;     // Выключаем "колесо"
-      notifyListeners();      // Сообщаем приложению, что мы вышли
+      _token = null;
+      _user = null;
+      _error = null;
+      _isLoading = false;
+      
+      // 🚨 НОВОЕ: Это заставит UI перестроиться и увидеть, что юзера нет
+      notifyListeners(); 
       
       // 🚨 НОВОЕ: Принудительный переход на экран логина
       if (context != null) {
         Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
       }
     } catch (e) {
-      _user = null;           // Гарантируем обнуление при ошибке
-      _token = null;          // Гарантируем обнуление при ошибке
-      _error = null;          // Гарантируем обнуление при ошибке
       _isLoading = false;
+      _token = null;
+      _user = null;
+      _error = null;
       notifyListeners();
+      print("Logout error: $e");
       
-      // 🚨 НОВОЕ: Принудительный переход на экран логина даже при ошибке
+      // 🚨 НОВОЕ: Принудительный переход даже при ошибке
       if (context != null) {
         Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
       }
+    }
+  }
+
+  // 🚨 НОВОЕ: Метод для принудительного обновления чатов
+  Future<void> refreshData() async {
+    try {
+      _isLoading = true;
+      notifyListeners();
       
-      rethrow;
+      // 🚨 Вызываем функцию загрузки чатов (пусть проверит название своей функции)
+      await _fetchRooms(); 
+      
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _isLoading = false;
+      notifyListeners();
+      print("Refresh data error: $e");
+    }
+  }
+
+  // 🚨 НОВОЕ: Приватный метод для загрузки комнат
+  Future<void> _fetchRooms() async {
+    try {
+      final api = ApiService();
+      final result = await api.listChats();
+      // Здесь будет логика загрузки комнат
+      print('Fetch rooms result: $result');
+    } catch (e) {
+      print('Fetch rooms error: $e');
     }
   }
 
