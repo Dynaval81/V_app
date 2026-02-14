@@ -5,7 +5,7 @@ class ChatRoom {
   final String? name;
   final bool isGroup;
   final bool isOnline;
-  final int unread;
+  int unread;
   final List<Map<String, dynamic>>? participants;
   final List<MessageModel>? messages;
   final DateTime? lastActivity;

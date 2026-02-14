@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants.dart';
 import '../../core/providers/chat_provider.dart';
 import '../../core/services/chat_service.dart';
+import 'package:vtalk_app/data/mock/mock_messages.dart';
 import '../../data/models/message_model.dart';
 import '../../data/models/chat_room.dart';
 
 /// 📱 Airy Chat List Item - L4 UI Component
 /// Telegram-style with 72px height and squircle avatar
-import '../../../data/mock/mock_messages.dart';
-import '../../../core/utils/chat_utils.dart';
+import '../../../presentation/screens/chat_room_screen.dart';
 
-class AiryChatListItem extends ConsumerWidget {
+class AiryChatListItem extends StatefulWidget {
   final ChatRoom chatRoom;
   final VoidCallback? onTap;
   final bool isSelected;
@@ -27,22 +28,31 @@ class AiryChatListItem extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  State<AiryChatListItem> createState() => _AiryChatListItemState();
+}
+
+class _AiryChatListItemState extends State<AiryChatListItem> {
+  String formatTime(DateTime time) {
+    return DateFormat('HH:mm').format(time);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final chatService = ChatService();
-    final title = chatService.generateChatTitle(chatRoom);
+    final title = chatService.generateChatTitle(widget.chatRoom);
 
     // Single source of truth for messages
-    final lastMsg = mockMessages.where((m) => m.chatId == chatRoom.id).toList().lastOrNull;
+    final lastMsg = mockMessages.where((m) => m.chatId == widget.chatRoom.id).toList().lastOrNull;
     final preview = lastMsg?.text ?? "No messages yet";
-    final lastMessage = chatRoom.messages?.isNotEmpty == true 
-        ? chatRoom.messages!.last 
+    final lastMessage = widget.chatRoom.messages?.isNotEmpty == true 
+        ? widget.chatRoom.messages!.last 
         : null;
-    final unreadCount = chatService.getUnreadCount(chatRoom, 'current_user_id'); // TODO: Get from auth
+    final unreadCount = chatService.getUnreadCount(widget.chatRoom, 'current_user_id'); // TODO: Get from auth
 
     return Container(
       height: 88, // Increased height to prevent overflow
       decoration: BoxDecoration(
-        color: isSelected 
+        color: widget.isSelected 
             ? Color(0xFF00A3FF).withOpacity(0.1)
             : Colors.transparent,
         borderRadius: BorderRadius.circular(AppBorderRadius.button),
@@ -50,14 +60,22 @@ class AiryChatListItem extends ConsumerWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: onTap,
+          onTap: () {
+            setState(() {
+              widget.chatRoom.unread = 0;
+            });
+            Navigator.push(
+              context,
+              CupertinoPageRoute(builder: (context) => ChatRoomScreen(chat: widget.chatRoom)),
+            );
+          },
           borderRadius: BorderRadius.circular(AppBorderRadius.button),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), // Content padding as requested
             child: Row(
               children: [
                 // 📷 Squircle Avatar (52px height, 18px radius)
-                _buildSquircleAvatar(chatRoom),
+                _buildSquircleAvatar(widget.chatRoom),
                 
                 const SizedBox(width: 12.0), // Spacing between avatar and content
                 
@@ -73,7 +91,7 @@ class AiryChatListItem extends ConsumerWidget {
                         style: AppTextStyles.body.copyWith(
                           fontSize: 16.0, 
                           fontWeight: FontWeight.bold,
-                          color: isSelected ? AppColors.primary : AppColors.onSurface,
+                          color: widget.isSelected ? AppColors.primary : AppColors.onSurface,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -111,38 +129,41 @@ class AiryChatListItem extends ConsumerWidget {
                             ),
                           ),
                           // 🕒 Time and unread badge
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                lastMsg != null ? formatTime(lastMsg!.timestamp) : '',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.onSurfaceVariant,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              if (chatRoom.unread != null && chatRoom.unread! > 0)
-                                Container(
-                                  width: 20,
-                                  height: 20,
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue,
-                                    shape: BoxShape.circle,
+                          SizedBox(
+                            width: 60,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  lastMsg != null ? formatTime(lastMsg!.timestamp) : '',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.onSurfaceVariant,
                                   ),
-                                  child: Center(
-                                    child: Text(
-                                      chatRoom.unread.toString(),
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
+                                ),
+                                const SizedBox(height: 4),
+                                if (widget.chatRoom.unread != null && widget.chatRoom.unread! > 0)
+                                  Container(
+                                    width: 20,
+                                    height: 20,
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        widget.chatRoom.unread.toString(),
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),
