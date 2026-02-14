@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/chat_room.dart';
 import '../../../data/models/message_model.dart';
 import '../../../data/mock/mock_messages.dart';
+import '../../../core/providers/chat_provider.dart';
 import '../widgets/chat/message_bubble.dart';
 import '../widgets/chat/chat_input.dart';
 
 /// 📱 Chat Room Screen - HI3 Layer 4
 /// Individual chat view with message thread and input
-class ChatRoomScreen extends StatefulWidget {
+class ChatRoomScreen extends ConsumerStatefulWidget {
   final ChatRoom chat;
 
   const ChatRoomScreen({
@@ -16,21 +18,27 @@ class ChatRoomScreen extends StatefulWidget {
   });
 
   @override
-  State<ChatRoomScreen> createState() => _ChatRoomScreenState();
+  ConsumerState<ChatRoomScreen> createState() => _ChatRoomScreenState();
 }
 
-class _ChatRoomScreenState extends State<ChatRoomScreen> {
-  late List<MessageModel> chatMessages;
+class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
+  late bool hasUnread;
   final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    chatMessages = mockMessages.where((m) => m.chatId == widget.chat.id).toList();
+    hasUnread = widget.chat.unread > 0;
+    if (hasUnread) {
+      ref.read(chatProvider.notifier).markAsRead(widget.chat.id);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final chatState = ref.watch(chatProvider);
+    final chatMessages = chatState.messages.where((m) => m.chatId == widget.chat.id).toList();
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -77,46 +85,37 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             child: ListView.builder(
               controller: _scrollController,
               reverse: true,
-              itemCount: chatMessages.length,
+              itemCount: chatMessages.length + (hasUnread ? 1 : 0),
               itemBuilder: (context, index) {
-                final message = chatMessages[chatMessages.length - 1 - index]; // Reverse order
-                final isMe = message.senderId == 'me';
-                final isPreviousFromSameSender = index > 0
-                    ? chatMessages[chatMessages.length - index].senderId == message.senderId
-                    : false;
-
-                return MessageBubble(
-                  message: message,
-                  isMe: isMe,
-                  isPreviousFromSameSender: isPreviousFromSameSender,
-                );
+                if (hasUnread && index == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        const Expanded(child: Divider()),
+                        const SizedBox(width: 8),
+                        Text(
+                          "NEW MESSAGES",
+                          style: TextStyle(color: Colors.blue),
+                        ),
+                        const SizedBox(width: 8),
+                        const Expanded(child: Divider()),
+                      ],
+                    ),
+                  );
+                }
+                final messageIndex = hasUnread ? index - 1 : index;
+                final message = chatMessages[messageIndex];
+                return MessageBubble(message: message);
               },
             ),
           ),
           // Input Field
           ChatInput(
-            onSendMessage: (content) {
-              final newMessage = MessageModel(
-                id: DateTime.now().millisecondsSinceEpoch.toString(),
-                senderId: 'me',
-                text: content,
-                chatId: widget.chat.id,
-                timestamp: DateTime.now(),
-                type: MessageType.text,
-                status: MessageStatus.sending,
-              );
-              mockMessages.add(newMessage);
-              setState(() {
-                chatMessages.add(newMessage);
-              });
-              // Scroll to bottom
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                _scrollController.animateTo(
-                  0,
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeOut,
-                );
-              });
+            onSendMessage: (text) {
+              ref.read(chatProvider.notifier).sendMessage(widget.chat.id, text);
+            },
+          ),
             },
           ),
         ],

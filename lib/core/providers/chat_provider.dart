@@ -3,6 +3,8 @@ import '../../data/models/message_model.dart';
 import '../../data/models/chat_room.dart';
 import '../services/chat_service.dart';
 import '../../data/models/user_model.dart';
+import '../../data/mock/mock_messages.dart';
+import '../../logic/chat_manager.dart';
 
 /// 📊 Chat Provider - L2 State Management
 /// Handles chat state with HAI3 architecture compliance
@@ -23,7 +25,8 @@ class ChatProvider extends StateNotifier<ChatState> {
       final mockChatRooms = _generateMockChatRooms();
       
       state = state.copyWith(
-        chatRooms: mockChatRooms,
+        chatRooms: ChatManager.chats,
+        messages: ChatManager.messages,
         isLoading: false,
         error: null,
       );
@@ -32,10 +35,11 @@ class ChatProvider extends StateNotifier<ChatState> {
         isLoading: false,
         error: 'Failed to load chat rooms: ${e.toString()}',
       );
-    }
+  /// 📖 Mark messages as read
+  void markAsRead(String chatId) {
+    ChatManager.markAsRead(chatId);
+    state = state.copyWith(chatRooms: ChatManager.chats);
   }
-
-  /// 📝 Send message
   Future<void> sendMessage(String chatRoomId, String text) async {
     if (!_chatService.validateMessage(text)) {
       state = state.copyWith(error: 'Message validation failed');
@@ -79,21 +83,6 @@ class ChatProvider extends StateNotifier<ChatState> {
     }
   }
 
-  /// 📝 Mark chat as read
-  void markChatAsRead(String chatRoomId) {
-    final chatRooms = List<ChatRoom>.from(state.chatRooms);
-    final chatIndex = chatRooms.indexWhere((chat) => chat.id == chatRoomId);
-    
-    if (chatIndex != -1) {
-      final chat = chatRooms[chatIndex];
-      _chatService.markMessagesAsRead(chat, 'current_user_id'); // TODO: Get from auth provider
-      
-      chatRooms[chatIndex] = chat;
-      
-      state = state.copyWith(chatRooms: chatRooms);
-    }
-  }
-
   /// 📝 Search chat rooms
   void searchChatRooms(String query) {
     final filteredRooms = _chatService.filterChatRooms(state.chatRooms, query);
@@ -106,7 +95,7 @@ class ChatProvider extends StateNotifier<ChatState> {
   /// 📝 Select chat room
   void selectChatRoom(String chatRoomId) {
     state = state.copyWith(selectedChatRoomId: chatRoomId);
-    markChatAsRead(chatRoomId);
+    markAsRead(chatRoomId);
   }
 
   /// 📝 Clear search
@@ -124,178 +113,24 @@ class ChatProvider extends StateNotifier<ChatState> {
 
   /// 📝 Add message to chat locally
   void _addMessageToChat(String chatRoomId, MessageModel message) {
-    final chatRooms = List<ChatRoom>.from(state.chatRooms);
-    final chatIndex = chatRooms.indexWhere((chat) => chat.id == chatRoomId);
-    
-    if (chatIndex != -1) {
-      final chat = chatRooms[chatIndex];
-      final messages = List<MessageModel>.from(chat.messages ?? []);
-      messages.add(message);
-      
-      final updatedChat = chat.copyWith(
-        messages: messages,
-        lastActivity: message.timestamp,
-      );
-      
-      chatRooms[chatIndex] = updatedChat;
-      
-      // Sort chat rooms by activity
-      final sortedRooms = _chatService.sortChatRoomsByActivity(chatRooms);
-      
-      state = state.copyWith(chatRooms: sortedRooms);
-    }
+    ChatManager.messages.add(message);
+    state = state.copyWith(messages: ChatManager.messages);
   }
 
   /// 📝 Update message in chat
   void _updateMessageInChat(String chatRoomId, MessageModel updatedMessage) {
-    final chatRooms = List<ChatRoom>.from(state.chatRooms);
-    final chatIndex = chatRooms.indexWhere((chat) => chat.id == chatRoomId);
+    final messageIndex = ChatManager.messages.indexWhere((msg) => msg.id == updatedMessage.id);
     
-    if (chatIndex != -1) {
-      final chat = chatRooms[chatIndex];
-      final messages = List<MessageModel>.from(chat.messages ?? []);
-      final messageIndex = messages.indexWhere((msg) => msg.id == updatedMessage.id);
-      
-      if (messageIndex != -1) {
-        messages[messageIndex] = updatedMessage;
-        
-        final updatedChat = chat.copyWith(messages: messages);
-        chatRooms[chatIndex] = updatedChat;
-        
-        state = state.copyWith(chatRooms: chatRooms);
-      }
+    if (messageIndex != -1) {
+      ChatManager.messages[messageIndex] = updatedMessage;
+      state = state.copyWith(messages: ChatManager.messages);
     }
   }
 
-  /// 📝 Generate mock chat rooms for testing
-  List<ChatRoom> _generateMockChatRooms() {
-    return [
-      ChatRoom(
-        id: '1',
-        name: 'Alice Johnson',
-        participants: [
-          {'id': 'current_user_id', 'name': 'You'},
-          {'id': 'alice_id', 'name': 'Alice Johnson'},
-        ],
-        lastActivity: DateTime.now().subtract(const Duration(minutes: 5)),
-        messages: [
-          MessageModel(
-            id: '1',
-            text: _chatService.parseMessageText('Hey! How are you doing? 😊'),
-            senderId: 'alice_id',
-            timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
-            status: MessageStatus.read,
-            isRead: true,
-          ),
-          MessageModel(
-            id: '2',
-            text: _chatService.parseMessageText('Hi Alice! I\'m doing great, thanks for asking! 🎉'),
-            senderId: 'current_user_id',
-            timestamp: DateTime.now().subtract(const Duration(minutes: 3)),
-            status: MessageStatus.read,
-            isRead: true,
-          ),
-          MessageModel(
-            id: '3',
-            text: _chatService.parseMessageText('That\'s wonderful! Want to grab coffee sometime? ☕'),
-            senderId: 'alice_id',
-            timestamp: DateTime.now().subtract(const Duration(minutes: 2)),
-            status: MessageStatus.delivered,
-            isRead: false,
-          ),
-        ],
-      ),
-      ChatRoom(
-        id: '2',
-        name: 'Bob Smith',
-        participants: [
-          {'id': 'current_user_id', 'name': 'You'},
-          {'id': 'bob_id', 'name': 'Bob Smith'},
-        ],
-        lastActivity: DateTime.now().subtract(const Duration(hours: 1)),
-        messages: [
-          MessageModel(
-            id: '4',
-            text: _chatService.parseMessageText('Did you see the game last night? 🏈'),
-            chatId: '2', // Added
-            senderId: 'bob_id',
-            timestamp: DateTime.now().subtract(const Duration(hours: 1)),
-            status: MessageStatus.read,
-            isRead: true,
-          ),
-          MessageModel(
-            id: '5',
-            text: _chatService.parseMessageText('Yeah! Amazing comeback! 🎯'),
-            chatId: '2', // Added
-            senderId: 'current_user_id',
-            timestamp: DateTime.now().subtract(const Duration(minutes: 58)),
-            status: MessageStatus.read,
-            isRead: true,
-          ),
-        ],
-      ),
-      ChatRoom(
-        id: '3',
-        name: 'V-Talk Team',
-        participants: [
-          {'id': 'current_user_id', 'name': 'You'},
-          {'id': 'team_member_1', 'name': 'Carol'},
-          {'id': 'team_member_2', 'name': 'David'},
-          {'id': 'team_member_3', 'name': 'Eve'},
-        ],
-        lastActivity: DateTime.now().subtract(const Duration(minutes: 30)),
-        messages: [
-          MessageModel(
-            id: '6',
-            text: _chatService.parseMessageText('Great work on the new features everyone! 🚀'),
-            chatId: '3', // Added
-            senderId: 'team_member_1',
-            timestamp: DateTime.now().subtract(const Duration(minutes: 30)),
-            status: MessageStatus.read,
-            isRead: true,
-          ),
-          MessageModel(
-            id: '7',
-            text: _chatService.parseMessageText('Thanks! The HAI3 architecture is really paying off 🎨'),
-            chatId: '1', // Added
-            senderId: 'current_user_id',
-            timestamp: DateTime.now().subtract(const Duration(minutes: 25)),
-            status: MessageStatus.read,
-            isRead: true,
-          ),
-        ],
-      ),
-      ChatRoom(
-        id: '4',
-        name: 'Emma Wilson',
-        participants: [
-          {'id': 'current_user_id', 'name': 'You'},
-          {'id': 'emma_id', 'name': 'Emma Wilson'},
-        ],
-        lastActivity: DateTime.now().subtract(const Duration(days: 1)),
-        messages: [
-          MessageModel(
-            id: '8',
-            text: _chatService.parseMessageText('Happy birthday! 🎂🎉'),
-            chatId: '4', // Added
-            senderId: 'emma_id',
-            timestamp: DateTime.now().subtract(const Duration(days: 1)),
-            status: MessageStatus.read,
-            isRead: true,
-          ),
-          MessageModel(
-            id: '9',
-            text: _chatService.parseMessageText('Thank you so much! 🥰'),
-            chatId: '4', // Added
-            senderId: 'current_user_id',
-            timestamp: DateTime.now().subtract(const Duration(days: 1)),
-            status: MessageStatus.read,
-            isRead: true,
-          ),
-        ],
-      ),
-    ];
-  }
+  /// � Chat Provider instance
+  final chatProvider = StateNotifierProvider<ChatProvider, ChatState>(
+    (ref) => ChatProvider(ChatService()),
+  );
 }
 
 /// 📊 Chat State
@@ -306,14 +141,16 @@ class ChatState {
   final String searchQuery;
   final bool isLoading;
   final String? error;
+  List<MessageModel> messages;
 
-  const ChatState({
+  ChatState({
     this.chatRooms = const [],
     this.filteredChatRooms,
     this.selectedChatRoomId,
     this.searchQuery = '',
     this.isLoading = false,
     this.error,
+    this.messages = const [],
   });
 
   ChatState copyWith({
@@ -323,6 +160,7 @@ class ChatState {
     String? searchQuery,
     bool? isLoading,
     String? error,
+    List<MessageModel>? messages,
   }) {
     return ChatState(
       chatRooms: chatRooms ?? this.chatRooms,
@@ -331,6 +169,7 @@ class ChatState {
       searchQuery: searchQuery ?? this.searchQuery,
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
+      messages: messages ?? this.messages,
     );
   }
 }

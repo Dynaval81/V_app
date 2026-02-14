@@ -37,9 +37,9 @@ class ChatSearchDelegate extends SearchDelegate<String> {
       return chat.name?.toLowerCase().contains(query.toLowerCase()) ?? false;
     }).toList();
 
-    return Container(
-      color: Colors.white,
-      child: Theme(
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Theme(
         data: Theme.of(context).copyWith(brightness: Brightness.light),
         child: ListView.builder(
           itemCount: suggestions.length,
@@ -48,10 +48,8 @@ class ChatSearchDelegate extends SearchDelegate<String> {
             return ListTile(
               title: Text(chat.name ?? 'Unknown'),
               onTap: () {
-                close(context, '');
-                if (chat.id != null) {
-                  context.push('${AppRoutes.chat}/${chat.id}');
-                }
+                close(context, chat.name ?? '');
+                context.push(AppRoutes.chat, extra: chat);
               },
             );
           },
@@ -82,9 +80,9 @@ class ChatSearchDelegate extends SearchDelegate<String> {
       return chat.name?.toLowerCase().contains(query.toLowerCase()) ?? false;
     }).take(5).toList();
 
-    return Container(
-      color: Colors.white,
-      child: Theme(
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Theme(
         data: Theme.of(context).copyWith(brightness: Brightness.light),
         child: ListView.builder(
           itemCount: filteredChats.length,
