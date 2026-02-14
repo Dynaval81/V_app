@@ -7,9 +7,11 @@ import 'core/constants/app_constants.dart';
 import 'core/controllers/chat_controller.dart';
 import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/auth_screen.dart';
+import 'presentation/screens/ai/ai_assistant_screen.dart';
 import 'presentation/screens/chats_screen.dart';
 import 'presentation/screens/vpn_screen.dart';
 import 'presentation/widgets/airy_button.dart';
+import 'presentation/widgets/organisms/main_nav_shell.dart';
 
 /// 🚀 V-Talk Beta - HAI3 Architecture
 /// Clean architecture with strict layer separation
@@ -100,7 +102,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       // 💬 Chats
       GoRoute(
         path: AppRoutes.chats,
-        builder: (context, state) => const ChatsScreen(),
+        builder: (context, state) => const MainNavShell(
+          currentIndex: 0,
+          child: ChatsScreen(),
+        ),
       ),
       
       // 💬 Individual Chat
@@ -112,19 +117,22 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       
-      // 🤖 AI Assistant (Placeholder)
+      // 🤖 AI Chat
       GoRoute(
         path: AppRoutes.ai,
-        builder: (context, state) => const _ComingSoonScreen(
-          title: 'AI Assistant',
-          message: 'AI features coming soon...',
+        builder: (context, state) => const MainNavShell(
+          currentIndex: 1,
+          child: AiAssistantScreen(),
         ),
       ),
       
       // 🔒 VPN
       GoRoute(
         path: AppRoutes.vpn,
-        builder: (context, state) => const VpnScreen(),
+        builder: (context, state) => const MainNavShell(
+          currentIndex: 2,
+          child: VpnScreen(),
+        ),
       ),
       
       // 👤 Profile (Placeholder)

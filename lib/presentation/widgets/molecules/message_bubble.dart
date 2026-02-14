@@ -8,12 +8,15 @@ class MessageBubble extends StatelessWidget {
   final MessageModel message;
   final bool isMe;
   final bool isPreviousFromSameSender;
+  /// Optional color for receiver (left) bubbles – e.g. #F3E5F5 for V-Assistant.
+  final Color? receiverBubbleColor;
 
   const MessageBubble({
     super.key,
     required this.message,
     required this.isMe,
     this.isPreviousFromSameSender = false,
+    this.receiverBubbleColor,
   });
 
   static String _formatTime(DateTime t) {
@@ -38,7 +41,7 @@ class MessageBubble extends StatelessWidget {
             maxWidth: MediaQuery.of(context).size.width * 0.75,
           ),
           decoration: BoxDecoration(
-            color: isMe ? AppColors.primary : AppColors.surface,
+            color: isMe ? AppColors.primary : (receiverBubbleColor ?? AppColors.surface),
             borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(18),
               topRight: const Radius.circular(18),
