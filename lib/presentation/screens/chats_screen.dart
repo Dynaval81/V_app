@@ -22,8 +22,16 @@ class ChatsScreen extends ConsumerStatefulWidget {
 
 class _ChatsScreenState extends ConsumerState<ChatsScreen> {
   final ScrollController _scrollController = ScrollController();
-  final TextEditingController _searchController = TextEditingController();
-  bool _isSearching = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (ref.read(chatProvider).chatRooms.isEmpty) {
+        ref.read(chatProvider.notifier).loadChatRooms();
+      }
+    });
+  }
 
   // Mock messages for demonstration
   List<MessageModel> _getMockMessages(String chatId) {
@@ -106,10 +114,7 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final chatState = ref.watch(chatProvider);
-    final List<ChatRoom> chatRooms = mockChats.map((chat) => chat.copyWith(messages: _getMockMessages(chat.id))).toList(); // Populate with mock messages
-    
-    // Debug print to verify data presence
-    print('Chat count: ${chatRooms.length}');
+    final List<ChatRoom> chatRooms = chatState.chatRooms;
 
     return Scaffold(
       backgroundColor: Colors.white, // Force white background for Telegram Light
@@ -143,6 +148,7 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
                     (context, index) => AiryChatListItem(
                       chatRoom: chatRooms[index],
                       onTap: () {
+                        ref.read(chatProvider.notifier).markAsRead(chatRooms[index].id);
                         Navigator.push(
                           context,
                           CupertinoPageRoute(builder: (context) => ChatRoomScreen(chat: chatRooms[index])),

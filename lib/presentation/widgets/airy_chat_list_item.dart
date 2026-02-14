@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants.dart';
-import '../../core/providers/chat_provider.dart';
 import '../../core/services/chat_service.dart';
-import 'package:vtalk_app/data/mock/mock_messages.dart';
-import '../../data/models/message_model.dart';
 import '../../data/models/chat_room.dart';
-
-/// 📱 Airy Chat List Item - L4 UI Component
-/// Telegram-style with 72px height and squircle avatar
-import '../../../presentation/screens/chat_room_screen.dart';
+import '../../data/mock/mock_messages.dart';
+import '../screens/chat_room_screen.dart';
 
 class AiryChatListItem extends StatefulWidget {
   final ChatRoom chatRoom;
@@ -61,13 +55,14 @@ class _AiryChatListItemState extends State<AiryChatListItem> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            setState(() {
-              widget.chatRoom.unread = 0;
-            });
-            Navigator.push(
-              context,
-              CupertinoPageRoute(builder: (context) => ChatRoomScreen(chat: widget.chatRoom)),
-            );
+            if (widget.onTap != null) {
+              widget.onTap!();
+            } else {
+                Navigator.push(
+                context,
+                CupertinoPageRoute(builder: (context) => ChatRoomScreen(chat: widget.chatRoom)),
+              );
+            }
           },
           borderRadius: BorderRadius.circular(AppBorderRadius.button),
           child: Padding(
@@ -136,14 +131,14 @@ class _AiryChatListItemState extends State<AiryChatListItem> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  lastMsg != null ? formatTime(lastMsg!.timestamp) : '',
+                                  lastMsg != null ? formatTime(lastMsg.timestamp) : '',
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: AppColors.onSurfaceVariant,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                if (widget.chatRoom.unread != null && widget.chatRoom.unread! > 0)
+                                if (widget.chatRoom.unread > 0)
                                   Container(
                                     width: 20,
                                     height: 20,
@@ -182,7 +177,7 @@ class _AiryChatListItemState extends State<AiryChatListItem> {
                     // ⏰ Timestamp (top element)
                     if (lastMessage != null)
                       Text(
-                        chatService.formatMessageTime(lastMessage!.timestamp),
+                        chatService.formatMessageTime(lastMessage.timestamp),
                         style: AppTextStyles.body.copyWith(
                           color: Color(0xFF757575), // Grey, font size 13
                           fontSize: 13.0,
@@ -220,7 +215,7 @@ class _AiryChatListItemState extends State<AiryChatListItem> {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (lastMessage!.isRead)
+                          if (lastMessage.isRead)
                             // Two blue checkmarks (read)
                             Icon(
                               Icons.done_all,
@@ -228,7 +223,6 @@ class _AiryChatListItemState extends State<AiryChatListItem> {
                               size: 16,
                             )
                           else
-                            // One grey checkmark (sent but not read)
                             Icon(
                               Icons.done,
                               color: Color(0xFF757575),

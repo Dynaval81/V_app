@@ -35,11 +35,11 @@ class MessageModel {
   MessageModel({
     required this.id,
     required this.text,
-    this.chatId, // Removed required
+    this.chatId,
     this.isMe = false,
     required this.timestamp,
     required this.status,
-    required this.senderId,
+    this.senderId,
     this.isRead = false,
     this.reactions,
     this.replyTo,

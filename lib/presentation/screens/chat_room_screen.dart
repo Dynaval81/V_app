@@ -106,7 +106,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                 }
                 final messageIndex = hasUnread ? index - 1 : index;
                 final message = chatMessages[messageIndex];
-                return MessageBubble(message: message);
+                return MessageBubble(message: message, isMe: message.isMe);
               },
             ),
           ),
@@ -114,8 +114,6 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
           ChatInput(
             onSendMessage: (text) {
               ref.read(chatProvider.notifier).sendMessage(widget.chat.id, text);
-            },
-          ),
             },
           ),
         ],

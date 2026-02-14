@@ -2,8 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/message_model.dart';
 import '../../data/models/chat_room.dart';
 import '../services/chat_service.dart';
-import '../../data/models/user_model.dart';
-import '../../data/mock/mock_messages.dart';
 import '../../logic/chat_manager.dart';
 
 /// 📊 Chat Provider - L2 State Management
@@ -11,7 +9,7 @@ import '../../logic/chat_manager.dart';
 class ChatProvider extends StateNotifier<ChatState> {
   final ChatService _chatService;
   
-  ChatProvider(this._chatService) : super(const ChatState());
+  ChatProvider(this._chatService) : super(ChatState());
 
   /// 📱 Load chat rooms
   Future<void> loadChatRooms() async {
@@ -20,9 +18,6 @@ class ChatProvider extends StateNotifier<ChatState> {
     try {
       // TODO: Replace with actual API call
       await Future.delayed(const Duration(seconds: 1));
-      
-      // Mock data for testing
-      final mockChatRooms = _generateMockChatRooms();
       
       state = state.copyWith(
         chatRooms: ChatManager.chats,
@@ -35,6 +30,9 @@ class ChatProvider extends StateNotifier<ChatState> {
         isLoading: false,
         error: 'Failed to load chat rooms: ${e.toString()}',
       );
+    }
+  }
+
   /// 📖 Mark messages as read
   void markAsRead(String chatId) {
     ChatManager.markAsRead(chatId);
@@ -56,7 +54,7 @@ class ChatProvider extends StateNotifier<ChatState> {
     );
 
     // Add message to local state immediately
-    _addMessageToChat(chatRoomId, newMessage);
+    addMessageToChat(chatRoomId, newMessage);
 
     try {
       // TODO: Replace with actual API call
@@ -67,7 +65,7 @@ class ChatProvider extends StateNotifier<ChatState> {
         status: MessageStatus.sent,
       );
       
-      _updateMessageInChat(chatRoomId, updatedMessage);
+      updateMessageInChat(chatRoomId, updatedMessage);
       
       // Clear error if any
       state = state.copyWith(error: null);
@@ -77,7 +75,7 @@ class ChatProvider extends StateNotifier<ChatState> {
         status: MessageStatus.failed,
       );
       
-      _updateMessageInChat(chatRoomId, failedMessage);
+      updateMessageInChat(chatRoomId, failedMessage);
       
       state = state.copyWith(error: 'Failed to send message: ${e.toString()}');
     }
@@ -112,25 +110,21 @@ class ChatProvider extends StateNotifier<ChatState> {
   }
 
   /// 📝 Add message to chat locally
-  void _addMessageToChat(String chatRoomId, MessageModel message) {
+  void addMessageToChat(String chatRoomId, MessageModel message) {
     ChatManager.messages.add(message);
-    state = state.copyWith(messages: ChatManager.messages);
+    state = state.copyWith(messages: List.from(ChatManager.messages));
   }
 
   /// 📝 Update message in chat
-  void _updateMessageInChat(String chatRoomId, MessageModel updatedMessage) {
+  void updateMessageInChat(String chatRoomId, MessageModel updatedMessage) {
     final messageIndex = ChatManager.messages.indexWhere((msg) => msg.id == updatedMessage.id);
     
     if (messageIndex != -1) {
       ChatManager.messages[messageIndex] = updatedMessage;
-      state = state.copyWith(messages: ChatManager.messages);
+      state = state.copyWith(messages: List.from(ChatManager.messages));
     }
   }
 
-  /// � Chat Provider instance
-  final chatProvider = StateNotifierProvider<ChatProvider, ChatState>(
-    (ref) => ChatProvider(ChatService()),
-  );
 }
 
 /// 📊 Chat State
