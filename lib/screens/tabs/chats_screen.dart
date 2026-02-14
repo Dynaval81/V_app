@@ -147,73 +147,10 @@ class _ChatsScreenState extends State<ChatsScreen> {
             controller: _scrollController,
             physics: const BouncingScrollPhysics(),
             slivers: [
-              SliverAppBar(
-                pinned: true,
-                automaticallyImplyLeading: false,
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                floating: true, // ВАЖНО: Позволяет FAB "плавать" над AppBar
-                snap: true,     // ВАЖНО: Автоматически показывать/скрывать AppBar
-                flexibleSpace: GlassKit.liquidGlass(
-                  radius: 0,
-                  isDark: isDark,
-                  opacity: 0.3,
-                  useBlur: true,
-                  child: Container(),
-                ),
-                title: Row(
-                  children: [
-                    // Mercury Sphere увеличенная с усиленными тенями
-                    Container(
-                      height: 44, // Увеличиваем с 34 до 44
-                      width: 44,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.purpleAccent.withOpacity(0.3), // Усиливаем сияние
-                            blurRadius: 15, // Больше размытия
-                            spreadRadius: 2, // Больше распространения
-                          ),
-                        ],
-                      ),
-                      child: Image.asset(
-                        'assets/images/app_logo_mercury.png',
-                        height: 44,
-                        width: 44,
-                        fit: BoxFit.contain,
-                        filterQuality: FilterQuality.high,
-                      ),
-                    ),
-                    const SizedBox(width: 8), // Уменьшаем отступ
-                    Expanded(
-                      child: Text("TALK", style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black87,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2.0, // Растягиваем для премиальности
-                        fontSize: 24, // Увеличиваем шрифт
-                      )),
-                    ),
-                  ],
-                ),
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.search), 
-                    onPressed: () => _showSearch(context, isDark),
-                    color: isDark ? Colors.white : Colors.black87, // Фиксированный цвет для обеих тем
-                  ),
-                  GestureDetector(
-                    onTap: () => Navigator.push(
-                      context,
-                      CupertinoPageRoute(builder: (context) => const AccountSettingsScreen()),
-                    ),
-                    child: CircleAvatar(
-                      radius: 18,
-                      backgroundImage: CachedNetworkImageProvider("${AppConstants.defaultAvatarUrl}?u=me"),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                ],
+              // 🚨 НОВОЕ: Используем единый VtalkHeader
+              VtalkHeader(
+                title: 'CHATS',
+                showScrollAnimation: false,
               ),
               if (_chatRooms.isEmpty && !_isLoadingChats)
                 SliverFillRemaining(
@@ -235,19 +172,17 @@ class _ChatsScreenState extends State<ChatsScreen> {
                       ],
                     ),
                   ),
-                )
-              else if (_isLoadingChats)
-                SliverFillRemaining(child: Center(child: CircularProgressIndicator()))
-              else
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final chat = _chatRooms[index]; // ChatRoom instance
-                        return _buildCustomChatTile(chat, isDark);
-                      },
-                      childCount: _chatRooms.length,
-                    ),
+                ),
+              if (_chatRooms.isNotEmpty)
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final chat = _chatRooms[index];
+                      return _buildCustomChatTile(chat, isDark);
+                    },
+                    childCount: _chatRooms.length,
                   ),
+                ),
             ],
           ),
         ),
@@ -907,27 +842,24 @@ Widget _buildMenuOption({
                                 }
                                 // call backend to create chat
                                 final api = ApiService();
+                                final userProvider = Provider.of<UserProvider>(context, listen: false);
+                                
+                                // 🚨 НОВОЕ: Используем UserProvider.createChat вместо прямого API
                                 final result = await api.createChat(selectedContactId);
-                                if (result['success'] == true) {
-                                  final roomId = result['roomId']?.toString() ?? '';
-                                  Navigator.pop(context); // close dialog
-                                  
-                                  // 🚨 НОВОЕ: Обновляем список чатов после создания
-                                  _loadChatRooms();
-                                  
-                                  Navigator.push(
-                                    context,
-                                    CupertinoPageRoute(builder: (context) => ChatRoomScreen(
-                                      chatId: roomId,
-                                      chatName: selectedContact,
-                                      isGroupChat: false,
-                                    )),
-                                  );
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(result['error'] ?? 'Failed to create chat')),
-                                  );
-                                }
+                                await userProvider.createChat(selectedContactId);
+                                
+                                Navigator.pop(context); // close dialog
+                                
+                                // 🚨 НОВОЕ: Переходим в чат после создания
+                                final roomId = result['roomId']?.toString() ?? '';
+                                Navigator.push(
+                                  context,
+                                  CupertinoPageRoute(builder: (context) => ChatRoomScreen(
+                                    chatId: roomId,
+                                    chatName: selectedContact,
+                                    isGroupChat: false,
+                                  )),
+                                );
                               }
                             },
                             icon: const Icon(Icons.done),

@@ -367,8 +367,10 @@ class _VPNScreenState extends State<VPNScreen> {
                             // 🚨 НОВОЕ: Вместо кучи текста используем ExpansionTile
                             ExpansionTile(
                               leading: const Icon(Icons.language, color: Colors.blue),
-                              title: Text(_selectedServer?.name ?? "Auto (Recommended)"),
-                              subtitle: Text(_selectedServer?.ping != null ? "${_selectedServer!['ping']} ms" : "Best latency"),
+                              title: Text(_selectedServer ?? "Auto (Recommended)"),
+                              subtitle: Text(_selectedServer != 'Auto' 
+                                ? "${_servers.firstWhere((s) => s['name'] == _selectedServer)['ping']} ms" 
+                                : "Best latency"),
                               children: [
                                 // 🚨 НОВОЕ: Список серверов внутри
                                 ..._servers.map((server) => ListTile(

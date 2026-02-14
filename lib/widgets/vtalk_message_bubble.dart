@@ -32,33 +32,14 @@ class VTalkMessageBubble extends StatelessWidget {
     this.onDelete,
   }) : super(key: key);
 
-  // Функция для обработки текста с эмодзи
+  // 🚨 НОВОЕ: Функция для обработки текста с эмодзи (упрощенная)
   Widget _buildTextWithEmojis(String text, TextStyle style) {
-    final List<String> parts = text.split(' ');
-    final List<InlineSpan> spans = [];
-    
-    for (int i = 0; i < parts.length; i++) {
-      final part = parts[i];
-      
-      // Проверяем, что это эмодзи (начинается и заканчивается двоеточием) или ретро эмодзи
-      if ((part.startsWith(':') && part.endsWith(':') && part.length > 2) ||
-          (part.startsWith('[retro]:') && part.endsWith(':'))) {
-        // Это эмодзи - используем EmojiRenderer
-        spans.add(WidgetSpan(
-          child: EmojiRenderer.render(part, EmojiSizes.chat),
-          alignment: PlaceholderAlignment.middle,
-        ));
-      } else {
-        // Обычный текст
-        spans.add(TextSpan(
-          text: part + (i < parts.length - 1 ? ' ' : ''),
-          style: style,
-        ));
-      }
-    }
-    
-    return RichText(
-      text: TextSpan(children: spans),
+    // 🚨 НОВОЕ: Просто выводим текст как есть, без сложной логики
+    return Text(
+      text,
+      style: style.copyWith(
+        fontFamily: 'Roboto', // 🚨 Шрифт поддерживающий Emoji
+      ),
     );
   }
 

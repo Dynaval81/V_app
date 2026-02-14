@@ -36,9 +36,32 @@ class UserProvider with ChangeNotifier {
       
       if (result['success'] != true) {
         print('Failed to create Saved Messages chat: ${result['error']}');
+      } else {
+        // 🚨 НОВОЕ: После создания чата обновляем список
+        await _fetchRooms();
+        notifyListeners();
       }
     } catch (e) {
       print('Error creating Saved Messages chat: $e');
+    }
+  }
+
+  // 🚨 НОВОЕ: Публичный метод создания чата
+  Future<void> createChat(String targetUserId) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final api = ApiService();
+      await api.createChat(targetUserId);
+      
+      // 🚨 КРИТИЧЕСКО: Загружаем обновленный список и уведомляем UI
+      await _fetchRooms(); 
+      _isLoading = false;
+      notifyListeners(); 
+    } catch (e) {
+      _isLoading = false;
+      notifyListeners();
+      print("Create chat error: $e");
     }
   }
 
