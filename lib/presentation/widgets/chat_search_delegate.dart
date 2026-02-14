@@ -37,35 +37,37 @@ class ChatSearchDelegate extends SearchDelegate<String> {
       return chat.name?.toLowerCase().contains(query.toLowerCase()) ?? false;
     }).toList();
 
-    return Theme(
-      data: Theme.of(context).copyWith(brightness: Brightness.light),
-      child: ListView.builder(
-        itemCount: suggestions.length,
-        itemBuilder: (context, index) {
-          final chat = suggestions[index];
-          return ListTile(
-            title: Text(chat.name ?? 'Unknown'),
-            onTap: () {
-              close(context, '');
-              if (chat.id != null) {
-                context.push('${AppRoutes.chat}/${chat.id}');
-              }
-            },
-          );
-        },
+    return Container(
+      color: Colors.white,
+      child: Theme(
+        data: Theme.of(context).copyWith(brightness: Brightness.light),
+        child: ListView.builder(
+          itemCount: suggestions.length,
+          itemBuilder: (context, index) {
+            final chat = suggestions[index];
+            return ListTile(
+              title: Text(chat.name ?? 'Unknown'),
+              onTap: () {
+                close(context, '');
+                if (chat.id != null) {
+                  context.push('${AppRoutes.chat}/${chat.id}');
+                }
+              },
+            );
+          },
+        ),
       ),
     );
   }
 
   @override
   ThemeData appBarTheme(BuildContext context) {
-    return Theme.of(context).copyWith(
-      appBarTheme: const AppBarTheme(
+    final ThemeData theme = Theme.of(context);
+    return theme.copyWith(
+      scaffoldBackgroundColor: Colors.white, // Fixes the black screen
+      appBarTheme: theme.appBarTheme.copyWith(
         backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-      ),
-      inputDecorationTheme: const InputDecorationTheme(
-        hintStyle: TextStyle(color: Colors.grey),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
     );
   }
@@ -80,22 +82,25 @@ class ChatSearchDelegate extends SearchDelegate<String> {
       return chat.name?.toLowerCase().contains(query.toLowerCase()) ?? false;
     }).take(5).toList();
 
-    return Theme(
-      data: Theme.of(context).copyWith(brightness: Brightness.light),
-      child: ListView.builder(
-        itemCount: filteredChats.length,
-        itemBuilder: (context, index) {
-          final chat = filteredChats[index];
-          return ListTile(
-            title: Text(chat.name ?? 'Unknown'),
-            onTap: () {
-              close(context, '');
-              if (chat.id != null) {
-                context.push('${AppRoutes.chat}/${chat.id}');
-              }
-            },
-          );
-        },
+    return Container(
+      color: Colors.white,
+      child: Theme(
+        data: Theme.of(context).copyWith(brightness: Brightness.light),
+        child: ListView.builder(
+          itemCount: filteredChats.length,
+          itemBuilder: (context, index) {
+            final chat = filteredChats[index];
+            return ListTile(
+              title: Text(chat.name ?? 'Unknown'),
+              onTap: () {
+                close(context, '');
+                if (chat.id != null) {
+                  context.push('${AppRoutes.chat}/${chat.id}');
+                }
+              },
+            );
+          },
+        ),
       ),
     );
   }

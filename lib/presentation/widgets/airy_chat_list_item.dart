@@ -29,7 +29,9 @@ class AiryChatListItem extends ConsumerWidget {
     final chatService = ChatService();
     final title = chatService.generateChatTitle(chatRoom);
 
-    final preview = getLastMessage(chatRoom.id);
+    // Single source of truth for messages
+    final lastMsg = mockMessages.where((m) => m.chatId == chatRoom.id).toList().lastOrNull;
+    final preview = lastMsg?.text ?? "No messages yet";
     final lastMessage = chatRoom.messages?.isNotEmpty == true 
         ? chatRoom.messages!.last 
         : null;
@@ -53,7 +55,7 @@ class AiryChatListItem extends ConsumerWidget {
             child: Row(
               children: [
                 // 📷 Squircle Avatar (52px height, 18px radius)
-                _buildSquircleAvatar(title),
+                _buildSquircleAvatar(chatRoom),
                 
                 const SizedBox(width: 12.0), // Spacing between avatar and content
                 
@@ -174,34 +176,18 @@ class AiryChatListItem extends ConsumerWidget {
     );
   }
 
-  /// 📷 Build squircle avatar (52px height, 18px radius)
-  Widget _buildSquircleAvatar(String title) {
+  /// 📷 Build squircle avatar
+  Widget _buildSquircleAvatar(ChatRoom chatRoom) {
     return Container(
-      width: 52,
-      height: 52,
+      width: 48,
+      height: 48,
       decoration: BoxDecoration(
-        color: Color(0xFF00A3FF).withOpacity(0.2),
-        borderRadius: BorderRadius.circular(18), // Squircle shape as requested
-        border: Border.all(
-          color: Color(0xFF00A3FF).withOpacity(0.3),
-          width: 2,
-        ),
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.grey.shade300, width: 1),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16), // Slightly smaller for visual appeal
-        child: Container(
-          color: Color(0xFF00A3FF).withOpacity(0.3),
-          child: Center(
-            child: Text(
-              _getInitials(title),
-              style: AppTextStyles.h3.copyWith(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ),
+      child: CircleAvatar(
+        radius: 20, // Unified radius
+        backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=${chatRoom.name}'),
       ),
     );
   }
