@@ -46,7 +46,7 @@ class AiryChatListItem extends ConsumerWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppBorderRadius.button),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12), // 16px padding to align with title
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), // Content padding as requested
             child: Row(
               children: [
                 // 📷 Squircle Avatar (52px height, 18px radius)
@@ -64,7 +64,7 @@ class AiryChatListItem extends ConsumerWidget {
                       Text(
                         title,
                         style: AppTextStyles.body.copyWith(
-                          color: Color(0xFF121212),
+                          color: Colors.black87, // Black87 for contact name
                           fontWeight: FontWeight.w600,
                           fontSize: 20.0, // Updated to 20.0 (bold)
                         ),
@@ -82,7 +82,7 @@ class AiryChatListItem extends ConsumerWidget {
                             child: Text(
                               preview,
                               style: AppTextStyles.body.copyWith(
-                                color: Color(0xFF757575), // Gray color as requested
+                                color: Colors.grey, // Grey color for last message
                                 fontSize: 16.0, // Updated to 16.0
                                 fontWeight: FontWeight.w400,
                               ),

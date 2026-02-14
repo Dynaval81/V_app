@@ -54,7 +54,7 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
     print('Chat count: ${chatRooms.length}');
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: Colors.white, // Force white background for Telegram Light
       body: CustomScrollView(
         controller: _scrollController,
         physics: const BouncingScrollPhysics(),
@@ -68,23 +68,32 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
             ),
             onAvatarPressed: () => print("Open Profile"),
           ),
-          // The List
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 0), // Full width
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) => AiryChatListItem(
-                  chatRoom: chatRooms[index],
-                  onTap: () {
-                    ref.read(chatProvider.notifier).selectChatRoom(chatRooms[index].id);
-                    // Navigate to individual chat
-                    context.go('${AppRoutes.chat}/${chatRooms[index].id}');
-                  },
+          // The List or Empty State
+          chatRooms.isEmpty
+            ? SliverFillRemaining(
+                child: Center(
+                  child: Text(
+                    "No messages yet",
+                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                  ),
                 ),
-                childCount: chatRooms.length,
+              )
+            : SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 0), // Full width
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) => AiryChatListItem(
+                      chatRoom: chatRooms[index],
+                      onTap: () {
+                        ref.read(chatProvider.notifier).selectChatRoom(chatRooms[index].id);
+                        // Navigate to individual chat
+                        context.go('${AppRoutes.chat}/${chatRooms[index].id}');
+                      },
+                    ),
+                    childCount: chatRooms.length,
+                  ),
+                ),
               ),
-            ),
-          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(

@@ -17,8 +17,8 @@ class AiryChatHeader extends StatelessWidget {
     return SliverAppBar(
       pinned: true,
       floating: true,
-      backgroundColor: Colors.white,
-      elevation: 0,
+      backgroundColor: Colors.white, // White background for Telegram Light
+      elevation: 0.5, // Light elevation
       centerTitle: false,
       title: Text(
         title,

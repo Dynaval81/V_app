@@ -58,6 +58,11 @@ class ChatSearchDelegate extends SearchDelegate<String> {
 
   @override
   Widget buildSuggestions(BuildContext context) {
+    if (query.isEmpty) {
+      // Return empty container when query is empty - do not show full list
+      return Container();
+    }
+
     final suggestions = chats.where((chat) {
       return chat.name?.toLowerCase().contains(query.toLowerCase()) ?? false;
     }).take(5).toList();
