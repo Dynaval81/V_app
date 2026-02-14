@@ -23,6 +23,61 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
 
+  // Mock messages for demonstration
+  List<MessageModel> _getMockMessages(String chatId) {
+    if (chatId == '1') {
+      return [
+        MessageModel(
+          id: '1',
+          senderId: 'user1',
+          text: 'Hey, how are you?',
+          timestamp: DateTime.now().subtract(const Duration(minutes: 10)),
+          type: MessageType.text,
+          status: MessageStatus.read,
+        ),
+        MessageModel(
+          id: '2',
+          senderId: 'me',
+          text: 'I\'m good, thanks! How about you?',
+          timestamp: DateTime.now().subtract(const Duration(minutes: 8)),
+          type: MessageType.text,
+          status: MessageStatus.read,
+        ),
+        MessageModel(
+          id: '3',
+          senderId: 'me',
+          text: 'Doing great! Just working on some projects.',
+          timestamp: DateTime.now().subtract(const Duration(minutes: 6)),
+          type: MessageType.text,
+          status: MessageStatus.read,
+        ),
+      ];
+    } else if (chatId == '2') {
+      return [
+        MessageModel(
+          id: '1',
+          senderId: 'user2',
+          text: 'See you tomorrow!',
+          timestamp: DateTime.now().subtract(const Duration(hours: 1)),
+          type: MessageType.text,
+          status: MessageStatus.read,
+        ),
+      ];
+    } else if (chatId == '3') {
+      return [
+        MessageModel(
+          id: '1',
+          senderId: 'user3',
+          text: 'Thanks for the help!',
+          timestamp: DateTime.now().subtract(const Duration(hours: 3)),
+          type: MessageType.text,
+          status: MessageStatus.read,
+        ),
+      ];
+    }
+    return [];
+  }
+
   // Mock data to prove it works
   final List<ChatRoom> mockChats = [
     ChatRoom(
@@ -49,7 +104,7 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final chatState = ref.watch(chatProvider);
-    final List<ChatRoom> chatRooms = mockChats; // Using mock data to prove it works
+    final List<ChatRoom> chatRooms = mockChats.map((chat) => chat.copyWith(messages: _getMockMessages(chat.id))).toList(); // Populate with mock messages
     
     // Debug print to verify data presence
     print('Chat count: ${chatRooms.length}');

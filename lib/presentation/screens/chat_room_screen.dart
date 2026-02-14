@@ -98,14 +98,19 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Flexible( // Use Flexible to prevent name overflow on small screens
-              child: Text(
-                widget.chat.name ?? 'Unknown',
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+              child: GestureDetector( // Make name clickable for profile
+                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Profile Screen - Placeholder')),
                 ),
-                overflow: TextOverflow.ellipsis,
+                child: Text(
+                  widget.chat.name ?? 'Unknown',
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ),
             const Text(

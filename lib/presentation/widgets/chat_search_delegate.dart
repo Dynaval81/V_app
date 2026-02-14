@@ -54,11 +54,21 @@ class ChatSearchDelegate extends SearchDelegate<String> {
         );
       },
     );
+  @override
+  ThemeData appBarTheme(BuildContext context) {
+    return Theme.of(context).copyWith(
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+      ),
+      inputDecorationTheme: const InputDecorationTheme(
+        hintStyle: TextStyle(color: Colors.grey),
+      ),
+    );
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    if (query.isEmpty) {
       // Return empty container when query is empty - do not show full list
       return Container();
     }
