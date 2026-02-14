@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:provider/provider.dart';
 import 'package:vtalk_app/core/constants.dart';
+import 'package:vtalk_app/core/controllers/chat_controller.dart';
 import 'package:vtalk_app/core/providers/chat_provider.dart';
 import 'package:vtalk_app/data/models/chat_room.dart';
 import 'package:vtalk_app/presentation/widgets/molecules/chat_input_field.dart';
@@ -34,6 +36,9 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
     super.initState();
     hasUnread = widget.chat.unread > 0;
     if (hasUnread) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<ChatController>().markAsRead(widget.chat.id);
+      });
       ref.read(chatProvider.notifier).markAsRead(widget.chat.id);
     }
   }

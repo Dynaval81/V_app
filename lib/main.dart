@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart' as provider;
 import 'core/constants.dart';
 import 'core/constants/app_constants.dart';
+import 'core/controllers/chat_controller.dart';
 import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/auth_screen.dart';
 import 'presentation/screens/chats_screen.dart';
@@ -12,8 +14,11 @@ import 'presentation/widgets/airy_button.dart';
 /// Clean architecture with strict layer separation
 void main() {
   runApp(
-    const ProviderScope(
-      child: VTalkApp(),
+    ProviderScope(
+      child: provider.ChangeNotifierProvider(
+        create: (_) => ChatController()..loadChats(),
+        child: const VTalkApp(),
+      ),
     ),
   );
 }

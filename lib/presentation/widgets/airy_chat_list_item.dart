@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants.dart';
+import '../../core/controllers/chat_controller.dart';
 import '../../core/services/chat_service.dart';
 import '../../data/models/chat_room.dart';
 import '../../data/mock/mock_messages.dart';
@@ -32,16 +34,23 @@ class _AiryChatListItemState extends State<AiryChatListItem> {
 
   @override
   Widget build(BuildContext context) {
+    return Consumer<ChatController>(
+      builder: (context, chatController, _) {
+        final unreadCount = chatController.getUnreadCount(widget.chatRoom.id);
+        return _buildContent(context, unreadCount);
+      },
+    );
+  }
+
+  Widget _buildContent(BuildContext context, int unreadCount) {
     final chatService = ChatService();
     final title = chatService.generateChatTitle(widget.chatRoom);
 
-    // Single source of truth for messages
     final lastMsg = mockMessages.where((m) => m.chatId == widget.chatRoom.id).toList().lastOrNull;
     final preview = lastMsg?.text ?? "No messages yet";
-    final lastMessage = widget.chatRoom.messages?.isNotEmpty == true 
-        ? widget.chatRoom.messages!.last 
+    final lastMessage = widget.chatRoom.messages?.isNotEmpty == true
+        ? widget.chatRoom.messages!.last
         : null;
-    final unreadCount = chatService.getUnreadCount(widget.chatRoom, 'current_user_id'); // TODO: Get from auth
 
     return Container(
       height: 88, // Increased height to prevent overflow
@@ -138,7 +147,7 @@ class _AiryChatListItemState extends State<AiryChatListItem> {
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                if (widget.chatRoom.unread > 0)
+                                if (unreadCount > 0)
                                   Container(
                                     width: 20,
                                     height: 20,
@@ -148,7 +157,7 @@ class _AiryChatListItemState extends State<AiryChatListItem> {
                                     ),
                                     child: Center(
                                       child: Text(
-                                        widget.chatRoom.unread.toString(),
+                                        unreadCount > 99 ? '99+' : unreadCount.toString(),
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontSize: 12,
