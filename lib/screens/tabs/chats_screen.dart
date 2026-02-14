@@ -53,47 +53,70 @@ class _ChatsScreenState extends State<ChatsScreen> {
     setState(() {
       _isLoadingChats = true;
     });
+    
+    // 🚨 НОВОЕ: Проверяем token перед API запросом
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    if (userProvider.token == null) {
+      setState(() {
+        _isLoadingChats = false;
+        _chatRooms = [];
+      });
+      return;
+    }
+    
     final api = ApiService();
-    final result = await api.listChats();
-    if (result['success'] == true) {
-      // 🚨 ИСПРАВЛЕНО: Проверяем тип данных перед преобразованием
-      List<dynamic> roomsList = [];
-      if (result['rooms'] != null) {
-        if (result['rooms'] is List) {
-          roomsList = result['rooms'] as List<dynamic>;
-        } else if (result['rooms'] is String) {
-          // Если rooms это строка, создаем пустой список
-          roomsList = [];
+    try {
+      final result = await api.listChats();
+      if (result['success'] == true) {
+        // 🚨 ИСПРАВЛЕНО: Проверяем тип данных перед преобразованием
+        List<dynamic> roomsList = [];
+        if (result['rooms'] != null) {
+          if (result['rooms'] is List) {
+            roomsList = result['rooms'] as List<dynamic>;
+          } else if (result['rooms'] is String) {
+            // Если rooms это строка, создаем пустой список
+            roomsList = [];
+          }
         }
-      }
-      
-      final rooms = List<Map<String, dynamic>>.from(roomsList);
-      setState(() {
-        _chatRooms = rooms.map((r) {
-          return {
-            'id': r['id'],
-            'name': r['name'] ?? r['title'] ?? '',
-            'isGroup': r['isGroup'] ?? false,
-            'isOnline': r['isOnline'] ?? true,
-            'unread': r['unread'] ?? 0,
-          };
-        }).toList();
         
-        // 🚨 НОВОЕ: Если список пуст - выключаем isLoading
-        if (_chatRooms.isEmpty) {
-          _isLoadingChats = false;
+        final rooms = List<Map<String, dynamic>>.from(roomsList);
+        setState(() {
+          _chatRooms = rooms.map((r) {
+            return {
+              'id': r['id'],
+              'name': r['name'] ?? r['title'] ?? '',
+              'isGroup': r['isGroup'] ?? false,
+              'isOnline': r['isOnline'] ?? true,
+              'unread': r['unread'] ?? 0,
+            };
+          }).toList();
+          
+          // 🚨 НОВОЕ: Если список пуст - выключаем isLoading
+          if (_chatRooms.isEmpty) {
+            _isLoadingChats = false;
+          }
+        });
+      } else {
+        // failed to load, keep empty list or show snackbar
+        if (result['error'] != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(result['error'])),
+          );
         }
-      });
-    } else {
-      // failed to load, keep empty list or show snackbar
-      if (result['error'] != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['error'])),
-        );
+        setState(() {
+          _isLoadingChats = false; // 🚨 Выключаем при ошибке
+        });
       }
+    } catch (e) {
+      // 🚨 НОВОЕ: Обработка ошибок парсинга
+      print('Error loading chat rooms: $e'); // Логируем ошибку
       setState(() {
-        _isLoadingChats = false; // 🚨 Выключаем при ошибке
+        _isLoadingChats = false;
+        _chatRooms = [];
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load chats: ${e.toString()}')),
+      );
     }
   }
 
@@ -969,14 +992,22 @@ class ChatSearchDelegate extends SearchDelegate<String> {
 
   @override
   Widget buildSuggestions(BuildContext context) {
+    // 🚨 НОВОЕ: Получаем ID текущего пользователя
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final currentUserId = userProvider.user?.id ?? '';
+    
     final suggestions = [
       'Alice Johnson',
-      'Bob Smith',
+      'Bob Smith', 
       'Project Group',
       'Charlie Brown',
       'VPN Connection',
       'AI Assistant',
-    ].where((suggestion) => suggestion.toLowerCase().contains(query.toLowerCase())).toList();
+    ].where((suggestion) => 
+      suggestion.toLowerCase().contains(query.toLowerCase()) &&
+      // 🚨 НОВОЕ: Исключаем текущего пользователя из поиска
+      !suggestion.toLowerCase().contains(userProvider.user?.username?.toLowerCase() ?? '')
+    ).toList();
 
     return Expanded(
       child: ListView.builder(

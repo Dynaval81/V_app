@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../utils/glass_kit.dart';
 import '../theme_provider.dart';
 import 'package:provider/provider.dart';
+import '../providers/user_provider.dart';
 
 class VtalkHeader extends StatefulWidget {
   final String title;
@@ -118,7 +119,17 @@ class _VtalkHeaderState extends State<VtalkHeader>
       ),
       title: Row(
         children: [
-          const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32),
+          // 🚨 НОВОЕ: Актуальный ассет логотипа
+          Image.asset(
+            'assets/images/app_logo_classic.png',
+            height: 32,
+            width: 32,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) {
+              // Fallback к иконке если логотип не загрузится
+              return const Icon(Icons.blur_on, color: Colors.blueAccent, size: 32);
+            },
+          ),
           const SizedBox(width: 8),
           Flexible(  // ✅ Добавили Flexible чтобы текст не переполнял
             child: Opacity(
@@ -137,7 +148,70 @@ class _VtalkHeaderState extends State<VtalkHeader>
           ),
         ],
       ),
-        actions: widget.actions ?? [],
+        actions: [
+        // 🚨 НОВОЕ: Плашка FREE рядом с аватаром
+        if (widget.showScrollAnimation)
+          Consumer<UserProvider>(
+            builder: (context, userProvider, child) {
+              if (!userProvider.isPremium) {
+                return Container(
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.orange.withOpacity(0.2),
+                        blurRadius: 4,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    'FREE',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 10,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+        
+        // Оригинальный аватар
+        if (widget.showScrollAnimation)
+          ScaleTransition(
+            scale: _scaleAnimation,
+            child: GestureDetector(
+              onTapDown: (_) => _animateAvatar(),
+              onTapUp: (_) => _avatarController.reverse(),
+              onTapCancel: () => _avatarController.reverse(),
+              onTap: () => Navigator.pushNamed(context, '/settings'),
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isDark ? Colors.white24 : Colors.black12,
+                    width: 2,
+                  ),
+                ),
+                child: CircleAvatar(
+                  radius: 16,
+                  backgroundColor: Colors.blue.withOpacity(0.7),
+                  child: const Icon(Icons.person, color: Colors.white),
+                ),
+              ),
+            ),
+          ),
+        
+        // Дополнительные actions если есть
+        ...(widget.actions ?? []),
+      ],
       // ✅ Заменили небезопасное распаковывание на безопасное
       bottom: widget.showScrollAnimation
           ? PreferredSize(

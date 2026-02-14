@@ -137,6 +137,7 @@ class _AIScreenState extends State<AIScreen> {
           // Mercury logo customizations handled internally now
           actions: [
             GestureDetector(
+              behavior: HitTestBehavior.translucent, // 🚨 НОВОЕ: Разрешаем свайп назад
               onTap: () => Navigator.push(
                 context,
                 CupertinoPageRoute(builder: (context) => const AccountSettingsScreen()),

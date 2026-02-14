@@ -107,35 +107,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     ':undecided:': 'assets/emojis/undecided.gif',
   };
 
-  final List<MessageModel> _messages = [
-    MessageModel(
-      id: '1',
-      text: 'Привет! Посмотри на наши новые эмодзи 😊',
-      isMe: false,
-      timestamp: DateTime.now().subtract(const Duration(minutes: 30)),
-      reactions: {'😊': 2, '👍': 1},
-    ),
-    MessageModel(
-      id: '2',
-      text: 'Это работает мгновенно через Assets! 😎',
-      isMe: true,
-      timestamp: DateTime.now().subtract(const Duration(minutes: 25)),
-      reactions: {'😎': 1},
-      replyTo: MessageModel(
-        id: '1',
-        text: 'Привет! Посмотри на наши новые эмодзи 😊',
-        isMe: false,
-        timestamp: DateTime.now().subtract(const Duration(minutes: 30)),
-      ),
-    ),
-    MessageModel(
-      id: '3',
-      text: 'Зацени этот сайт: https://flutter.dev',
-      isMe: false,
-      timestamp: DateTime.now().subtract(const Duration(minutes: 20)),
-      urls: ['https://flutter.dev'],
-    ),
-  ];
+  final List<MessageModel> _messages = [];
 
   @override
   void initState() {

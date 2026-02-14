@@ -115,6 +115,7 @@ class _VPNScreenState extends State<VPNScreen> {
                 showScrollAnimation: false,
                 actions: [
                   GestureDetector(
+                    behavior: HitTestBehavior.translucent, // 🚨 НОВОЕ: Разрешаем свайп назад
                     onTap: () => Navigator.push(
                       context,
                       CupertinoPageRoute(builder: (context) => const AccountSettingsScreen()),
@@ -334,59 +335,101 @@ class _VPNScreenState extends State<VPNScreen> {
                       ),
                     SizedBox(height: 20),
 
-                    // 🚨 НОВОЕ: Server selector с флагами и пингом
+                    // 🚨 НОВОЕ: Server selector с флагами и пингом под ExpansionTile
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: GlassKit.liquidGlass(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
+                        child: Column(
+                          children: [
+                            // Заголовок серверов
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
                                 children: [
                                   Icon(Icons.dns, color: Colors.orangeAccent, size: 20),
                                   const SizedBox(width: 8),
-                                  Text('Серверы', style: TextStyle(
-                                    color: isDark ? Colors.white : Colors.black,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                  )),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              ..._servers.map((server) {
-                                final selected = _selectedServer == server['name'];
-                                return ListTile(
-                                  leading: Text(
-                                    server['flag'],
-                                    style: TextStyle(fontSize: 24),
-                                  ),
-                                  title: Text(
-                                    server['name'],
+                                  Text(
+                                    isConnected 
+                                      ? 'Текущий сервер: $_selectedServer' 
+                                      : 'Выберите сервер',
                                     style: TextStyle(
                                       color: isDark ? Colors.white : Colors.black,
-                                      fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16,
                                     ),
                                   ),
-                                  trailing: Text(
-                                    server['ping'],
-                                    style: TextStyle(
-                                      color: _getPingColor(server['ping']),
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
+                                  if (isConnected) ...[
+                                    const SizedBox(width: 12),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.green.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        _servers.firstWhere((s) => s['name'] == _selectedServer)['ping'],
+                                        style: TextStyle(
+                                          color: Colors.green,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            
+                            // ExpansionTile со списком серверов
+                            if (!isConnected)
+                              ExpansionTile(
+                                title: Text(
+                                  'Список серверов',
+                                  style: TextStyle(
+                                    color: isDark ? Colors.white70 : Colors.black54,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                tilePadding: EdgeInsets.zero,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    child: Column(
+                                      children: _servers.map((server) {
+                                        final selected = _selectedServer == server['name'];
+                                        return ListTile(
+                                          leading: Text(
+                                            server['flag'],
+                                            style: TextStyle(fontSize: 24),
+                                          ),
+                                          title: Text(
+                                            server['name'],
+                                            style: TextStyle(
+                                              color: isDark ? Colors.white : Colors.black,
+                                              fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                                            ),
+                                          ),
+                                          trailing: Text(
+                                            server['ping'],
+                                            style: TextStyle(
+                                              color: _getPingColor(server['ping']),
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          selected: selected,
+                                          selectedTileColor: (isDark ? Colors.white12 : Colors.black12),
+                                          onTap: () {
+                                            setState(() => _selectedServer = server['name']);
+                                          },
+                                          contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        );
+                                      }).toList(),
                                     ),
                                   ),
-                                  selected: selected,
-                                  selectedTileColor: (isDark ? Colors.white12 : Colors.black12),
-                                  onTap: () {
-                                    setState(() => _selectedServer = server['name']);
-                                  },
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                );
-                              }).toList(),
-                            ],
-                          ),
+                                ],
+                              ),
+                          ],
                         ),
                       ),
                     ),
