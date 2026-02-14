@@ -11,7 +11,7 @@ import '../widgets/airy_input_field.dart';
 import '../widgets/airy_button.dart';
 
 /// 📱 V-Talk Chats Screen - L4 UI Layer
-/// Airy design with glassmorphism header and clean list
+/// Airy design with glassmorphism header and structured chat list
 class ChatsScreen extends ConsumerStatefulWidget {
   const ChatsScreen({super.key});
 
@@ -64,17 +64,17 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
   Widget build(BuildContext context) {
     final chatState = ref.watch(chatProvider);
     final chatRooms = chatState.filteredChatRooms ?? chatState.chatRooms;
-    final chatService = ChatService();
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       
-      // ➕ Create Chat FAB
+      // ➕ Create Chat FAB with message icon
       floatingActionButton: FloatingActionButton(
         onPressed: _createNewChat,
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        child: const Icon(Icons.add, size: 24),
+        backgroundColor: theme.colorScheme.primary,
+        foregroundColor: theme.colorScheme.onPrimary,
+        child: const Icon(Icons.message, size: 24), // Message icon for new chat
       ),
       
       body: Stack(
@@ -90,10 +90,10 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
                 action: IconButton(
                   icon: Icon(
                     _isSearching ? Icons.close : Icons.search,
-                    color: Theme.of(context).brightness == Brightness.dark 
+                    color: theme.brightness == Brightness.dark 
                         ? Color(0xFF121212) 
                         : Color(0xFF000000),
-                    size: 22,
+                    size: 24,
                   ),
                   onPressed: _toggleSearch,
                 ),
@@ -116,7 +116,7 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
                   ),
                 ),
               
-              // 📱 Chat list
+              // 📱 Chat list with structured items
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                 sliver: SliverList(

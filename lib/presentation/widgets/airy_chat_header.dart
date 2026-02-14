@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants.dart';
 
 /// 🎨 Airy Chat Header - L4 UI Component
-/// Glassmorphism effect with HAI3 compliance
+/// Glassmorphism effect with HAI3 compliance and structured layout
 class AiryChatHeader extends StatelessWidget {
   final String title;
   final VoidCallback? onEditPressed;
@@ -24,23 +24,25 @@ class AiryChatHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return SliverAppBar(
       pinned: true,
       floating: false,
       backgroundColor: Colors.transparent,
       elevation: 0,
-      expandedHeight: 80, // Reduced from 100
+      expandedHeight: 120, // Increased to 120 for better proportions
       flexibleSpace: FlexibleSpaceBar(
         background: _buildGlassmorphismBackground(context),
       ),
       title: _buildTitle(context),
-      centerTitle: false, // Move title to left
+      centerTitle: false, // Title to the left
       leading: _buildLeading(context),
       actions: _buildActions(context),
     );
   }
 
-  /// 🎨 Build adaptive glassmorphism background
+  /// 🎨 Build safe glassmorphism background with ClipRect
   Widget _buildGlassmorphismBackground(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -58,7 +60,7 @@ class AiryChatHeader extends StatelessWidget {
           ),
         ),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
           child: Container(
             decoration: BoxDecoration(
               color: (isDark ? Colors.white : Colors.black).withOpacity(0.05),
@@ -75,7 +77,7 @@ class AiryChatHeader extends StatelessWidget {
     );
   }
 
-  /// 📝 Build title with consistent icon sizing
+  /// 📝 Build title with proper sizing
   Widget _buildTitle(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -84,7 +86,7 @@ class AiryChatHeader extends StatelessWidget {
       title,
       style: AppTextStyles.h3.copyWith(
         color: isDark ? Color(0xFF121212) : Color(0xFF000000),
-        fontSize: 28, // Slightly smaller for better balance
+        fontSize: 24, // Large title size
         fontWeight: FontWeight.w700,
         letterSpacing: -0.5,
       ),
@@ -101,7 +103,7 @@ class AiryChatHeader extends StatelessWidget {
         icon: Icon(
           Icons.arrow_back_ios_new,
           color: isDark ? Color(0xFF121212) : Color(0xFF000000),
-          size: 22, // Consistent with font size
+          size: 24,
         ),
         onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
       );
@@ -109,7 +111,7 @@ class AiryChatHeader extends StatelessWidget {
     return null;
   }
 
-  /// 🔧 Build actions (edit button or custom action)
+  /// 🔧 Build actions (search icon)
   List<Widget> _buildActions(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -121,9 +123,9 @@ class AiryChatHeader extends StatelessWidget {
       actions.add(
         IconButton(
           icon: Icon(
-            Icons.edit_note_rounded,
+            Icons.search, // Magnifying glass icon
             color: isDark ? Color(0xFF121212) : Color(0xFF000000),
-            size: 22, // Consistent with font size
+            size: 24,
           ),
           onPressed: onEditPressed,
         ),
