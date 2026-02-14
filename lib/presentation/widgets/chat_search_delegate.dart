@@ -47,7 +47,9 @@ class ChatSearchDelegate extends SearchDelegate<String> {
           onTap: () {
             close(context, '');
             // Navigate to the selected chat
-            context.push('${AppRoutes.chat}/${chat.id}');
+            if (chat.id != null) {
+              context.push('${AppRoutes.chat}/${chat.id}');
+            }
           },
         );
       },
@@ -69,7 +71,9 @@ class ChatSearchDelegate extends SearchDelegate<String> {
           onTap: () {
             close(context, '');
             // Navigate to the selected chat
-            context.push('${AppRoutes.chat}/${chat.id}');
+            if (chat.id != null) {
+              context.push('${AppRoutes.chat}/${chat.id}');
+            }
           },
         );
       },

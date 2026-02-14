@@ -85,11 +85,15 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
             physics: const BouncingScrollPhysics(),
             slivers: [
               // 🎨 Glassmorphism header with search
-              SliverOverlapInjector(
+              SliverOverlapAbsorber(
                 handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
-                sliver: AiryChatHeader(
-                  title: 'Чаты', // Russian title as requested
-                  chats: chatRooms, // Pass chat rooms to header for search
+                sliver: Builder(
+                  builder: (headerContext) {
+                    return AiryChatHeader(
+                      title: 'Чаты', // Russian title as requested
+                      chats: chatRooms, // Pass chat rooms to header for search
+                    );
+                  },
                 ),
               ),
               
