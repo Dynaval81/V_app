@@ -7,6 +7,7 @@ import '../widgets/airy_chat_header.dart';
 import '../widgets/airy_chat_list_item.dart';
 import '../widgets/chat_search_delegate.dart';
 import '../../data/models/chat_room.dart';
+import '../../../data/models/message_model.dart';
 import 'chat_room_screen.dart';
 
 /// 📱 V-Talk Chats Screen - L4 UI Layer

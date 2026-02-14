@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import '../../../data/models/chat_room.dart';
 import '../../../core/constants/app_constants.dart';
 
-/// 📱 Chat Search Delegate
 class ChatSearchDelegate extends SearchDelegate<String> {
   final List<ChatRoom> chats;
 
@@ -46,7 +45,6 @@ class ChatSearchDelegate extends SearchDelegate<String> {
           title: Text(chat.name ?? 'Unknown'),
           onTap: () {
             close(context, '');
-            // Navigate to the selected chat
             if (chat.id != null) {
               context.push('${AppRoutes.chat}/${chat.id}');
             }
@@ -54,6 +52,8 @@ class ChatSearchDelegate extends SearchDelegate<String> {
         );
       },
     );
+  }
+
   @override
   ThemeData appBarTheme(BuildContext context) {
     return Theme.of(context).copyWith(
@@ -69,23 +69,22 @@ class ChatSearchDelegate extends SearchDelegate<String> {
 
   @override
   Widget buildSuggestions(BuildContext context) {
-      // Return empty container when query is empty - do not show full list
+    if (query.isEmpty) {
       return Container();
     }
 
-    final suggestions = chats.where((chat) {
+    final filteredChats = chats.where((chat) {
       return chat.name?.toLowerCase().contains(query.toLowerCase()) ?? false;
     }).take(5).toList();
 
     return ListView.builder(
-      itemCount: suggestions.length,
+      itemCount: filteredChats.length,
       itemBuilder: (context, index) {
-        final chat = suggestions[index];
+        final chat = filteredChats[index];
         return ListTile(
           title: Text(chat.name ?? 'Unknown'),
           onTap: () {
             close(context, '');
-            // Navigate to the selected chat
             if (chat.id != null) {
               context.push('${AppRoutes.chat}/${chat.id}');
             }
