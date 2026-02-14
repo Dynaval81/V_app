@@ -1,0 +1,97 @@
+import 'package:flutter/material.dart';
+import '../../core/theme.dart';
+
+/// 🔘 HAI3 Airy Button
+/// Bright blue accent with generous padding and smooth animations
+class AiryButton extends StatelessWidget {
+  final String text;
+  final VoidCallback? onPressed;
+  final bool isLoading;
+  final bool fullWidth;
+  final Color? backgroundColor;
+  final Color? textColor;
+  final double? height;
+  final Widget? icon;
+
+  const AiryButton({
+    super.key,
+    required this.text,
+    this.onPressed,
+    this.isLoading = false,
+    this.fullWidth = false,
+    this.backgroundColor,
+    this.textColor,
+    this.height,
+    this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final buttonWidth = fullWidth ? double.infinity : null;
+    final buttonHeight = height ?? 48.0;
+    
+    return SizedBox(
+      width: buttonWidth,
+      height: buttonHeight,
+      child: ElevatedButton(
+        onPressed: isLoading ? null : onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: backgroundColor ?? AppColors.primary,
+          foregroundColor: textColor ?? AppColors.onPrimary,
+          elevation: 0,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppBorderRadius.button),
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.buttonPadding,
+            vertical: AppSpacing.md,
+          ),
+        ),
+        child: isLoading
+            ? _buildLoadingIndicator()
+            : _buildButtonContent(),
+      ),
+    );
+  }
+
+  /// 🔄 Build loading indicator
+  Widget _buildLoadingIndicator() {
+    return SizedBox(
+      width: 20,
+      height: 20,
+      child: CircularProgressIndicator(
+        strokeWidth: 2,
+        valueColor: const AlwaysStoppedAnimation<Color>(AppColors.onPrimary),
+        backgroundColor: AppColors.onPrimary.withOpacity(0.3),
+      ),
+    );
+  }
+
+  /// 🔘 Build button content
+  Widget _buildButtonContent() {
+    if (icon != null) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          icon!,
+          const SizedBox(width: AppSpacing.sm),
+          Text(
+            text,
+            style: AppTextStyles.button.copyWith(
+              color: AppColors.onPrimary,
+            ),
+          ),
+        ],
+      );
+    }
+    
+    return Text(
+      text,
+      style: AppTextStyles.button.copyWith(
+        color: AppColors.onPrimary,
+      ),
+    );
+  }
+}

@@ -1,396 +1,449 @@
 import 'package:flutter/material.dart';
 
-class AppTheme {
-  // 🚨 Глобальный акцентный цвет V-Talk (ртутный голубой)
-  static const Color primaryColor = Color(0xFF00B2FF);
-  static const Color primaryVariant = Color(0xFF0090E0);
-  static const Color secondaryColor = Color(0xFF00D4FF);
+/// 🎨 HAI3 Design System for V-Talk Beta
+/// Based on https://github.com/HAI3org/HAI3 design tokens
+/// Minimalist design with maximum content, minimum chrome
+
+class AppColors {
+  // 🎯 Primary Colors (HAI3 Minimalist)
+  static const primary = Color(0xFF00A3FF);      // Bright blue accent
+  static const primaryVariant = Color(0xFF0090E0);  // Darker blue
+  static const secondary = Color(0xFF00D4FF);      // Light blue accent
   
-  // 🚨 Цветовая палитра
-  static const Color backgroundColor = Color(0xFF0A0A0A);
-  static const Color surfaceColor = Color(0xFF1A1A1A);
-  static const Color cardColor = Color(0xFF2A2A2A);
+  // 🌑 Background Colors (HAI3 Dark Theme)
+  static const background = Color(0xFF000000);      // Pure black
+  static const surface = Color(0xFF1A1A1A);        // Dark gray
+  static const cardBackground = Color(0xFF2A2A2A);   // Medium gray
   
-  // 🚨 Текстовые цвета
-  static const Color onPrimary = Color(0xFF000000);
-  static const Color onSecondary = Color(0xFF000000);
-  static const Color onBackground = Color(0xFFFFFFFF);
-  static const Color onSurface = Color(0xFFFFFFFF);
+  // 📝 Text Colors (HAI3 High Contrast)
+  static const onPrimary = Color(0xFF000000);      // Black on primary
+  static const onBackground = Color(0xFFFFFFFF);    // White on background
+  static const onSurface = Color(0xFFFFFFFF);      // White on surface
+  static const onSurfaceVariant = Color(0xFF666666); // Muted gray
   
-  // 🚨 Статусные цвета
-  static const Color successColor = Color(0xFF00C853);
-  static const Color errorColor = Color(0xFFFF1744);
-  static const Color warningColor = Color(0xFFFF9100);
+  // 🚨 Status Colors (HAI3 Semantic)
+  static const error = Color(0xFFFF3B30);         // Red accent
+  static const success = Color(0xFF30D158);        // Green accent
+  static const warning = Color(0xFFFF9500);        // Orange accent
+  static const info = Color(0xFF007AFF);           // Blue accent
   
-  // 🚨 Градиенты
-  static const LinearGradient primaryGradient = LinearGradient(
-    colors: [primaryColor, secondaryColor],
+  // 🌈 Gradient Colors (HAI3 Subtle)
+  static const primaryGradient = LinearGradient(
+    colors: [primary, secondary],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
   
-  // 🚨 Темная тема (основная)
+  static const surfaceGradient = LinearGradient(
+    colors: [surface, cardBackground],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+}
+
+class AppSpacing {
+  // 📏 8px Grid System (HAI3 Standard)
+  static const xs = 4.0;   // 0.5rem
+  static const sm = 8.0;   // 1rem
+  static const md = 16.0;  // 2rem
+  static const lg = 24.0;  // 3rem
+  static const xl = 32.0;  // 4rem
+  static const xxl = 48.0; // 6rem
+  static const xxxl = 64.0; // 8rem
+  
+  // 🎯 Component-specific spacing
+  static const componentPadding = 16.0;
+  static const screenPadding = 24.0;
+  static const cardPadding = 20.0;
+  static const inputPadding = 16.0;
+  static const buttonPadding = 24.0;
+}
+
+class AppTextStyles {
+  // 📝 Typography Scale (HAI3 Minimalist)
+  static const h1 = TextStyle(
+    fontSize: 32,
+    fontWeight: FontWeight.w700,
+    letterSpacing: -0.5,
+    height: 1.2,
+  );
+  
+  static const h2 = TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.w600,
+    letterSpacing: -0.25,
+    height: 1.3,
+  );
+  
+  static const h3 = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0,
+    height: 1.4,
+  );
+  
+  static const h4 = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0.1,
+    height: 1.4,
+  );
+  
+  static const body = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w400,
+    letterSpacing: 0.5,
+    height: 1.5,
+  );
+  
+  static const bodySmall = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+    letterSpacing: 0.25,
+    height: 1.4,
+  );
+  
+  static const caption = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    letterSpacing: 0.4,
+    height: 1.3,
+  );
+  
+  static const button = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 1.25,
+    height: 1.2,
+  );
+  
+  static const input = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w400,
+    letterSpacing: 0.15,
+    height: 1.4,
+  );
+}
+
+class AppBorderRadius {
+  // 🔄 Border Radius (HAI3 Consistent)
+  static const xs = 4.0;
+  static const sm = 8.0;
+  static const md = 12.0;
+  static const lg = 16.0;
+  static const xl = 20.0;
+  static const xxl = 24.0;
+  static const round = 999.0; // For circular elements
+  
+  // 🎯 Component-specific
+  static const button = 12.0;
+  static const card = 16.0;
+  static const input = 12.0;
+  static const chip = 8.0;
+  static const dialog = 16.0;
+}
+
+class AppShadows {
+  // 🌑 Elevation (HAI3 Subtle)
+  static const sm = BoxShadow(
+    color: Color(0x1A000000),
+    blurRadius: 4,
+    offset: Offset(0, 2),
+  );
+  
+  static const md = BoxShadow(
+    color: Color(0x33000000),
+    blurRadius: 8,
+    offset: Offset(0, 4),
+  );
+  
+  static const lg = BoxShadow(
+    color: Color(0x4D000000),
+    blurRadius: 16,
+    offset: Offset(0, 8),
+  );
+  
+  static const xl = BoxShadow(
+    color: AppColors.primary,
+    blurRadius: 20,
+    offset: Offset(0, 4),
+  );
+  
+  // 🎯 Component-specific
+  static const card = BoxShadow(
+    color: Color(0x1A000000),
+    blurRadius: 12,
+    offset: Offset(0, 4),
+  );
+  
+  static const button = BoxShadow(
+    color: Color(0x3300A3FF),
+    blurRadius: 8,
+    offset: Offset(0, 4),
+  );
+}
+
+class AppTheme {
+  // 🎨 HAI3 Dark Theme (Primary)
   static ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
     
-    // 🚨 Основные цвета
+    // 🎯 Color Scheme
     colorScheme: const ColorScheme.dark(
-      primary: primaryColor,
-      primaryContainer: primaryVariant,
-      secondary: secondaryColor,
-      background: backgroundColor,
-      surface: surfaceColor,
-      onPrimary: onPrimary,
-      onSecondary: onSecondary,
-      onBackground: onBackground,
-      onSurface: onSurface,
-      error: errorColor,
+      primary: AppColors.primary,
+      primaryContainer: AppColors.primaryVariant,
+      secondary: AppColors.secondary,
+      background: AppColors.background,
+      surface: AppColors.surface,
+      onPrimary: AppColors.onPrimary,
+      onBackground: AppColors.onBackground,
+      onSurface: AppColors.onSurface,
+      error: AppColors.error,
     ),
     
-    // 🚨 Тема для AppBar
-    appBarTheme: const AppBarTheme(
+    // 📝 Text Theme
+    textTheme: TextTheme(
+      displayLarge: AppTextStyles.h1.copyWith(color: AppColors.onSurface),
+      displayMedium: AppTextStyles.h2.copyWith(color: AppColors.onSurface),
+      headlineLarge: AppTextStyles.h3.copyWith(color: AppColors.onSurface),
+      headlineMedium: AppTextStyles.h4.copyWith(color: AppColors.onSurface),
+      bodyLarge: AppTextStyles.body.copyWith(color: AppColors.onSurface),
+      bodyMedium: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurfaceVariant),
+      labelLarge: AppTextStyles.button.copyWith(color: AppColors.onPrimary),
+    ),
+    
+    // 🎨 AppBar Theme
+    appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: true,
-      titleTextStyle: TextStyle(
-        color: onSurface,
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-        letterSpacing: 1.2,
-      ),
-      iconTheme: IconThemeData(
-        color: onSurface,
+      titleTextStyle: AppTextStyles.h4.copyWith(color: AppColors.onSurface),
+      iconTheme: const IconThemeData(
+        color: AppColors.onSurface,
         size: 24,
       ),
     ),
     
-    // 🚨 Тема для карточек
+    // 🃏 Card Theme
     cardTheme: CardTheme(
-      color: cardColor,
-      elevation: 4,
+      color: AppColors.cardBackground,
+      elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppBorderRadius.card),
       ),
-      shadowColor: Colors.black.withOpacity(0.3),
+      shadowColor: Colors.transparent,
     ),
     
-    // 🚨 Тема для кнопок
+    // 🔘 Button Theme
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: primaryColor,
-        foregroundColor: onPrimary,
-        elevation: 4,
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.onPrimary,
+        elevation: 0,
+        shadowColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppBorderRadius.button),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        textStyle: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.buttonPadding,
+          vertical: AppSpacing.md,
         ),
+        textStyle: AppTextStyles.button,
       ),
     ),
     
-    // 🚨 Тема для текстовых полей
+    // 📝 Input Theme
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: surfaceColor,
+      fillColor: AppColors.surface,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppBorderRadius.input),
         borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppBorderRadius.input),
         borderSide: BorderSide(
-          color: primaryColor.withOpacity(0.3),
+          color: AppColors.onSurface.withOpacity(0.2),
           width: 1,
         ),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppBorderRadius.input),
         borderSide: const BorderSide(
-          color: primaryColor,
+          color: AppColors.primary,
           width: 2,
         ),
       ),
-      labelStyle: const TextStyle(
-        color: onSurface,
-        fontSize: 14,
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppBorderRadius.input),
+        borderSide: const BorderSide(
+          color: AppColors.error,
+          width: 2,
+        ),
       ),
-      hintStyle: TextStyle(
-        color: onSurface.withOpacity(0.6),
-        fontSize: 14,
+      contentPadding: const EdgeInsets.all(AppSpacing.inputPadding),
+      labelStyle: AppTextStyles.input.copyWith(color: AppColors.onSurfaceVariant),
+      hintStyle: AppTextStyles.input.copyWith(
+        color: AppColors.onSurfaceVariant.withOpacity(0.7),
       ),
     ),
     
-    // 🚨 Тема для BottomNavigationBar
-    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: surfaceColor,
-      selectedItemColor: primaryColor,
-      unselectedItemColor: onSurface,
+    // 🧭 Bottom Navigation Theme
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      backgroundColor: AppColors.surface,
+      selectedItemColor: AppColors.primary,
+      unselectedItemColor: AppColors.onSurfaceVariant,
       type: BottomNavigationBarType.fixed,
-      elevation: 8,
-      selectedLabelStyle: TextStyle(
-        fontSize: 12,
+      elevation: 0,
+      selectedLabelStyle: AppTextStyles.caption.copyWith(
+        color: AppColors.primary,
         fontWeight: FontWeight.w600,
       ),
-      unselectedLabelStyle: TextStyle(
-        fontSize: 12,
+      unselectedLabelStyle: AppTextStyles.caption.copyWith(
+        color: AppColors.onSurfaceVariant,
         fontWeight: FontWeight.w400,
       ),
     ),
     
-    // 🚨 Текстовые стили
-    textTheme: const TextTheme(
-      displayLarge: TextStyle(
-        color: onSurface,
-        fontSize: 32,
-        fontWeight: FontWeight.bold,
-        letterSpacing: -0.5,
-      ),
-      displayMedium: TextStyle(
-        color: onSurface,
-        fontSize: 28,
-        fontWeight: FontWeight.bold,
-        letterSpacing: -0.25,
-      ),
-      headlineLarge: TextStyle(
-        color: onSurface,
-        fontSize: 24,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0,
-      ),
-      headlineMedium: TextStyle(
-        color: onSurface,
-        fontSize: 20,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.15,
-      ),
-      bodyLarge: TextStyle(
-        color: onSurface,
-        fontSize: 16,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0.5,
-      ),
-      bodyMedium: TextStyle(
-        color: onSurface,
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-        letterSpacing: 0.25,
-      ),
-      labelLarge: TextStyle(
-        color: onPrimary,
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        letterSpacing: 1.25,
-      ),
-    ),
-    
-    // 🚨 Иконки
+    // 🎯 Icon Theme
     iconTheme: const IconThemeData(
-      color: onSurface,
+      color: AppColors.onSurface,
       size: 24,
     ),
     
-    // 🚨 Разделители
+    // 📏 Divider Theme
     dividerTheme: DividerThemeData(
-      color: onSurface.withOpacity(0.12),
+      color: AppColors.onSurface.withOpacity(0.1),
       thickness: 1,
       space: 1,
     ),
     
-    // 🚨 Индикаторы прогресса
+    // 🔄 Progress Indicator Theme
     progressIndicatorTheme: const ProgressIndicatorThemeData(
-      color: primaryColor,
-      linearTrackColor: surfaceColor,
-      circularTrackColor: surfaceColor,
+      color: AppColors.primary,
+      linearTrackColor: AppColors.surface,
+      circularTrackColor: AppColors.surface,
     ),
     
-    // 🚨 Переключатели
+    // 🎯 Switch Theme
     switchTheme: SwitchThemeData(
       thumbColor: MaterialStateProperty.resolveWith((states) {
         if (states.contains(MaterialState.selected)) {
-          return primaryColor;
+          return AppColors.primary;
         }
-        return onSurface.withOpacity(0.6);
+        return AppColors.onSurface.withOpacity(0.6);
       }),
       trackColor: MaterialStateProperty.resolveWith((states) {
         if (states.contains(MaterialState.selected)) {
-          return primaryColor.withOpacity(0.5);
+          return AppColors.primary.withOpacity(0.5);
         }
-        return onSurface.withOpacity(0.3);
+        return AppColors.onSurface.withOpacity(0.3);
       }),
     ),
     
-    // 🚨 Чекбоксы
+    // ☑️ Checkbox Theme
     checkboxTheme: CheckboxThemeData(
       fillColor: MaterialStateProperty.resolveWith((states) {
         if (states.contains(MaterialState.selected)) {
-          return primaryColor;
+          return AppColors.primary;
         }
         return Colors.transparent;
       }),
-      checkColor: MaterialStateProperty.all(onPrimary),
+      checkColor: MaterialStateProperty.all(AppColors.onPrimary),
       side: BorderSide(
-        color: onSurface.withOpacity(0.6),
+        color: AppColors.onSurface.withOpacity(0.6),
         width: 2,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppBorderRadius.xs),
       ),
     ),
     
-    // 🚨 Радио кнопки
+    // 🎯 Radio Theme
     radioTheme: RadioThemeData(
       fillColor: MaterialStateProperty.resolveWith((states) {
         if (states.contains(MaterialState.selected)) {
-          return primaryColor;
+          return AppColors.primary;
         }
-        return onSurface.withOpacity(0.6);
+        return AppColors.onSurface.withOpacity(0.6);
       }),
     ),
     
-    // 🚨 Слайдеры
-    sliderTheme: SliderThemeData(
-      activeTrackColor: primaryColor,
-      inactiveTrackColor: onSurface.withOpacity(0.3),
-      thumbColor: primaryColor,
-      overlayColor: primaryColor.withOpacity(0.2),
-      valueIndicatorColor: primaryColor,
-      valueIndicatorTextStyle: const TextStyle(
-        color: onPrimary,
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-      ),
-    ),
-    
-    // 🚨 Фаб кнопки
-    floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: primaryColor,
-      foregroundColor: onPrimary,
-      elevation: 6,
-      shape: CircleBorder(),
-    ),
-    
-    // 🚨 Чипы
-    chipTheme: ChipThemeData(
-      backgroundColor: surfaceColor,
-      selectedColor: primaryColor.withOpacity(0.2),
-      disabledColor: onSurface.withOpacity(0.12),
-      labelStyle: const TextStyle(
-        color: onSurface,
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-      ),
-      secondaryLabelStyle: const TextStyle(
-        color: primaryColor,
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      side: BorderSide(
-        color: onSurface.withOpacity(0.3),
-        width: 1,
-      ),
-    ),
-    
-    // 🚨 Диалоги
+    // 🎯 Dialog Theme
     dialogTheme: DialogTheme(
-      backgroundColor: surfaceColor,
-      elevation: 8,
+      backgroundColor: AppColors.surface,
+      elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppBorderRadius.dialog),
       ),
-      titleTextStyle: const TextStyle(
-        color: onSurface,
-        fontSize: 20,
-        fontWeight: FontWeight.w600,
-      ),
-      contentTextStyle: const TextStyle(
-        color: onSurface,
-        fontSize: 16,
-        fontWeight: FontWeight.w400,
-      ),
+      titleTextStyle: AppTextStyles.h3.copyWith(color: AppColors.onSurface),
+      contentTextStyle: AppTextStyles.body.copyWith(color: AppColors.onSurface),
     ),
     
-    // 🚨 Баннеры
-    bannerTheme: MaterialBannerThemeData(
-      backgroundColor: surfaceColor,
-      contentTextStyle: const TextStyle(
-        color: onSurface,
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-      ),
-      leadingTextStyle: const TextStyle(
-        color: onSurface,
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-      ),
-    ),
-    
-    // 🚨 Снэкбары
+    // 🎯 SnackBar Theme
     snackBarTheme: SnackBarThemeData(
-      backgroundColor: surfaceColor,
-      contentTextStyle: const TextStyle(
-        color: onSurface,
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-      ),
+      backgroundColor: AppColors.surface,
+      contentTextStyle: AppTextStyles.body.copyWith(color: AppColors.onSurface),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppBorderRadius.md),
       ),
       behavior: SnackBarBehavior.floating,
-      elevation: 4,
+      elevation: 0,
     ),
   );
   
-  // 🚨 Светлая тема (дополнительная)
+  // 🌞 HAI3 Light Theme (Secondary)
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
     
     colorScheme: const ColorScheme.light(
-      primary: primaryColor,
-      primaryContainer: primaryVariant,
-      secondary: secondaryColor,
-      background: Color(0xFFF5F5F5),
-      surface: Color(0xFFFFFFFF),
-      onPrimary: onPrimary,
-      onSecondary: onSecondary,
+      primary: AppColors.primary,
+      primaryContainer: AppColors.primaryVariant,
+      secondary: AppColors.secondary,
+      background: Color(0xFFFFFFFF),
+      surface: Color(0xFFF5F5F5),
+      onPrimary: AppColors.onPrimary,
       onBackground: Color(0xFF000000),
       onSurface: Color(0xFF000000),
-      error: errorColor,
+      error: AppColors.error,
     ),
     
-    // 🚨 Остальные темы наследуются от темной с адаптацией
-    appBarTheme: const AppBarTheme(
+    // 📝 Text Theme (Light)
+    textTheme: TextTheme(
+      displayLarge: AppTextStyles.h1.copyWith(color: AppColors.onBackground),
+      displayMedium: AppTextStyles.h2.copyWith(color: AppColors.onBackground),
+      headlineLarge: AppTextStyles.h3.copyWith(color: AppColors.onBackground),
+      headlineMedium: AppTextStyles.h4.copyWith(color: AppColors.onBackground),
+      bodyLarge: AppTextStyles.body.copyWith(color: AppColors.onBackground),
+      bodyMedium: AppTextStyles.bodySmall.copyWith(color: AppColors.onBackground),
+      labelLarge: AppTextStyles.button.copyWith(color: AppColors.onPrimary),
+    ),
+    
+    // 🎨 Other themes inherit from dark with light adaptations
+    appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: true,
-      titleTextStyle: TextStyle(
-        color: Color(0xFF000000),
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-        letterSpacing: 1.2,
-      ),
-      iconTheme: IconThemeData(
-        color: Color(0xFF000000),
+      titleTextStyle: AppTextStyles.h4.copyWith(color: AppColors.onBackground),
+      iconTheme: const IconThemeData(
+        color: AppColors.onBackground,
         size: 24,
       ),
     ),
     
     cardTheme: CardTheme(
       color: const Color(0xFFFFFFFF),
-      elevation: 4,
+      elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppBorderRadius.card),
       ),
-      shadowColor: Colors.black.withOpacity(0.1),
+      shadowColor: Colors.transparent,
     ),
     
-    // 🚨 Остальные компоненты адаптируются автоматически
+    // 🎯 Rest of the themes follow the same pattern...
   );
 }

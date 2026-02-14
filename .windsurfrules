@@ -1,0 +1,272 @@
+# V-Talk Beta - HAI3 Architecture Rules
+# Based on https://github.com/HAI3org/HAI3/tree/main/.ai
+# Adapted for Flutter development
+
+## 🏗️ ARCHITECTURE PRINCIPLES
+
+### 📁 Folder Structure (Strict)
+```
+lib/
+├── core/                    # L1/L2 - Core business logic
+│   ├── api/                # API services and clients
+│   ├── models/             # Data models and entities
+│   ├── providers/          # State management (Riverpod)
+│   ├── utils/              # Utilities and helpers
+│   └── constants/         # App constants and tokens
+├── presentation/           # L4 - UI Layer
+│   ├── screens/            # Full screen widgets
+│   ├── widgets/            # Reusable UI components
+│   ├── themes/             # Theme and design tokens
+│   └── navigation/        # Navigation and routing
+└── data/                  # Data layer
+    ├── repositories/       # Repository implementations
+    └── datasources/       # Data sources (local/remote)
+```
+
+### 🎯 Layer Separation Rules
+
+#### L1/L2 - Business Logic (Core)
+- **NO UI code** in core layer
+- **NO Flutter imports** except for essential types
+- **Pure Dart** business logic
+- **State management** only
+- **API communication** only
+- **Data validation** only
+
+#### L4 - UI Layer (Presentation)
+- **NO business logic** in UI components
+- **NO API calls** in widgets
+- **NO state management** logic (only providers usage)
+- **Pure UI composition** only
+- **Styling and layout** only
+
+### 🚫 FORBIDDEN PATTERNS
+
+#### ❌ Spaghetti Code
+- **NO mixed concerns** in single file
+- **NO UI + API** in same widget
+- **NO business logic** in build methods
+- **NO inline widgets** - extract to separate files
+
+#### ❌ Hardcoded Values
+- **NO magic numbers** - use constants
+- **NO hardcoded colors** - use theme tokens
+- **NO hardcoded strings** - use localization
+- **NO hardcoded dimensions** - use spacing tokens
+
+#### ❌ Poor Naming
+- **NO abbreviations** - use descriptive names
+- **NO single letters** (except loop variables)
+- **NO Hungarian notation** - use Dart conventions
+- **NO inconsistent naming** - follow Dart style
+
+## 🎨 DESIGN SYSTEM (HAI3 L4)
+
+### 🎯 Design Tokens
+```dart
+// Colors (HAI3 Minimalist)
+class AppColors {
+  static const primary = Color(0xFF00A3FF);      // Bright blue accent
+  static const background = Color(0xFF000000);      // Pure black
+  static const surface = Color(0xFF1A1A1A);        // Dark gray
+  static const onSurface = Color(0xFFFFFFFF);      // Pure white
+  static const onSurfaceVariant = Color(0xFF666666); // Muted gray
+  static const error = Color(0xFFFF3B30);         // Red accent
+  static const success = Color(0xFF30D158);        // Green accent
+  static const warning = Color(0xFFFF9500);        // Orange accent
+}
+
+// Spacing (HAI3 8px grid)
+class AppSpacing {
+  static const xs = 4.0;
+  static const sm = 8.0;
+  static const md = 16.0;
+  static const lg = 24.0;
+  static const xl = 32.0;
+  static const xxl = 48.0;
+}
+
+// Typography (HAI3 Minimalist)
+class AppTextStyles {
+  static const h1 = TextStyle(fontSize: 32, fontWeight: FontWeight.w700);
+  static const h2 = TextStyle(fontSize: 24, fontWeight: FontWeight.w600);
+  static const h3 = TextStyle(fontSize: 20, fontWeight: FontWeight.w600);
+  static const body = TextStyle(fontSize: 16, fontWeight: FontWeight.w400);
+  static const caption = TextStyle(fontSize: 14, fontWeight: FontWeight.w400);
+}
+```
+
+### 🎨 UI Principles
+- **Minimalist design** - maximum content, minimum chrome
+- **High contrast** - pure black/white with blue accent
+- **Consistent spacing** - 8px grid system
+- **Airy components** - generous padding and margins
+- **Smooth animations** - subtle transitions only
+
+## 🧱 COMPONENT RULES
+
+### 📱 Widget Structure
+```dart
+// ✅ CORRECT - Separated concerns
+class LoginScreen extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      body: Padding(
+        padding: EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          children: [
+            const LogoWidget(),
+            const SizedBox(height: AppSpacing.lg),
+            EmailInputWidget(),
+            const SizedBox(height: AppSpacing.sm),
+            PasswordInputWidget(),
+            const SizedBox(height: AppSpacing.lg),
+            LoginButtonWidget(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ❌ WRONG - Mixed concerns
+class LoginScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          // ❌ Inline widget - extract to separate file
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              color: Colors.blue, // ❌ Hardcoded color
+              borderRadius: BorderRadius.circular(50),
+            ),
+          ),
+          // ❌ Business logic in UI
+          TextField(
+            onChanged: (value) {
+              if (value.length > 10) { // ❌ Validation logic in UI
+                print('Too long');
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+### 🎯 Component Guidelines
+- **Extract widgets** - no inline components
+- **Use composition** - build complex UI from simple parts
+- **Single responsibility** - each widget has one purpose
+- **Reusable design** - components work in different contexts
+
+## 🔧 CODE QUALITY RULES
+
+### 📝 Naming Conventions
+```dart
+// ✅ CORRECT - Descriptive names
+class UserAuthenticationService {
+  Future<bool> validateUserCredentials(String email, String password) async {
+    // Implementation
+  }
+}
+
+// ❌ WRONG - Poor naming
+class Auth {
+  Future<bool> check(String e, String p) async {
+    // Implementation
+  }
+}
+```
+
+### 🎯 Function Rules
+- **Single purpose** - one function does one thing
+- **Pure functions** - no side effects when possible
+- **Descriptive names** - what it does, not how
+- **Maximum 20 lines** - break down complex functions
+
+### 📋 File Organization
+- **One class per file** - no multiple classes
+- **Logical grouping** - related files together
+- **Clear naming** - file name matches class name
+- **Small files** - maximum 200 lines
+
+## 🚀 DEVELOPMENT WORKFLOW
+
+### 📝 Code Generation Rules
+- **NO manual boilerplate** - use code generation
+- **Consistent patterns** - generate repetitive code
+- **Type safety** - use strong typing throughout
+- **Documentation** - generate docs from code
+
+### 🧪 Testing Requirements
+- **Unit tests** for all business logic
+- **Widget tests** for all UI components
+- **Integration tests** for critical user flows
+- **Minimum 80% coverage** required
+
+### 🔄 Review Process
+- **Self-review** - check against these rules
+- **Peer review** - team validation
+- **Automated checks** - linting and formatting
+- **Documentation** - update as needed
+
+## 🎯 HAI3 PHILOSOPHY ADAPTATION
+
+### 🧠 Mindset Rules
+- **Think in layers** - always consider separation
+- **Design for reuse** - build components once
+- **Test first** - write tests before implementation
+- **Refactor constantly** - improve code continuously
+
+### 🎨 Design Thinking
+- **Mobile-first** - design for small screens
+- **Accessibility** - design for all users
+- **Performance** - optimize for 60fps
+- **Consistency** - follow established patterns
+
+### 🚀 Innovation Rules
+- **Question assumptions** - don't follow blindly
+- **Experiment safely** - try new approaches
+- **Learn from failures** - iterate and improve
+- **Share knowledge** - document discoveries
+
+---
+
+## 📋 CHECKLIST FOR EVERY PR
+
+### 🏗️ Architecture
+- [ ] Proper folder structure
+- [ ] Layer separation maintained
+- [ ] No mixed concerns
+- [ ] No hardcoded values
+
+### 🎨 Design System
+- [ ] Design tokens used
+- [ ] Consistent spacing
+- [ ] Proper theming
+- [ ] Responsive design
+
+### 🧪 Code Quality
+- [ ] Descriptive naming
+- [ ] Single responsibility
+- [ ] Proper error handling
+- [ ] Documentation updated
+
+### 🚀 Performance
+- [ ] No unnecessary rebuilds
+- [ ] Optimized widgets
+- [ ] Efficient state management
+- [ ] Smooth animations
+
+---
+
+*This file is the single source of truth for V-Talk Beta development rules.
+All team members must follow these guidelines strictly.*
