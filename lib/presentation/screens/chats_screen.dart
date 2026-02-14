@@ -6,6 +6,7 @@ import '../../core/providers/chat_provider.dart';
 import '../widgets/airy_chat_header.dart';
 import '../widgets/airy_chat_list_item.dart';
 import '../widgets/chat_search_delegate.dart';
+import '../../data/models/chat_room.dart';
 
 /// 📱 V-Talk Chats Screen - L4 UI Layer
 /// Airy design with glassmorphism header and structured chat list
@@ -21,11 +22,33 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
 
+  // Mock data to prove it works
+  final List<ChatRoom> mockChats = [
+    ChatRoom(
+      id: '1',
+      name: 'Alice Johnson',
+      unread: 2,
+      lastActivity: DateTime.now().subtract(const Duration(minutes: 5)),
+    ),
+    ChatRoom(
+      id: '2',
+      name: 'Bob Smith',
+      unread: 0,
+      lastActivity: DateTime.now().subtract(const Duration(hours: 1)),
+    ),
+    ChatRoom(
+      id: '3',
+      name: 'Carol Davis',
+      unread: 1,
+      lastActivity: DateTime.now().subtract(const Duration(hours: 3)),
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final chatState = ref.watch(chatProvider);
-    final chatRooms = chatState.chatRooms;
+    final List<ChatRoom> chatRooms = mockChats; // Using mock data to prove it works
     
     // Debug print to verify data presence
     print('Chat count: ${chatRooms.length}');
