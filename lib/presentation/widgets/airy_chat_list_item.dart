@@ -8,6 +8,8 @@ import '../../data/models/chat_room.dart';
 
 /// 📱 Airy Chat List Item - L4 UI Component
 /// Telegram-style with 72px height and squircle avatar
+import '../../../data/mock/mock_messages.dart';
+
 class AiryChatListItem extends ConsumerWidget {
   final ChatRoom chatRoom;
   final VoidCallback? onTap;
@@ -27,14 +29,7 @@ class AiryChatListItem extends ConsumerWidget {
     final chatService = ChatService();
     final title = chatService.generateChatTitle(chatRoom);
 
-    // Mock last messages by chatId
-    const Map<String, String> _lastMessages = {
-      '1': 'Doing great! Just working on some projects.',
-      '2': 'See you tomorrow!',
-      '3': 'Thanks for the help!',
-    };
-
-    final preview = _lastMessages[chatRoom.id] ?? 'Start chatting...';
+    final preview = getLastMessage(chatRoom.id);
     final lastMessage = chatRoom.messages?.isNotEmpty == true 
         ? chatRoom.messages!.last 
         : null;

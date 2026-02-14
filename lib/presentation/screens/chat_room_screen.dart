@@ -72,23 +72,32 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        title: Row(
           children: [
-            Text(
-              widget.chat.name ?? 'Unknown',
-              style: const TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+            CircleAvatar(
+              radius: 20,
+              backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=${widget.chat.name}'),
             ),
-            const Text(
-              'online',
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: 12,
-              ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.chat.name ?? 'Unknown',
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+                const Text(
+                  'online',
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

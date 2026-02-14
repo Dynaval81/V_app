@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_constants.dart';
@@ -144,7 +145,7 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => ChatRoomScreen(chat: chatRooms[index])),
+                          CupertinoPageRoute(builder: (context) => ChatRoomScreen(chat: chatRooms[index])),
                         );
                       },
                     ),
