@@ -31,11 +31,8 @@ class UserProvider with ChangeNotifier {
   Future<void> _createSavedMessagesChat(User user) async {
     try {
       final api = ApiService();
-      final result = await api.createChat(
-        name: "Saved Messages",
-        isGroup: false,
-        participantIds: [user.id], // Только сам пользователь
-      );
+      // 🚨 ИСПРАВЛЕНО: createChat принимает только userId
+      final result = await api.createChat(user.id);
       
       if (result['success'] != true) {
         print('Failed to create Saved Messages chat: ${result['error']}');
