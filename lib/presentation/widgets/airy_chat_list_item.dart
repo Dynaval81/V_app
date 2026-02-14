@@ -136,7 +136,8 @@ class AiryChatListItem extends ConsumerWidget {
                                 lastMsg?.timestamp != null
                                   ? DateFormat('HH:mm').format(lastMsg!.timestamp)
                                   : '',
-                                style: AppTextStyles.caption.copyWith(
+                                style: TextStyle(
+                                  fontSize: 12,
                                   color: AppColors.onSurfaceVariant,
                                 ),
                               ),
