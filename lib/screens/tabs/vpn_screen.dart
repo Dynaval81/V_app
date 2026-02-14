@@ -117,15 +117,17 @@ class _VPNScreenState extends State<VPNScreen> {
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              VtalkHeader(
-                title: 'TALK VPN', // Убираем "V", оставляем "TALK VPN"
-                showScrollAnimation: false,
-                actions: [
-                  GestureDetector(
-                    behavior: HitTestBehavior.translucent, // 🚨 НОВОЕ: Разрешаем свайп назад
-                    onTap: () => Navigator.push(
-                      context,
-                      CupertinoPageRoute(builder: (context) => const AccountSettingsScreen()),
+              // 🚨 ИСПРАВЛЕНО: Оборачиваем VtalkHeader в SliverToBoxAdapter
+              SliverToBoxAdapter(
+                child: VtalkHeader(
+                  title: 'VPN',
+                  showScrollAnimation: false,
+                  actions: [
+                    GestureDetector(
+                      behavior: HitTestBehavior.translucent, // 🚨 НОВОЕ: Разрешаем свайп назад
+                      onTap: () => Navigator.push(
+                        context,
+                        CupertinoPageRoute(builder: (context) => const AccountSettingsScreen()),
                     ),
                     child: Container(
                       margin: const EdgeInsets.only(right: 16),

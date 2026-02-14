@@ -10,6 +10,7 @@ import '../../services/api_service.dart';
 import '../../theme_provider.dart';
 import '../../constants/app_constants.dart';
 import '../../providers/user_provider.dart';
+import '../../widgets/vtalk_header.dart';
 import '../chat_room_screen.dart';
 import '../account_settings_screen.dart';
 
@@ -147,10 +148,12 @@ class _ChatsScreenState extends State<ChatsScreen> {
             controller: _scrollController,
             physics: const BouncingScrollPhysics(),
             slivers: [
-              // 🚨 НОВОЕ: Используем единый VtalkHeader
-              VtalkHeader(
-                title: 'CHATS',
-                showScrollAnimation: false,
+              // 🚨 ИСПРАВЛЕНО: Оборачиваем VtalkHeader в SliverToBoxAdapter
+              SliverToBoxAdapter(
+                child: VtalkHeader(
+                  title: 'CHATS',
+                  showScrollAnimation: false,
+                ),
               ),
               if (_chatRooms.isEmpty && !_isLoadingChats)
                 SliverFillRemaining(
