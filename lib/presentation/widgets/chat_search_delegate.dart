@@ -37,20 +37,23 @@ class ChatSearchDelegate extends SearchDelegate<String> {
       return chat.name?.toLowerCase().contains(query.toLowerCase()) ?? false;
     }).toList();
 
-    return ListView.builder(
-      itemCount: suggestions.length,
-      itemBuilder: (context, index) {
-        final chat = suggestions[index];
-        return ListTile(
-          title: Text(chat.name ?? 'Unknown'),
-          onTap: () {
-            close(context, '');
-            if (chat.id != null) {
-              context.push('${AppRoutes.chat}/${chat.id}');
-            }
-          },
-        );
-      },
+    return Theme(
+      data: Theme.of(context).copyWith(brightness: Brightness.light),
+      child: ListView.builder(
+        itemCount: suggestions.length,
+        itemBuilder: (context, index) {
+          final chat = suggestions[index];
+          return ListTile(
+            title: Text(chat.name ?? 'Unknown'),
+            onTap: () {
+              close(context, '');
+              if (chat.id != null) {
+                context.push('${AppRoutes.chat}/${chat.id}');
+              }
+            },
+          );
+        },
+      ),
     );
   }
 
@@ -77,20 +80,23 @@ class ChatSearchDelegate extends SearchDelegate<String> {
       return chat.name?.toLowerCase().contains(query.toLowerCase()) ?? false;
     }).take(5).toList();
 
-    return ListView.builder(
-      itemCount: filteredChats.length,
-      itemBuilder: (context, index) {
-        final chat = filteredChats[index];
-        return ListTile(
-          title: Text(chat.name ?? 'Unknown'),
-          onTap: () {
-            close(context, '');
-            if (chat.id != null) {
-              context.push('${AppRoutes.chat}/${chat.id}');
-            }
-          },
-        );
-      },
+    return Theme(
+      data: Theme.of(context).copyWith(brightness: Brightness.light),
+      child: ListView.builder(
+        itemCount: filteredChats.length,
+        itemBuilder: (context, index) {
+          final chat = filteredChats[index];
+          return ListTile(
+            title: Text(chat.name ?? 'Unknown'),
+            onTap: () {
+              close(context, '');
+              if (chat.id != null) {
+                context.push('${AppRoutes.chat}/${chat.id}');
+              }
+            },
+          );
+        },
+      ),
     );
   }
 }

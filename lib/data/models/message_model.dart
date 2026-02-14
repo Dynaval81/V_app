@@ -19,6 +19,7 @@ enum MessageStatus {
 class MessageModel {
   final String id;
   final String text;
+  final String chatId; // Added for data sync
   final bool isMe;
   final DateTime timestamp;
   final Map<String, int>? reactions;
@@ -34,6 +35,7 @@ class MessageModel {
   MessageModel({
     required this.id,
     required this.text,
+    required this.chatId, // Added
     this.isMe = false,
     required this.timestamp,
     required this.status,
@@ -51,6 +53,7 @@ class MessageModel {
     return MessageModel(
       id: json['id'] as String,
       text: json['text'] as String,
+      chatId: json['chatId'] as String, // Added
       isMe: json['isMe'] as bool? ?? false,
       timestamp: DateTime.parse(json['timestamp'] as String),
       status: MessageStatus.values.firstWhere(

@@ -29,14 +29,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         id: '1',
         senderId: 'user1',
         text: 'Hey, how are you?',
+        chatId: chatId,
         timestamp: DateTime.now().subtract(const Duration(minutes: 10)),
         type: MessageType.text,
         status: MessageStatus.read,
       ),
       MessageModel(
         id: '2',
-        senderId: chatId == '1' ? 'me' : 'user1',
+        senderId: 'me',
         text: 'I\'m good, thanks! How about you?',
+        chatId: chatId,
         timestamp: DateTime.now().subtract(const Duration(minutes: 8)),
         type: MessageType.text,
         status: MessageStatus.read,
@@ -45,25 +47,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         id: '3',
         senderId: 'me',
         text: 'Doing great! Just working on some projects.',
+        chatId: chatId,
         timestamp: DateTime.now().subtract(const Duration(minutes: 6)),
         type: MessageType.text,
         status: MessageStatus.read,
-      ),
-      MessageModel(
-        id: '4',
-        senderId: chatId == '1' ? 'me' : 'user1',
-        text: 'That sounds awesome! What kind of projects?',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 4)),
-        type: MessageType.text,
-        status: MessageStatus.read,
-      ),
-      MessageModel(
-        id: '5',
-        senderId: 'me',
-        text: 'Mobile app development, mostly Flutter.',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 2)),
-        type: MessageType.text,
-        status: MessageStatus.sent,
       ),
     ];
   }
@@ -81,36 +68,19 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0.5,
-        leadingWidth: 100, // Increased to prevent avatar overflow
-        leading: Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            CircleAvatar(
-              radius: 18, // Exact radius as requested
-              backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=${widget.chat.name}'),
-            ),
-          ],
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Flexible( // Use Flexible to prevent name overflow on small screens
-              child: GestureDetector( // Make name clickable for profile
-                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Profile Screen - Placeholder')),
-                ),
-                child: Text(
-                  widget.chat.name ?? 'Unknown',
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
+            Text(
+              widget.chat.name ?? 'Unknown',
+              style: const TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
               ),
             ),
             const Text(
@@ -122,20 +92,6 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.phone, color: Colors.black),
-            onPressed: () {
-              // TODO: Implement phone call
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.black),
-            onPressed: () {
-              // TODO: Implement more options
-            },
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -167,6 +123,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 id: DateTime.now().millisecondsSinceEpoch.toString(),
                 senderId: 'me',
                 text: content,
+                chatId: widget.chat.id,
                 timestamp: DateTime.now(),
                 type: MessageType.text,
                 status: MessageStatus.sending,

@@ -26,7 +26,15 @@ class AiryChatListItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final chatService = ChatService();
     final title = chatService.generateChatTitle(chatRoom);
-    final preview = chatRoom.messages?.last?.text ?? 'Start chatting...';
+
+    // Mock last messages by chatId
+    const Map<String, String> _lastMessages = {
+      '1': 'Doing great! Just working on some projects.',
+      '2': 'See you tomorrow!',
+      '3': 'Thanks for the help!',
+    };
+
+    final preview = _lastMessages[chatRoom.id] ?? 'Start chatting...';
     final lastMessage = chatRoom.messages?.isNotEmpty == true 
         ? chatRoom.messages!.last 
         : null;
