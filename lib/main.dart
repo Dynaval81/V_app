@@ -5,6 +5,7 @@ import 'core/theme.dart';
 import 'core/constants/app_constants.dart';
 import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/auth_screen.dart';
+import 'presentation/screens/chats_screen.dart';
 import 'presentation/widgets/airy_button.dart';
 
 /// 🚀 V-Talk Beta - HAI3 Architecture
@@ -76,13 +77,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       
-      // 💬 Chats (Placeholder)
+      // 💬 Chats
       GoRoute(
         path: AppRoutes.chats,
-        builder: (context, state) => const _ComingSoonScreen(
-          title: 'Chats',
-          message: 'Chat interface coming soon...',
-        ),
+        builder: (context, state) => const ChatsScreen(),
       ),
       
       // 🤖 AI Assistant (Placeholder)
