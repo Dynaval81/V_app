@@ -31,7 +31,7 @@ class AiryChatHeader extends StatelessWidget {
       floating: false,
       backgroundColor: Colors.transparent,
       elevation: 0,
-      expandedHeight: 120.0, // Set to 120.0 for proper proportions
+      expandedHeight: 95.0, // Set to 95.0 for proper proportions
       flexibleSpace: FlexibleSpaceBar(
         background: _buildGlassmorphismBackground(context),
       ),
@@ -66,7 +66,39 @@ class AiryChatHeader extends StatelessWidget {
       ),
       centerTitle: false, // Title to the left
       leading: _buildLeading(context),
-      actions: _buildActions(context),
+      actions: [
+        // 🔍 Search icon (before avatar in actions)
+        IconButton(
+          icon: Icon(
+            Icons.search,
+            color: theme.brightness == Brightness.dark 
+                ? Color(0xFF121212) 
+                : Color(0xFF000000),
+            size: 24,
+          ),
+          onPressed: onEditPressed,
+        ),
+        // 👤 Avatar widget in actions
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primary.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: theme.colorScheme.primary.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          child: Center(
+            child: Icon(
+              Icons.person,
+              color: theme.colorScheme.primary,
+              size: 18,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

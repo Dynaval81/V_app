@@ -33,7 +33,7 @@ class AiryChatListItem extends ConsumerWidget {
     final unreadCount = chatService.getUnreadCount(chatRoom, 'current_user_id'); // TODO: Get from auth
 
     return Container(
-      height: 72, // Exact height as requested
+      height: 88, // Increased height to prevent overflow
       decoration: BoxDecoration(
         color: isSelected 
             ? Color(0xFF00A3FF).withOpacity(0.1)
@@ -60,13 +60,13 @@ class AiryChatListItem extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // 👤 Chat title
+                      // 👤 Contact name (updated to 20.0)
                       Text(
                         title,
                         style: AppTextStyles.body.copyWith(
                           color: Color(0xFF121212),
                           fontWeight: FontWeight.w600,
-                          fontSize: 16,
+                          fontSize: 20.0, // Updated to 20.0 (bold)
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -83,26 +83,13 @@ class AiryChatListItem extends ConsumerWidget {
                               preview,
                               style: AppTextStyles.body.copyWith(
                                 color: Color(0xFF757575), // Gray color as requested
-                                fontSize: 14,
+                                fontSize: 16.0, // Updated to 16.0
                                 fontWeight: FontWeight.w400,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          
-                          const SizedBox(width: 8),
-                          
-                          // ⏰ Time
-                          if (lastMessage != null)
-                            Text(
-                              chatService.formatMessageTime(lastMessage!.timestamp),
-                              style: AppTextStyles.body.copyWith(
-                                color: Color(0xFF757575), // Thin font as requested
-                                fontSize: 12,
-                                fontWeight: FontWeight.w300,
-                              ),
-                            ),
                         ],
                       ),
                     ],
@@ -113,7 +100,7 @@ class AiryChatListItem extends ConsumerWidget {
                 
                 // 🏰 Trailing widget with structured Column
                 Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.center, // Keep time and badge perfectly centered
                   crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -122,8 +109,8 @@ class AiryChatListItem extends ConsumerWidget {
                       Text(
                         chatService.formatMessageTime(lastMessage!.timestamp),
                         style: AppTextStyles.body.copyWith(
-                          color: Color(0xFF757575), // Grey, font size 12-13
-                          fontSize: 13,
+                          color: Color(0xFF757575), // Grey, font size 13
+                          fontSize: 13.0,
                           fontWeight: FontWeight.w400,
                         ),
                       ),
@@ -131,7 +118,7 @@ class AiryChatListItem extends ConsumerWidget {
                     const SizedBox(height: 4), // ONLY spacer between time and status
                     
                     // 🔴 Status indicator (bottom element)
-                    if (showUnreadIndicator)
+                    if (showUnreadIndicator && unreadCount > 0)
                       // Unread count badge
                       Container(
                         constraints: const BoxConstraints(
@@ -173,7 +160,9 @@ class AiryChatListItem extends ConsumerWidget {
                               size: 16,
                             ),
                         ],
-                      ),
+                      )
+                    else
+                      const SizedBox.shrink(), // Hide zero unread
                   ],
                 ),
               ],
