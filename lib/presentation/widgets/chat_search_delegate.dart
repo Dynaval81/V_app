@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../../../data/models/chat_room.dart';
+import '../../../core/constants/app_constants.dart';
 
 /// 📱 Chat Search Delegate
 class ChatSearchDelegate extends SearchDelegate<String> {
-  final List<dynamic> chats; // Use dynamic for now
+  final List<ChatRoom> chats;
 
   ChatSearchDelegate({required this.chats});
 
@@ -32,8 +35,7 @@ class ChatSearchDelegate extends SearchDelegate<String> {
   @override
   Widget buildResults(BuildContext context) {
     final suggestions = chats.where((chat) {
-      final chatTitle = chat.toString().toLowerCase();
-      return chatTitle.contains(query.toLowerCase());
+      return chat.name?.toLowerCase().contains(query.toLowerCase()) ?? false;
     }).toList();
 
     return ListView.builder(
@@ -41,9 +43,11 @@ class ChatSearchDelegate extends SearchDelegate<String> {
       itemBuilder: (context, index) {
         final chat = suggestions[index];
         return ListTile(
-          title: Text(chat.toString()),
+          title: Text(chat.name ?? 'Unknown'),
           onTap: () {
-            close(context, chat.toString());
+            close(context, '');
+            // Navigate to the selected chat
+            context.push('${AppRoutes.chat}/${chat.id}');
           },
         );
       },
@@ -53,8 +57,7 @@ class ChatSearchDelegate extends SearchDelegate<String> {
   @override
   Widget buildSuggestions(BuildContext context) {
     final suggestions = chats.where((chat) {
-      final chatTitle = chat.toString().toLowerCase();
-      return chatTitle.contains(query.toLowerCase());
+      return chat.name?.toLowerCase().contains(query.toLowerCase()) ?? false;
     }).take(5).toList();
 
     return ListView.builder(
@@ -62,9 +65,11 @@ class ChatSearchDelegate extends SearchDelegate<String> {
       itemBuilder: (context, index) {
         final chat = suggestions[index];
         return ListTile(
-          title: Text(chat.toString()),
+          title: Text(chat.name ?? 'Unknown'),
           onTap: () {
-            close(context, chat.toString());
+            close(context, '');
+            // Navigate to the selected chat
+            context.push('${AppRoutes.chat}/${chat.id}');
           },
         );
       },

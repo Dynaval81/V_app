@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/constants.dart';
 import '../widgets/chat_search_delegate.dart';
+import '../../../data/models/chat_room.dart';
 
 /// 🎨 Airy Chat Header - L4 UI Component
 /// Glassmorphism effect with HAI3 compliance and structured layout
@@ -12,6 +13,7 @@ class AiryChatHeader extends StatelessWidget {
   final VoidCallback? onBackPressed;
   final Widget? action;
   final ScrollController? scrollController;
+  final List<ChatRoom> chats; // Add chats parameter
 
   const AiryChatHeader({
     super.key,
@@ -21,6 +23,7 @@ class AiryChatHeader extends StatelessWidget {
     this.onBackPressed,
     this.action,
     this.scrollController,
+    this.chats = const [], // Default empty list
   });
 
   @override
@@ -32,8 +35,8 @@ class AiryChatHeader extends StatelessWidget {
       floating: false,
       backgroundColor: Colors.transparent,
       elevation: 0,
-      expandedHeight: 70.0, // Correct height
-      toolbarHeight: 70.0, // Correct toolbar height
+      expandedHeight: 65.0, // Slim bar
+      toolbarHeight: 65.0, // Slim toolbar
       flexibleSpace: FlexibleSpaceBar(
         background: _buildGlassmorphismBackground(context),
       ),
@@ -51,13 +54,14 @@ class AiryChatHeader extends StatelessWidget {
             size: 32, // Same size as avatar for balance
           ),
           onPressed: () {
-            // Trigger actual Flutter search
+            // Trigger actual Flutter search with real data
             showSearch(
               context: context,
-              delegate: ChatSearchDelegate(chats: []), // TODO: Pass actual chats
+              delegate: ChatSearchDelegate(chats: chats),
             );
           },
         ),
+        const SizedBox(width: 8), // Add spacing between icons
         // 👤 Avatar widget with padding and profile action
         InkWell(
           onTap: () {

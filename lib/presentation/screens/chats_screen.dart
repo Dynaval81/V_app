@@ -85,17 +85,11 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
             physics: const BouncingScrollPhysics(),
             slivers: [
               // 🎨 Glassmorphism header with search
-              AiryChatHeader(
-                title: 'Чаты', // Russian title as requested
-                action: IconButton(
-                  icon: Icon(
-                    _isSearching ? Icons.close : Icons.search,
-                    color: theme.brightness == Brightness.dark 
-                        ? Color(0xFF121212) 
-                        : Color(0xFF000000),
-                    size: 24,
-                  ),
-                  onPressed: _toggleSearch,
+              SliverOverlapInjector(
+                handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+                sliver: AiryChatHeader(
+                  title: 'Чаты', // Russian title as requested
+                  chats: chatRooms, // Pass chat rooms to header for search
                 ),
               ),
               
@@ -118,7 +112,7 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
               
               // 📱 Chat list with structured items
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(0, 8, 0, 16), // Zero horizontal padding
+                padding: const EdgeInsets.fromLTRB(4, 8, 4, 16), // Minimal horizontal padding
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
