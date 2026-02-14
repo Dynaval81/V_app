@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'dart:math';
 import '../utils/glass_kit.dart';
@@ -401,24 +402,16 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         print('🔍 isFirstLogin: $isFirstLogin'); // 🎯 DEBUG PRINT
         
         if (isFirstLogin) {
-          // 🔥 ПЕРВЫЙ ВХОД - MAINAPP С ОТКРЫТЫМ ПРОФИЛЕМ
+          // ПЕРВЫЙ ВХОД - MAINAPP С ОТКРЫТЫМ ПРОФИЛЕМ
           Navigator.pushReplacement(
             context, 
-            PageRouteBuilder(
-              pageBuilder: (context, anim1, anim2) => MainApp(initialTab: 3), // 3 = Dashboard
-              transitionsBuilder: (context, anim1, anim2, child) => FadeTransition(opacity: anim1, child: child),
-              transitionDuration: const Duration(milliseconds: 800),
-            ),
+            CupertinoPageRoute(builder: (context) => MainApp(initialTab: 3)), // 3 = Dashboard
           );
         } else {
-          // 🚀 ОБЫЧНЫЙ ВХОД - CHATS
+          // ОБЫЧНЫЙ ВХОД - CHATS
           Navigator.pushReplacement(
             context, 
-            PageRouteBuilder(
-              pageBuilder: (context, anim1, anim2) => MainApp(initialTab: 0),
-              transitionsBuilder: (context, anim1, anim2, child) => FadeTransition(opacity: anim1, child: child),
-              transitionDuration: const Duration(milliseconds: 800),
-            ),
+            CupertinoPageRoute(builder: (context) => MainApp(initialTab: 0)),
           );
         }
       } else {
@@ -497,15 +490,10 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         setState(() => _isLoading = false);
         Navigator.pushReplacement(
           context,
-          PageRouteBuilder(
-            pageBuilder: (context, anim1, anim2) => EmailVerificationScreen(
-              email: email,
-              username: username.isEmpty ? email : username,
-            ),
-            transitionsBuilder: (context, anim1, anim2, child) => 
-                FadeTransition(opacity: anim1, child: child),
-            transitionDuration: const Duration(milliseconds: 800),
-          ),
+          CupertinoPageRoute(builder: (context) => EmailVerificationScreen(
+            email: email,
+            onVerified: () => _handleLogin(email, password, true), // true = force login after verification
+          )),
         );
       } else {
         // 🎯 ДЕТАЛЬНАЯ ОШИБКА РЕГИСТРАЦИИ
@@ -817,11 +805,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                     Navigator.pop(context);
                     Navigator.pushReplacement(
                       context, 
-                      PageRouteBuilder(
-                        pageBuilder: (context, anim1, anim2) => MainApp(initialTab: 0),
-                        transitionsBuilder: (context, anim1, anim2, child) => FadeTransition(opacity: anim1, child: child),
-                        transitionDuration: const Duration(milliseconds: 800),
-                      ),
+                      CupertinoPageRoute(builder: (context) => MainApp(initialTab: 0)),
                     );
                   },
                   style: ElevatedButton.styleFrom(

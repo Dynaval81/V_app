@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
@@ -221,12 +222,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
           if (mounted) {
             Navigator.pushReplacement(
               context,
-              PageRouteBuilder(
-                pageBuilder: (context, anim1, anim2) => MainApp(initialTab: 0),
-                transitionsBuilder: (context, anim1, anim2, child) => 
-                    FadeTransition(opacity: anim1, child: child),
-                transitionDuration: const Duration(milliseconds: 800),
-              ),
+              CupertinoPageRoute(builder: (context) => MainApp(initialTab: 0)),
             );
           }
         } else {

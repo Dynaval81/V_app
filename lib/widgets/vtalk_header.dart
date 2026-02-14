@@ -137,9 +137,9 @@ class _VtalkHeaderState extends State<VtalkHeader>
                 widget.title.toUpperCase(), 
                 style: TextStyle(
                   color: isDark ? Colors.white : Colors.black,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2,
-                  fontSize: 22.0,
+                  fontWeight: FontWeight.w800, // Сделать жирным, но компактным
+                  letterSpacing: 1.2,
+                  fontSize: 22.0, // Установить жестко 22.0
                 ),
                 overflow: TextOverflow.ellipsis,  // ✅ Защита от overflow
               ),
