@@ -217,6 +217,7 @@ class ChatProvider extends StateNotifier<ChatState> {
           MessageModel(
             id: '4',
             text: _chatService.parseMessageText('Did you see the game last night? 🏈'),
+            chatId: '2', // Added
             senderId: 'bob_id',
             timestamp: DateTime.now().subtract(const Duration(hours: 1)),
             status: MessageStatus.read,
@@ -225,6 +226,7 @@ class ChatProvider extends StateNotifier<ChatState> {
           MessageModel(
             id: '5',
             text: _chatService.parseMessageText('Yeah! Amazing comeback! 🎯'),
+            chatId: '2', // Added
             senderId: 'current_user_id',
             timestamp: DateTime.now().subtract(const Duration(minutes: 58)),
             status: MessageStatus.read,
@@ -246,6 +248,7 @@ class ChatProvider extends StateNotifier<ChatState> {
           MessageModel(
             id: '6',
             text: _chatService.parseMessageText('Great work on the new features everyone! 🚀'),
+            chatId: '3', // Added
             senderId: 'team_member_1',
             timestamp: DateTime.now().subtract(const Duration(minutes: 30)),
             status: MessageStatus.read,
@@ -254,6 +257,7 @@ class ChatProvider extends StateNotifier<ChatState> {
           MessageModel(
             id: '7',
             text: _chatService.parseMessageText('Thanks! The HAI3 architecture is really paying off 🎨'),
+            chatId: '1', // Added
             senderId: 'current_user_id',
             timestamp: DateTime.now().subtract(const Duration(minutes: 25)),
             status: MessageStatus.read,
@@ -273,6 +277,7 @@ class ChatProvider extends StateNotifier<ChatState> {
           MessageModel(
             id: '8',
             text: _chatService.parseMessageText('Happy birthday! 🎂🎉'),
+            chatId: '4', // Added
             senderId: 'emma_id',
             timestamp: DateTime.now().subtract(const Duration(days: 1)),
             status: MessageStatus.read,
@@ -281,6 +286,7 @@ class ChatProvider extends StateNotifier<ChatState> {
           MessageModel(
             id: '9',
             text: _chatService.parseMessageText('Thank you so much! 🥰'),
+            chatId: '4', // Added
             senderId: 'current_user_id',
             timestamp: DateTime.now().subtract(const Duration(days: 1)),
             status: MessageStatus.read,

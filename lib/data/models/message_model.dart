@@ -19,7 +19,7 @@ enum MessageStatus {
 class MessageModel {
   final String id;
   final String text;
-  final String chatId; // Added for data sync
+  final String? chatId; // Made nullable
   final bool isMe;
   final DateTime timestamp;
   final Map<String, int>? reactions;
@@ -35,7 +35,7 @@ class MessageModel {
   MessageModel({
     required this.id,
     required this.text,
-    required this.chatId, // Added
+    this.chatId, // Removed required
     this.isMe = false,
     required this.timestamp,
     required this.status,
