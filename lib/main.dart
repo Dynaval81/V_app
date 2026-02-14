@@ -29,7 +29,7 @@ class VTalkApp extends ConsumerWidget {
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       
-      // 🎨 HAI3 Theme Configuration
+      // 🎨 HAI3 Material 3 Theme Configuration
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
@@ -46,7 +46,7 @@ class VTalkApp extends ConsumerWidget {
           brightness: Brightness.dark,
         ),
       ),
-      themeMode: ThemeMode.dark, // 🌑 Dark theme by default (HAI3)
+      themeMode: ThemeMode.system, // � Adaptive to system (Light/Dark)
       
       // 🧭 GoRouter Configuration
       routerConfig: router,

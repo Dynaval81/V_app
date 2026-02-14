@@ -27,8 +27,8 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
   @override
   void initState() {
     super.initState();
-    // Load chat rooms on init
-    Future.microtask(() {
+    // Load initial chat rooms
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(chatProvider.notifier).loadChatRooms();
     });
   }
@@ -40,6 +40,26 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
     super.dispose();
   }
 
+  void _toggleSearch() {
+    setState(() {
+      _isSearching = !_isSearching;
+      if (!_isSearching) {
+        _searchController.clear();
+        ref.read(chatProvider.notifier).clearSearch();
+      }
+    });
+  }
+
+  void _createNewChat() {
+    // TODO: Navigate to create chat screen
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Create chat functionality coming soon!'),
+        backgroundColor: Color(0xFF00A3FF),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final chatState = ref.watch(chatProvider);
@@ -47,24 +67,15 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
     final chatService = ChatService();
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       
-      // 🔍 Floating search button
-      floatingActionButton: !_isSearching
-          ? FloatingActionButton(
-              onPressed: () {
-                setState(() {
-                  _isSearching = true;
-                });
-                _searchController.clear();
-                ref.read(chatProvider.notifier).clearSearch();
-              },
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.onPrimary,
-              elevation: 4,
-              child: const Icon(Icons.search),
-            )
-          : null,
+      // ➕ Create Chat FAB
+      floatingActionButton: FloatingActionButton(
+        onPressed: _createNewChat,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        child: const Icon(Icons.add, size: 24),
+      ),
       
       body: Stack(
         children: [
@@ -73,15 +84,22 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
             controller: _scrollController,
             physics: const BouncingScrollPhysics(),
             slivers: [
-              // 🎨 Glassmorphism header
+              // 🎨 Glassmorphism header with search
               AiryChatHeader(
                 title: 'Чаты', // Russian title as requested
-                onEditPressed: () {
-                  // TODO: Open new chat creation
-                },
+                action: IconButton(
+                  icon: Icon(
+                    _isSearching ? Icons.close : Icons.search,
+                    color: Theme.of(context).brightness == Brightness.dark 
+                        ? Color(0xFF121212) 
+                        : Color(0xFF000000),
+                    size: 22,
+                  ),
+                  onPressed: _toggleSearch,
+                ),
               ),
               
-              // � Search bar (shown when searching)
+              // 🔍 Search bar (shown when searching)
               if (_isSearching)
                 SliverToBoxAdapter(
                   child: Container(
@@ -232,26 +250,6 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
               */
             ],
           ),
-          
-          // Cancel search button overlay
-          if (_isSearching)
-            Positioned(
-              top: 100, // Position below header
-              left: 16,
-              child: FloatingActionButton.small(
-                onPressed: () {
-                  setState(() {
-                    _isSearching = false;
-                  });
-                  _searchController.clear();
-                  ref.read(chatProvider.notifier).clearSearch();
-                },
-                backgroundColor: AppColors.surface,
-                foregroundColor: AppColors.onSurface,
-                elevation: 2,
-                child: const Icon(Icons.close),
-              ),
-            ),
         ],
       ),
     );

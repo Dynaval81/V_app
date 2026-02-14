@@ -29,28 +29,31 @@ class AiryChatHeader extends StatelessWidget {
       floating: false,
       backgroundColor: Colors.transparent,
       elevation: 0,
-      expandedHeight: 100,
+      expandedHeight: 80, // Reduced from 100
       flexibleSpace: FlexibleSpaceBar(
-        background: _buildGlassmorphismBackground(),
+        background: _buildGlassmorphismBackground(context),
       ),
       title: _buildTitle(context),
-      centerTitle: true,
+      centerTitle: false, // Move title to left
       leading: _buildLeading(context),
       actions: _buildActions(context),
     );
   }
 
-  /// 🎨 Build safe glassmorphism background
-  Widget _buildGlassmorphismBackground() {
+  /// 🎨 Build adaptive glassmorphism background
+  Widget _buildGlassmorphismBackground(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return ClipRect(
       child: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF000000), // Pure black at top
-              Color(0x1A000000), // Slightly transparent at bottom
+              isDark ? Color(0xFF000000) : Color(0xFFFFFFFF), // Adaptive background
+              isDark ? Color(0x1A000000) : Color(0x1AFFFFFF), // Adaptive transparent
             ],
           ),
         ),
@@ -58,10 +61,10 @@ class AiryChatHeader extends StatelessWidget {
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: (isDark ? Colors.white : Colors.black).withOpacity(0.05),
               border: Border(
                 bottom: BorderSide(
-                  color: Colors.white.withOpacity(0.1),
+                  color: (isDark ? Colors.white : Colors.black).withOpacity(0.1),
                   width: 0.5,
                 ),
               ),
@@ -72,13 +75,16 @@ class AiryChatHeader extends StatelessWidget {
     );
   }
 
-  /// 📝 Build title with HAI3 typography
+  /// 📝 Build title with consistent icon sizing
   Widget _buildTitle(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Text(
       title,
       style: AppTextStyles.h3.copyWith(
-        color: Color(0xFF121212),
-        fontSize: 32,
+        color: isDark ? Color(0xFF121212) : Color(0xFF000000),
+        fontSize: 28, // Slightly smaller for better balance
         fontWeight: FontWeight.w700,
         letterSpacing: -0.5,
       ),
@@ -88,11 +94,14 @@ class AiryChatHeader extends StatelessWidget {
   /// 🔙 Build leading widget (back button)
   Widget? _buildLeading(BuildContext context) {
     if (showBackButton) {
+      final theme = Theme.of(context);
+      final isDark = theme.brightness == Brightness.dark;
+      
       return IconButton(
         icon: Icon(
           Icons.arrow_back_ios_new,
-          color: Color(0xFF121212),
-          size: 24,
+          color: isDark ? Color(0xFF121212) : Color(0xFF000000),
+          size: 22, // Consistent with font size
         ),
         onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
       );
@@ -102,6 +111,8 @@ class AiryChatHeader extends StatelessWidget {
 
   /// 🔧 Build actions (edit button or custom action)
   List<Widget> _buildActions(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final actions = <Widget>[];
     
     if (action != null) {
@@ -111,8 +122,8 @@ class AiryChatHeader extends StatelessWidget {
         IconButton(
           icon: Icon(
             Icons.edit_note_rounded,
-            color: Color(0xFF121212),
-            size: 28,
+            color: isDark ? Color(0xFF121212) : Color(0xFF000000),
+            size: 22, // Consistent with font size
           ),
           onPressed: onEditPressed,
         ),
