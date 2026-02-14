@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../data/models/chat_room.dart';
 import '../../../data/models/message_model.dart';
-import '../chat/message_bubble.dart';
-import '../chat/chat_input.dart';
+import '../widgets/chat/message_bubble.dart';
+import '../widgets/chat/chat_input.dart';
 
 /// 📱 Chat Room Screen - HI3 Layer 4
 /// Individual chat view with message thread and input
@@ -28,7 +28,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       MessageModel(
         id: '1',
         senderId: 'user1',
-        content: 'Hey, how are you?',
+        text: 'Hey, how are you?',
         timestamp: DateTime.now().subtract(const Duration(minutes: 10)),
         type: MessageType.text,
         status: MessageStatus.read,
@@ -36,7 +36,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       MessageModel(
         id: '2',
         senderId: chatId == '1' ? 'me' : 'user1',
-        content: 'I\'m good, thanks! How about you?',
+        text: 'I\'m good, thanks! How about you?',
         timestamp: DateTime.now().subtract(const Duration(minutes: 8)),
         type: MessageType.text,
         status: MessageStatus.read,
@@ -44,7 +44,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       MessageModel(
         id: '3',
         senderId: 'me',
-        content: 'Doing great! Just working on some projects.',
+        text: 'Doing great! Just working on some projects.',
         timestamp: DateTime.now().subtract(const Duration(minutes: 6)),
         type: MessageType.text,
         status: MessageStatus.read,
@@ -52,7 +52,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       MessageModel(
         id: '4',
         senderId: chatId == '1' ? 'me' : 'user1',
-        content: 'That sounds awesome! What kind of projects?',
+        text: 'That sounds awesome! What kind of projects?',
         timestamp: DateTime.now().subtract(const Duration(minutes: 4)),
         type: MessageType.text,
         status: MessageStatus.read,
@@ -60,7 +60,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       MessageModel(
         id: '5',
         senderId: 'me',
-        content: 'Mobile app development, mostly Flutter.',
+        text: 'Mobile app development, mostly Flutter.',
         timestamp: DateTime.now().subtract(const Duration(minutes: 2)),
         type: MessageType.text,
         status: MessageStatus.sent,
@@ -158,7 +158,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               final newMessage = MessageModel(
                 id: DateTime.now().millisecondsSinceEpoch.toString(),
                 senderId: 'me',
-                content: content,
+                text: content,
                 timestamp: DateTime.now(),
                 type: MessageType.text,
                 status: MessageStatus.sending,
