@@ -81,7 +81,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0.5,
-        leadingWidth: 80, // Space for back button + avatar
+        leadingWidth: 100, // Increased to prevent avatar overflow
         leading: Row(
           children: [
             IconButton(
@@ -89,7 +89,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               onPressed: () => Navigator.of(context).pop(),
             ),
             CircleAvatar(
-              radius: 18,
+              radius: 18, // Exact radius as requested
               backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=${widget.chat.name}'),
             ),
           ],
@@ -97,12 +97,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              widget.chat.name ?? 'Unknown',
-              style: const TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+            Flexible( // Use Flexible to prevent name overflow on small screens
+              child: Text(
+                widget.chat.name ?? 'Unknown',
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             const Text(

@@ -26,7 +26,7 @@ class AiryChatListItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final chatService = ChatService();
     final title = chatService.generateChatTitle(chatRoom);
-    final preview = chatService.generateChatPreview(chatRoom.messages ?? []);
+    final preview = chatRoom.messages?.last?.text ?? 'Start chatting...';
     final lastMessage = chatRoom.messages?.isNotEmpty == true 
         ? chatRoom.messages!.last 
         : null;
