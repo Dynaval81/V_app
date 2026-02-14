@@ -122,22 +122,7 @@ class _VPNScreenState extends State<VPNScreen> {
                 child: VtalkHeader(
                   title: 'VPN',
                   showScrollAnimation: false,
-                  actions: [
-                    GestureDetector(
-                      behavior: HitTestBehavior.translucent, // 🚨 НОВОЕ: Разрешаем свайп назад
-                      onTap: () => Navigator.push(
-                        context,
-                        CupertinoPageRoute(builder: (context) => const AccountSettingsScreen()),
-                    ),
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 16),
-                      child: CircleAvatar(
-                        radius: 18,
-                        backgroundImage: NetworkImage("${AppConstants.defaultAvatarUrl}?u=me"),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
               SliverToBoxAdapter(
                 child: Column(

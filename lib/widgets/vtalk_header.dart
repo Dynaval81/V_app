@@ -4,7 +4,7 @@ import '../providers/user_provider.dart';
 import '../constants/app_constants.dart';
 import 'package:provider/provider.dart';
 
-class VtalkHeader extends StatelessWidget implements PreferredSizeWidget {
+class VtalkHeader extends StatelessWidget {
   final String title;
   final bool showScrollAnimation;
   final List<Widget>? actions;
@@ -16,44 +16,39 @@ class VtalkHeader extends StatelessWidget implements PreferredSizeWidget {
   });
 
   @override
-  Size get preferredSize => const Size.fromHeight(60);
-
-  @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color accentColor = const Color(0xFF00B2FF); // 🚨 Тот самый голубой "Ртуть"
+    final Color accentColor = const Color(0xFF00B2FF); // 🚨 Голубая ртуть
 
     return ClipRRect(
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10), // 🚨 Эффект стекла
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12), // 🚨 Эффект стекла
         child: Container(
-          height: 60,
+          height: 70, // 🚨 Фиксированная высота
           decoration: BoxDecoration(
-            color: isDark ? Colors.black.withOpacity(0.5) : Colors.white.withOpacity(0.5),
-            border: Border(bottom: BorderSide(color: accentColor.withOpacity(0.3))),
+            color: isDark ? Colors.black.withOpacity(0.3) : Colors.white.withOpacity(0.3),
+            border: Border(bottom: BorderSide(color: accentColor.withOpacity(0.2), width: 0.5)),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: SafeArea(
+            bottom: false,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // 🚨 LOGO с фильтром цвета
+                // 🚨 ЛОГОТИП: BoxFit.contain чтобы не раскорячило
                 Image.asset(
                   'assets/images/app_logo_classic.png',
                   height: 28,
-                  color: isDark ? Colors.white : accentColor, 
+                  fit: BoxFit.contain,
+                  color: isDark ? Colors.white : accentColor,
                 ),
                 Text(
                   "V-TALK",
-                  style: TextStyle(
-                    fontSize: 20, 
-                    fontWeight: FontWeight.w900, 
-                    color: accentColor // 🚨 Голубой как внизу
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: accentColor, letterSpacing: 1.2),
                 ),
-                // 🚨 Единственная аватарка с плашкой FREE
+                // 🚨 АВАТАР: Один, с плашкой FREE
                 GestureDetector(
-                  onTap: () => _showPremiumDialog(context),
+                  onTap: () => _openAccountMenu(context),
                   child: Stack(
                     alignment: Alignment.bottomRight,
                     children: [
@@ -98,23 +93,8 @@ class VtalkHeader extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  void _showPremiumDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("V-Talk Premium"),
-        content: const Text("Enter your activation code or upgrade to unlock all features."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context), 
-            child: const Text("Cancel")
-          ),
-          ElevatedButton(
-            onPressed: () {}, 
-            child: const Text("Upgrade")
-          ),
-        ],
-      ),
-    );
+  void _openAccountMenu(BuildContext context) {
+    // 🚨 Открываем боковое меню вместо диалога
+    Scaffold.of(context).openDrawer();
   }
 }

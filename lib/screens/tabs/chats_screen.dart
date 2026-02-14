@@ -844,17 +844,13 @@ Widget _buildMenuOption({
                                   return;
                                 }
                                 // call backend to create chat
-                                final api = ApiService();
                                 final userProvider = Provider.of<UserProvider>(context, listen: false);
-                                
-                                // 🚨 НОВОЕ: Используем UserProvider.createChat вместо прямого API
-                                final result = await api.createChat(selectedContactId);
                                 await userProvider.createChat(selectedContactId);
                                 
                                 Navigator.pop(context); // close dialog
                                 
                                 // 🚨 НОВОЕ: Переходим в чат после создания
-                                final roomId = result['roomId']?.toString() ?? '';
+                                final roomId = await userProvider.getChatRoomId(selectedContactId);
                                 Navigator.push(
                                   context,
                                   CupertinoPageRoute(builder: (context) => ChatRoomScreen(

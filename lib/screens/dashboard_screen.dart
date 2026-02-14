@@ -375,22 +375,12 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
             controller: _scrollController,
             physics: const BouncingScrollPhysics(),
             slivers: [
-              VtalkHeader(
-                title: "Dashboard", // Заменяем VTALK на Dashboard
-                showScrollAnimation: false,
-                actions: [
-                  GestureDetector(
-                    onTap: () => Navigator.push(
-                      context,
-                      CupertinoPageRoute(builder: (context) => const AccountSettingsScreen()),
-                    ),
-                    child: CircleAvatar(
-                      radius: 18,
-                      backgroundImage: CachedNetworkImageProvider("${AppConstants.defaultAvatarUrl}?u=me"),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                ],
+              // 🚨 ИСПРАВЛЕНО: Оборачиваем VtalkHeader в SliverToBoxAdapter
+              SliverToBoxAdapter(
+                child: VtalkHeader(
+                  title: "Dashboard", // Заменяем VTALK на Dashboard
+                  showScrollAnimation: false,
+                ),
               ),
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
