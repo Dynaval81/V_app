@@ -492,7 +492,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           context,
           CupertinoPageRoute(builder: (context) => EmailVerificationScreen(
             email: email,
-            onVerified: () => _handleLogin(email, password, true), // true = force login after verification
+            username: username ?? email.split('@')[0],
           )),
         );
       } else {
