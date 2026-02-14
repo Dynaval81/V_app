@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import '../../core/constants.dart';
 import '../../core/providers/chat_provider.dart';
 import '../../core/services/chat_service.dart';
@@ -81,19 +82,65 @@ class AiryChatListItem extends ConsumerWidget {
                       
                       // 📝 Message preview and time
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // 💬 Message preview
+                          // 💬 Message preview with status icon
                           Expanded(
-                            child: Text(
-                              preview,
-                              style: AppTextStyles.body.copyWith(
-                                color: Colors.grey, // Grey color for last message
-                                fontSize: 16.0, // Updated to 16.0
-                                fontWeight: FontWeight.w400,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    preview,
+                                    style: AppTextStyles.body.copyWith(
+                                      color: Colors.grey, // Grey color for last message
+                                      fontSize: 16.0, // Updated to 16.0
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                if (lastMsg?.isMe == true)
+                                  Icon(
+                                    Icons.done_all,
+                                    size: 16,
+                                    color: AppColors.onSurfaceVariant,
+                                  ),
+                              ],
                             ),
+                          ),
+                          // 🕒 Time and unread badge
+                          Row(
+                            children: [
+                              if (chatRoom.unread != null && chatRoom.unread! > 0)
+                                Container(
+                                  width: 20,
+                                  height: 20,
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      chatRoom.unread.toString(),
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              const SizedBox(width: 4),
+                              Text(
+                                lastMsg?.timestamp != null
+                                  ? DateFormat('HH:mm').format(lastMsg!.timestamp)
+                                  : '',
+                                style: AppTextStyles.caption.copyWith(
+                                  color: AppColors.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
