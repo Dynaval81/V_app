@@ -1,147 +1,354 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:provider/provider.dart';
-import 'theme_provider.dart';
-import 'providers/user_provider.dart';
-import 'screens/tabs/chats_screen.dart';
-import 'screens/tabs/vpn_screen.dart';
-import 'screens/tabs/ai_screen.dart';
-import 'screens/dashboard_screen.dart';
-import 'screens/chat_room_screen.dart';
-import 'screens/auth_screen.dart';
-import 'widgets/premium_guard.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'core/theme.dart';
+import 'core/api_service.dart';
+import 'presentation/screens/splash_screen.dart';
 
 void main() {
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => UserProvider()),
-      ],
-      child: const VtalkApp(),
+    const ProviderScope(
+      child: VTalkApp(),
     ),
   );
 }
 
-class VtalkApp extends StatelessWidget {
-  const VtalkApp({super.key});
+class VTalkApp extends ConsumerWidget {
+  const VTalkApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: themeProvider.currentTheme,
-          // 🚨 НОВОЕ: AuthGate - слушаем состояние UserProvider
-          home: Consumer<UserProvider>(
-            builder: (context, auth, _) {
-              // 🚨 НОВОЕ: Если токена нет — ТОЛЬКО экран логина/авторизации
-              if (auth.token == null) {
-                return const AuthScreen(); 
-              }
-              // 🚨 НОВОЕ: Если токен есть — заходим в приложение
-              return const MainScreen();
-            },
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(routerProvider);
+    
+    return MaterialApp.router(
+      title: 'V-Talk',
+      debugShowCheckedModeBanner: false,
+      
+      // 🚨 Глобальная тема приложения
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.dark, // 🚨 По умолчанию темная тема
+      
+      // 🚨 Настройка роутера
+      routerConfig: router,
+      
+      // 🚨 Настройка текста
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaleFactor: 1.0, // 🚨 Фиксированный масштаб текста
           ),
-          onGenerateRoute: (settings) {
-            switch (settings.name) {
-              case '/chat':
-                return CupertinoPageRoute(
-                  builder: (_) => ChatRoomScreen(chatId: '1'),
-                  title: 'Chat',
-                );
-              case '/settings':
-                return CupertinoPageRoute(
-                  builder: (_) => DashboardScreen(onTabSwitch: (index) {}),
-                  title: 'Settings',
-                );
-              case '/login':
-                return CupertinoPageRoute(
-                  builder: (_) => const AuthScreen(),
-                  title: 'Login',
-                );
-              default:
-                return CupertinoPageRoute(
-                  builder: (_) => const MainScreen(),
-                  title: 'Vtalk',
-                );
-            }
-          },
+          child: child!,
         );
       },
     );
   }
 }
 
-class MainScreen extends StatefulWidget {
+// 🚨 Провайдер для GoRouter
+final routerProvider = Provider<GoRouter>((ref) {
+  return GoRouter(
+    initialLocation: '/splash',
+    
+    routes: [
+      // 🚨 Сплеш-скрин
+      GoRoute(
+        path: '/splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
+      
+      // 🚨 Авторизация
+      GoRoute(
+        path: '/login',
+        builder: (context, state) => const LoginScreen(),
+      ),
+      
+      GoRoute(
+        path: '/register',
+        builder: (context, state) => const RegisterScreen(),
+      ),
+      
+      // 🚨 Основное приложение
+      GoRoute(
+        path: '/',
+        builder: (context, state) => const MainScreen(),
+      ),
+      
+      // 🚨 Чаты
+      GoRoute(
+        path: '/chats',
+        builder: (context, state) => const ChatsScreen(),
+      ),
+      
+      GoRoute(
+        path: '/chat/:id',
+        builder: (context, state) {
+          final chatId = state.pathParameters['id']!;
+          return ChatRoomScreen(chatId: chatId);
+        },
+      ),
+      
+      // 🚨 VPN
+      GoRoute(
+        path: '/vpn',
+        builder: (context, state) => const VpnScreen(),
+      ),
+      
+      // 🚨 AI
+      GoRoute(
+        path: '/ai',
+        builder: (context, state) => const AiScreen(),
+      ),
+      
+      // 🚨 Профиль
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => const ProfileScreen(),
+      ),
+      
+      // 🚨 Настройки
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
+      ),
+    ],
+    
+    errorBuilder: (context, state) => ErrorScreen(error: state.error),
+  );
+});
+
+// 🚨 Временные заглушки для экранов (будут созданы отдельно)
+class SplashScreen extends ConsumerWidget {
+  const SplashScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
+      body: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // 🚨 Здесь будет логотип
+            Text(
+              'V-TALK',
+              style: TextStyle(
+                color: AppTheme.primaryColor,
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 2.0,
+              ),
+            ),
+            SizedBox(height: 16),
+            CircularProgressIndicator(
+              color: AppTheme.primaryColor,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class LoginScreen extends ConsumerWidget {
+  const LoginScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
+      appBar: AppBar(
+        title: const Text('Login'),
+      ),
+      body: const Center(
+        child: Text('Login Screen - Coming Soon'),
+      ),
+    );
+  }
+}
+
+class RegisterScreen extends ConsumerWidget {
+  const RegisterScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
+      appBar: AppBar(
+        title: const Text('Register'),
+      ),
+      body: const Center(
+        child: Text('Register Screen - Coming Soon'),
+      ),
+    );
+  }
+}
+
+class MainScreen extends ConsumerWidget {
   const MainScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
+      body: const Center(
+        child: Text('Main Screen - Coming Soon'),
+      ),
+    );
+  }
 }
 
-class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
+class ChatsScreen extends ConsumerWidget {
+  const ChatsScreen({super.key});
 
   @override
-  void initState() {
-    super.initState();
-    // Получаем состояние темы из ThemeProvider
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Load user data if not already present
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      if (userProvider.user == null && !userProvider.isLoading) {
-        userProvider.refreshUserData();
-      }
-    });
-  }
-
-  void _switchTab(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // ПОДПИСЫВАЕМСЯ НА ИЗМЕНЕНИЯ:
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final userProvider = Provider.of<UserProvider>(context);
-    final isDark = themeProvider.isDarkMode;
-
-    // 🚨 ПРОВЕРКА АВТОРИЗАЦИИ - если нет пользователя, показываем экран логина
-    if (userProvider.user == null && !userProvider.isLoading) {
-      return const AuthScreen(); // Импортируем AuthScreen
-    }
-
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: [
-          const ChatsScreen(),
-          PremiumGuard(child: const AIScreen()),
-          PremiumGuard(child: const VPNScreen()),
-          DashboardScreen(onTabSwitch: _switchTab),
-        ],
+      backgroundColor: AppTheme.backgroundColor,
+      appBar: AppBar(
+        title: const Text('Chats'),
       ),
-      bottomNavigationBar: Container(
-        // Динамический цвет фона
-        color: isDark ? const Color(0xFF252541) : const Color(0xFFF5F5F5),
-        child: BottomNavigationBar(
-          elevation: 0,
-          backgroundColor: Colors.transparent, // Чтобы видеть цвет контейнера
-          currentIndex: _currentIndex,
-          onTap: (index) => setState(() => _currentIndex = index),
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: Colors.blueAccent,
-          unselectedItemColor: isDark ? Colors.white54 : Colors.black38, // Динамические цвета иконок
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: 'Chats'),
-            BottomNavigationBarItem(icon: Icon(Icons.auto_awesome), label: 'Vtalk AI'),
-            BottomNavigationBarItem(icon: Icon(Icons.vpn_lock), label: 'VPN'),
-            BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Dashboard'),
+      body: const Center(
+        child: Text('Chats Screen - Coming Soon'),
+      ),
+    );
+  }
+}
+
+class ChatRoomScreen extends ConsumerWidget {
+  final String chatId;
+  
+  const ChatRoomScreen({super.key, required this.chatId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
+      appBar: AppBar(
+        title: Text('Chat $chatId'),
+      ),
+      body: Center(
+        child: Text('Chat Room $chatId - Coming Soon'),
+      ),
+    );
+  }
+}
+
+class VpnScreen extends ConsumerWidget {
+  const VpnScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
+      appBar: AppBar(
+        title: const Text('VPN'),
+      ),
+      body: const Center(
+        child: Text('VPN Screen - Coming Soon'),
+      ),
+    );
+  }
+}
+
+class AiScreen extends ConsumerWidget {
+  const AiScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
+      appBar: AppBar(
+        title: const Text('AI Assistant'),
+      ),
+      body: const Center(
+        child: Text('AI Screen - Coming Soon'),
+      ),
+    );
+  }
+}
+
+class ProfileScreen extends ConsumerWidget {
+  const ProfileScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
+      appBar: AppBar(
+        title: const Text('Profile'),
+      ),
+      body: const Center(
+        child: Text('Profile Screen - Coming Soon'),
+      ),
+    );
+  }
+}
+
+class SettingsScreen extends ConsumerWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
+      appBar: AppBar(
+        title: const Text('Settings'),
+      ),
+      body: const Center(
+        child: Text('Settings Screen - Coming Soon'),
+      ),
+    );
+  }
+}
+
+class ErrorScreen extends ConsumerWidget {
+  final Object? error;
+  
+  const ErrorScreen({super.key, this.error});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
+      appBar: AppBar(
+        title: const Text('Error'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.error_outline,
+              color: AppTheme.errorColor,
+              size: 64,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Something went wrong',
+              style: TextStyle(
+                color: AppTheme.onSurface,
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              error?.toString() ?? 'Unknown error',
+              style: const TextStyle(
+                color: AppTheme.onSurface,
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                // 🚨 Возврат на главный экран
+                context.go('/');
+              },
+              child: const Text('Go Home'),
+            ),
           ],
         ),
       ),
