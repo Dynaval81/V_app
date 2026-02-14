@@ -118,7 +118,9 @@ class AiryChatListItem extends ConsumerWidget {
                     const SizedBox(height: 4), // ONLY spacer between time and status
                     
                     // 🔴 Status indicator (bottom element)
-                    if (showUnreadIndicator && unreadCount > 0)
+                    if (unreadCount == 0)
+                      const SizedBox.shrink() // Hide zero unread
+                    else if (showUnreadIndicator)
                       // Unread count badge
                       Container(
                         constraints: const BoxConstraints(
@@ -161,8 +163,6 @@ class AiryChatListItem extends ConsumerWidget {
                             ),
                         ],
                       )
-                    else
-                      const SizedBox.shrink(), // Hide zero unread
                   ],
                 ),
               ],

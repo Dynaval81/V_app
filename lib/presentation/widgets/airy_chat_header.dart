@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/constants.dart';
+import '../widgets/chat_search_delegate.dart';
 
 /// 🎨 Airy Chat Header - L4 UI Component
 /// Glassmorphism effect with HAI3 compliance and structured layout
@@ -31,15 +32,16 @@ class AiryChatHeader extends StatelessWidget {
       floating: false,
       backgroundColor: Colors.transparent,
       elevation: 0,
-      expandedHeight: 95.0, // Set to 95.0 for proper proportions
+      expandedHeight: 70.0, // Correct height
+      toolbarHeight: 70.0, // Correct toolbar height
       flexibleSpace: FlexibleSpaceBar(
         background: _buildGlassmorphismBackground(context),
       ),
       title: _buildTitle(context), // Title only - no avatar here
       centerTitle: false, // Title to the left
-      leading: _buildLeading(context),
+      // NO leading - only title on left
       actions: [
-        // 🔍 Search icon
+        // 🔍 Search icon with actual search functionality
         IconButton(
           icon: Icon(
             Icons.search,
@@ -48,27 +50,39 @@ class AiryChatHeader extends StatelessWidget {
                 : Color(0xFF000000),
             size: 32, // Same size as avatar for balance
           ),
-          onPressed: onEditPressed ?? () {}, // Ensure not null
+          onPressed: () {
+            // Trigger actual Flutter search
+            showSearch(
+              context: context,
+              delegate: ChatSearchDelegate(chats: []), // TODO: Pass actual chats
+            );
+          },
         ),
-        // 👤 Avatar widget with padding
-        Padding(
-          padding: const EdgeInsets.only(right: 16), // Move away from phone edge
-          child: Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: theme.colorScheme.primary.withOpacity(0.3),
-                width: 1,
+        // 👤 Avatar widget with padding and profile action
+        InkWell(
+          onTap: () {
+            print("Open Profile"); // Debug action
+          },
+          borderRadius: BorderRadius.circular(10),
+          child: Padding(
+            padding: const EdgeInsets.only(right: 16), // Move away from phone edge
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: theme.colorScheme.primary.withOpacity(0.3),
+                  width: 1,
+                ),
               ),
-            ),
-            child: Center(
-              child: Icon(
-                Icons.person,
-                color: theme.colorScheme.primary,
-                size: 32, // Same size as search icon
+              child: Center(
+                child: Icon(
+                  Icons.person,
+                  color: theme.colorScheme.primary,
+                  size: 32, // Same size as search icon
+                ),
               ),
             ),
           ),

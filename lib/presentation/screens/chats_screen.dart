@@ -118,7 +118,7 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
               
               // 📱 Chat list with structured items
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 16), // Reduced from 16 to 12
+                padding: const EdgeInsets.fromLTRB(0, 8, 0, 16), // Zero horizontal padding
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
