@@ -14,6 +14,8 @@ class AiryChatHeader extends StatelessWidget {
   final Widget? action;
   final ScrollController? scrollController;
   final List<ChatRoom> chats; // Add chats parameter
+  final VoidCallback? onSearchPressed; // Add search callback
+  final VoidCallback? onAvatarPressed; // Add avatar callback
 
   const AiryChatHeader({
     super.key,
@@ -24,6 +26,8 @@ class AiryChatHeader extends StatelessWidget {
     this.action,
     this.scrollController,
     this.chats = const [], // Default empty list
+    this.onSearchPressed, // Add search callback
+    this.onAvatarPressed, // Add avatar callback
   });
 
   @override
@@ -42,7 +46,7 @@ class AiryChatHeader extends StatelessWidget {
       ),
       title: _buildTitle(context), // Title only - no avatar here
       centerTitle: false, // Title to the left
-      // NO leading - only title on left
+      leading: _buildLeading(context),
       actions: [
         // 🔍 Search icon with actual search functionality
         IconButton(
@@ -53,20 +57,12 @@ class AiryChatHeader extends StatelessWidget {
                 : Color(0xFF000000),
             size: 32, // Same size as avatar for balance
           ),
-          onPressed: () {
-            // Trigger actual Flutter search with real data
-            showSearch(
-              context: context,
-              delegate: ChatSearchDelegate(chats: chats),
-            );
-          },
+          onPressed: onSearchPressed ?? () {}, // Use search callback
         ),
         const SizedBox(width: 8), // Add spacing between icons
         // 👤 Avatar widget with padding and profile action
         InkWell(
-          onTap: () {
-            print("Open Profile"); // Debug action
-          },
+          onTap: onAvatarPressed ?? () {}, // Use avatar callback
           borderRadius: BorderRadius.circular(10),
           child: Padding(
             padding: const EdgeInsets.only(right: 16), // Move away from phone edge

@@ -7,6 +7,7 @@ import '../../core/providers/chat_provider.dart';
 import '../../core/services/chat_service.dart';
 import '../widgets/airy_chat_header.dart';
 import '../widgets/airy_chat_list_item.dart';
+import '../widgets/chat_search_delegate.dart';
 import '../widgets/airy_input_field.dart';
 import '../widgets/airy_button.dart';
 
@@ -67,90 +68,37 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      
-      // ➕ Create Chat FAB with message icon
+      backgroundColor: theme.colorScheme.background,
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          // The Header
+          AiryChatHeader(
+            title: 'Чаты',
+            onSearchPressed: () => showSearch(
+              context: context, 
+              delegate: ChatSearchDelegate(chats: chatRooms),
+            ),
+            onAvatarPressed: () => print("Open Profile"),
+          ),
+          // The List
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 0), // Full width
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => AiryChatListItem(chat: chatRooms[index]),
+                childCount: chatRooms.length,
+              ),
+            ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _createNewChat,
         backgroundColor: theme.colorScheme.primary,
         foregroundColor: theme.colorScheme.onPrimary,
         child: const Icon(Icons.message, size: 24), // Message icon for new chat
       ),
-      
-      body: Stack(
-        children: [
-          // Main content
-          CustomScrollView(
-            controller: _scrollController,
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              // 🎨 Glassmorphism header with search
-              SliverOverlapAbsorber(
-                handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
-                sliver: Builder(
-                  builder: (headerContext) {
-                    return AiryChatHeader(
-                      title: 'Чаты', // Russian title as requested
-                      chats: chatRooms, // Pass chat rooms to header for search
-                    );
-                  },
-                ),
-              ),
-              
-              // 🔍 Search bar (shown when searching)
-              if (_isSearching)
-                SliverToBoxAdapter(
-                  child: Container(
-                    margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                    child: AiryInputField(
-                      controller: _searchController,
-                      label: 'Search chats',
-                      hint: 'Type to search...',
-                      prefixIcon: Icons.search,
-                      onChanged: (value) {
-                        ref.read(chatProvider.notifier).searchChatRooms(value);
-                      },
-                    ),
-                  ),
-                ),
-              
-              // 📱 Chat list with structured items
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(4, 8, 4, 16), // Minimal horizontal padding
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final chatRoom = chatRooms[index];
-                      final isSelected = chatState.selectedChatRoomId == chatRoom.id;
-                      
-                      return AiryChatListItem(
-                        chatRoom: chatRoom,
-                        isSelected: isSelected,
-                        onTap: () {
-                          ref.read(chatProvider.notifier).selectChatRoom(chatRoom.id);
-                          // Navigate to individual chat
-                          context.go('${AppRoutes.chat}/${chatRoom.id}');
-                        },
-                      );
-                    },
-                    childCount: chatRooms.length,
-                  ),
-                ),
-              ),
-              
-              // TODO: Temporarily commented out for debugging
-              /*
-              // 📱 Loading indicator
-              if (chatState.isLoading)
-                const SliverFillRemaining(
-                  child: Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(AppSpacing.screenPadding),
-                      child: CircularProgressIndicator(
-                        color: AppColors.primary,
-                        backgroundColor: AppColors.primary,
-                      ),
-                    ),
                   ),
                 ),
               
