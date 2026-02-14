@@ -7,6 +7,7 @@ import '../widgets/airy_chat_header.dart';
 import '../widgets/airy_chat_list_item.dart';
 import '../widgets/chat_search_delegate.dart';
 import '../../data/models/chat_room.dart';
+import 'chat_room_screen.dart';
 
 /// 📱 V-Talk Chats Screen - L4 UI Layer
 /// Airy design with glassmorphism header and structured chat list
@@ -85,9 +86,10 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
                     (context, index) => AiryChatListItem(
                       chatRoom: chatRooms[index],
                       onTap: () {
-                        ref.read(chatProvider.notifier).selectChatRoom(chatRooms[index].id);
-                        // Navigate to individual chat
-                        context.go('${AppRoutes.chat}/${chatRooms[index].id}');
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => ChatRoomScreen(chat: chatRooms[index])),
+                        );
                       },
                     ),
                     childCount: chatRooms.length,
