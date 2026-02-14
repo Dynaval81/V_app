@@ -850,7 +850,14 @@ Widget _buildMenuOption({
                                 Navigator.pop(context); // close dialog
                                 
                                 // 🚨 НОВОЕ: Переходим в чат после создания
-                                final roomId = await userProvider.getChatRoomId(selectedContactId);
+                                // Ищем roomId в обновленном списке чатов
+                                final updatedRooms = userProvider.rooms;
+                                final chatRoom = updatedRooms.firstWhere(
+                                  (room) => room['participants']?.contains(selectedContactId) == true,
+                                  orElse: () => {'id': 'new_chat'},
+                                );
+                                final roomId = chatRoom['id']?.toString() ?? 'new_chat';
+                                
                                 Navigator.push(
                                   context,
                                   CupertinoPageRoute(builder: (context) => ChatRoomScreen(

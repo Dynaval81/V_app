@@ -18,83 +18,86 @@ class VtalkHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color accentColor = const Color(0xFF00B2FF); // 🚨 Голубая ртуть
+    final Color accentColor = const Color(0xFF00B2FF); // 🚨 Ртутный голубой
 
     return ClipRRect(
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12), // 🚨 Эффект стекла
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15), // 🚨 Глубокий блюр
         child: Container(
-          height: 70, // 🚨 Фиксированная высота
+          height: 100, // 🚨 Увеличили высоту для SafeArea
           decoration: BoxDecoration(
-            color: isDark ? Colors.black.withOpacity(0.3) : Colors.white.withOpacity(0.3),
+            color: isDark ? Colors.black.withOpacity(0.4) : Colors.white.withOpacity(0.4),
             border: Border(bottom: BorderSide(color: accentColor.withOpacity(0.2), width: 0.5)),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: SafeArea(
-            bottom: false,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // 🚨 ЛОГОТИП: BoxFit.contain чтобы не раскорячило
-                Image.asset(
-                  'assets/images/app_logo_classic.png',
-                  height: 28,
-                  fit: BoxFit.contain,
-                  color: isDark ? Colors.white : accentColor,
+          padding: const EdgeInsets.only(left: 16, right: 16, top: 40), // 🚨 Отступ под челку
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // 🚨 ЛОГОТИП
+              Image.asset(
+                'assets/images/app_logo_classic.png',
+                height: 32,
+                fit: BoxFit.contain,
+                color: isDark ? Colors.white : accentColor,
+              ),
+              // 🚨 НАЗВАНИЕ
+              Text(
+                "V-TALK",
+                style: TextStyle(
+                  fontSize: 20, 
+                  fontWeight: FontWeight.w900, 
+                  color: accentColor, 
+                  letterSpacing: 2.0, // 🚨 Добавили воздуха буквам
                 ),
-                Text(
-                  "V-TALK",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: accentColor, letterSpacing: 1.2),
-                ),
-                // 🚨 АВАТАР: Один, с плашкой FREE
-                GestureDetector(
-                  onTap: () => _openAccountMenu(context),
-                  child: Stack(
-                    alignment: Alignment.bottomRight,
-                    children: [
-                      Consumer<UserProvider>(
-                        builder: (context, userProvider, child) {
-                          return CircleAvatar(
-                            radius: 18, 
-                            backgroundImage: NetworkImage("${AppConstants.defaultAvatarUrl}?u=me")
+              ),
+              // 🚨 ЖИВАЯ АВАТАРКА
+              GestureDetector(
+                onTap: () {
+                  // 🚨 Открываем Drawer или экран профиля
+                  Scaffold.of(context).openDrawer(); 
+                },
+                child: Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    Consumer<UserProvider>(
+                      builder: (context, userProvider, child) {
+                        return CircleAvatar(
+                          radius: 20, 
+                          backgroundColor: accentColor.withOpacity(0.1),
+                          backgroundImage: NetworkImage("${AppConstants.defaultAvatarUrl}?u=me"),
+                        );
+                      },
+                    ),
+                    Consumer<UserProvider>(
+                      builder: (context, userProvider, child) {
+                        if (!userProvider.isPremium) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.greenAccent[700],
+                              borderRadius: BorderRadius.circular(6),
+                              boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                            ),
+                            child: const Text(
+                              "FREE", 
+                              style: TextStyle(
+                                fontSize: 8, 
+                                color: Colors.white, 
+                                fontWeight: FontWeight.bold
+                              )
+                            ),
                           );
-                        },
-                      ),
-                      Consumer<UserProvider>(
-                        builder: (context, userProvider, child) {
-                          if (!userProvider.isPremium) {
-                            return Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: Colors.green, 
-                                borderRadius: BorderRadius.circular(4)
-                              ),
-                              child: const Text(
-                                "FREE", 
-                                style: TextStyle(
-                                  fontSize: 7, 
-                                  color: Colors.white, 
-                                  fontWeight: FontWeight.bold
-                                )
-                              ),
-                            );
-                          }
-                          return const SizedBox.shrink();
-                        },
-                      ),
-                    ],
-                  ),
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
-  }
-
-  void _openAccountMenu(BuildContext context) {
-    // 🚨 Открываем боковое меню вместо диалога
-    Scaffold.of(context).openDrawer();
   }
 }

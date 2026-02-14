@@ -8,6 +8,7 @@ class UserProvider with ChangeNotifier {
   String? _token;
   bool _isLoading = false;
   String? _error;
+  List<Map<String, dynamic>> _chatRooms = []; // 🚨 НОВОЕ: Храним список чатов
   final ApiService _apiService = ApiService();
   final _storage = const FlutterSecureStorage();
 
@@ -16,6 +17,7 @@ class UserProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get isPremium => _user?.isPremium ?? false;
+  List<Map<String, dynamic>> get rooms => _chatRooms; // 🚨 НОВОЕ: Getter для списка чатов
 
   void setUser(User user) {
     _user = user;
@@ -53,6 +55,9 @@ class UserProvider with ChangeNotifier {
     try {
       final api = ApiService();
       await api.createChat(targetUserId);
+      
+      // 🚨 Ждем 500мс, чтобы бэкенд точно обновился, и тянем список
+      await Future.delayed(const Duration(milliseconds: 500));
       
       // 🚨 КРИТИЧЕСКО: Загружаем обновленный список и уведомляем UI
       await _fetchRooms(); 
@@ -254,9 +259,17 @@ class UserProvider with ChangeNotifier {
     try {
       final api = ApiService();
       final result = await api.listChats();
-      // Здесь будет логика загрузки комнат
-      print('Fetch rooms result: $result');
+      
+      // 🚨 НОВОЕ: Сохраняем список чатов
+      if (result['success'] == true && result['data'] != null) {
+        _chatRooms = List<Map<String, dynamic>>.from(result['data']);
+        print('Fetched ${_chatRooms.length} rooms');
+      } else {
+        _chatRooms = [];
+        print('Failed to fetch rooms: ${result['error']}');
+      }
     } catch (e) {
+      _chatRooms = [];
       print('Fetch rooms error: $e');
     }
   }

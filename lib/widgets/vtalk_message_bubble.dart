@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:convert'; // 🚨 НОВОЕ: Для декодирования Unicode
 import '../utils/glass_kit.dart';
 import '../theme_provider.dart';
 import '../widgets/emoji_renderer.dart';
@@ -32,11 +33,18 @@ class VTalkMessageBubble extends StatelessWidget {
     this.onDelete,
   }) : super(key: key);
 
-  // 🚨 НОВОЕ: Функция для обработки текста с эмодзи (упрощенная)
+  // 🚨 НОВОЕ: Функция для обработки текста с эмодзи (с декодированием)
   Widget _buildTextWithEmojis(String text, TextStyle style) {
-    // 🚨 НОВОЕ: Просто выводим текст как есть, без сложной логики
+    String decodedText = text;
+    try {
+      // 🚨 Декодируем Unicode-последовательности, если они пришли строкой
+      decodedText = jsonDecode('"$decodedText"'); 
+    } catch (e) {
+      decodedText = text; // 🚨 Если не получилось, оставляем как есть
+    }
+
     return Text(
-      text,
+      decodedText,
       style: style.copyWith(
         fontFamily: 'Roboto', // 🚨 Шрифт поддерживающий Emoji
       ),
