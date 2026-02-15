@@ -24,7 +24,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
   final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-  final initialLocation = isLoggedIn ? AppRoutes.home : AppRoutes.splash;
+  final initialLocation = AppRoutes.splash;
 
   runApp(
     MultiProvider(
