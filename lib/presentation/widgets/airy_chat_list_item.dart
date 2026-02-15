@@ -132,7 +132,7 @@ class _AiryChatListItemState extends State<AiryChatListItem> {
                               ],
                             ),
                           ),
-                          // 🕒 Time and unread badge
+                          // 🕒 Time only
                           SizedBox(
                             width: 60,
                             child: Column(
@@ -146,26 +146,6 @@ class _AiryChatListItemState extends State<AiryChatListItem> {
                                     color: AppColors.onSurfaceVariant,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
-                                if (unreadCount > 0)
-                                  Container(
-                                    width: 20,
-                                    height: 20,
-                                    decoration: BoxDecoration(
-                                      color: Colors.blue,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        unreadCount > 99 ? '99+' : unreadCount.toString(),
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
                               ],
                             ),
                           ),
