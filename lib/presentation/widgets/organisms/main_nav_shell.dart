@@ -47,15 +47,14 @@ class _MainNavShellState extends State<MainNavShell> {
   void _onTabTapped(String tabId) {
     if (_currentTabId == tabId) return;
     
-    setState(() => _currentTabId = tabId);
-    
     final newIndex = _getTabIndex(tabId);
+    
+    setState(() {
+      _currentTabId = tabId;
+    });
+    
     if (_pageController.hasClients) {
-      _pageController.animateToPage(
-        newIndex,
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOut,
-      );
+      _pageController.jumpToPage(newIndex);
     }
   }
 
@@ -108,14 +107,12 @@ class _MainNavShellState extends State<MainNavShell> {
       const DashboardScreen(),
     ];
 
-    // Update current index when tabs change
+    // Update current index synchronously when tabs change
     final newIndex = _getTabIndex(_currentTabId);
+    
+    // Synchronous update to prevent lag
     if (_pageController.hasClients && _pageController.page?.round() != newIndex) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _pageController.hasClients) {
-          _pageController.jumpToPage(newIndex);
-        }
-      });
+      _pageController.jumpToPage(newIndex);
     }
 
     return Scaffold(
@@ -133,7 +130,7 @@ class _MainNavShellState extends State<MainNavShell> {
             setState(() => _currentTabId = activeTabs[index]);
           }
         },
-        physics: const BouncingScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         children: pages,
       ),
       bottomNavigationBar: Container(
