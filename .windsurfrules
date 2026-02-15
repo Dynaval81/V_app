@@ -15,7 +15,7 @@
 - Dashboard screen must control visibility of tabs (AI, VPN, etc.). State must be saved via SharedPreferences.
 
 ### Imports
-- Use only absolute imports (e.g., package:v_app/...). No relative paths (../../).
+- Use only absolute imports (e.g., package:vtalk_app/...). No relative paths (../../).
 
 ## Design System (HAI3 Airy Style)
 
@@ -85,3 +85,20 @@
 - Use `flutter_localizations` package and .arb file generation.
 - All strings must be called via `AppLocalizations.of(context)!.key`.
 - Supported languages: Russian (ru), English (en), German (de).
+
+## Official Documentation & Standards
+
+### Repository Standards
+- Primary Rules: https://github.com/Dynaval81/V_app
+- HAI3 Framework: https://github.com/HAI3org/HAI3
+
+### Design DNA (V_app Edition)
+- Surface & Air: Scaffold background is strictly 0xFFFAFAFA
+- Glassmorphism: Navigation and headers must use BackdropFilter with sigma(10, 10)
+- Geometry: Consistent BorderRadius.circular(24.0) for all elements
+- Branding: Use assets/images/logo bnb.png (Handle spaces in path carefully)
+
+### Architectural Protocol
+- Strict Imports: Only absolute imports (package:vtalk_app/...)
+- State Control: Keep navigation "Rock-Solid" (use current IndexedStack / Navigator logic)
+- No Unrequested Dependencies: Never add external libs without explicit confirmation
