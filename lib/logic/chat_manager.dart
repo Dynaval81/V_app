@@ -7,8 +7,8 @@ class ChatManager {
   static List<MessageModel> messages = mockMessages;
 
   static void markAsRead(String chatId) {
-    final chat = chats.firstWhere((c) => c.id == chatId);
-    chat.unread = 0;
+    final index = chats.indexWhere((c) => c.id == chatId);
+    if (index >= 0) chats[index].unread = 0;
   }
 }
 

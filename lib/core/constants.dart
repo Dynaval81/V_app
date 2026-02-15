@@ -13,10 +13,12 @@ end: Alignment.bottomRight,
 }
 
 class AppTextStyles {
-static const TextStyle h3 = TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.onSurface);
-static const TextStyle body = TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: AppColors.onSurface);
-static const TextStyle button = TextStyle(fontSize: 16, fontWeight: FontWeight.w600);
-static const TextStyle input = TextStyle(fontSize: 16, color: AppColors.onSurface);
+  /// Titles – minimum 22px (HAI3).
+  static const TextStyle h3 = TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.onSurface);
+  /// Body – minimum 16px (HAI3).
+  static const TextStyle body = TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: AppColors.onSurface);
+  static const TextStyle button = TextStyle(fontSize: 16, fontWeight: FontWeight.w600);
+  static const TextStyle input = TextStyle(fontSize: 16, color: AppColors.onSurface);
 }
 
 class AppSpacing {

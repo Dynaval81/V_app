@@ -2,24 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart' as provider;
-import 'core/constants.dart';
-import 'core/constants/app_constants.dart';
-import 'core/controllers/chat_controller.dart';
-import 'presentation/screens/splash_screen.dart';
-import 'presentation/screens/auth_screen.dart';
-import 'presentation/screens/ai/ai_assistant_screen.dart';
-import 'presentation/screens/chats_screen.dart';
-import 'presentation/screens/vpn_screen.dart';
-import 'presentation/widgets/airy_button.dart';
-import 'presentation/widgets/organisms/main_nav_shell.dart';
+import 'package:vtalk_app/core/constants.dart';
+import 'package:vtalk_app/core/constants/app_constants.dart';
+import 'package:vtalk_app/core/controllers/auth_controller.dart';
+import 'package:vtalk_app/core/controllers/chat_controller.dart';
+import 'package:vtalk_app/presentation/screens/auth/login_screen.dart';
+import 'package:vtalk_app/presentation/screens/settings_screen.dart';
+import 'package:vtalk_app/presentation/screens/splash_screen.dart';
+import 'package:vtalk_app/presentation/widgets/airy_button.dart';
+import 'package:vtalk_app/presentation/widgets/organisms/main_nav_shell.dart';
 
 /// 🚀 V-Talk Beta - HAI3 Architecture
-/// Clean architecture with strict layer separation
 void main() {
   runApp(
     ProviderScope(
-      child: provider.ChangeNotifierProvider(
-        create: (_) => ChatController()..loadChats(),
+      child: provider.MultiProvider(
+        providers: [
+          provider.ChangeNotifierProvider(create: (_) => AuthController()),
+          provider.ChangeNotifierProvider(create: (_) => ChatController()..loadChats()),
+        ],
         child: const VTalkApp(),
       ),
     ),
@@ -78,37 +79,18 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: AppRoutes.splash,
     
     routes: [
-      // 🎯 Splash Screen
       GoRoute(
         path: AppRoutes.splash,
         builder: (context, state) => const SplashScreen(),
       ),
-      
-      // 🔐 Authentication Screen
       GoRoute(
         path: AppRoutes.auth,
-        builder: (context, state) => const AuthScreen(),
+        builder: (context, state) => const LoginScreen(),
       ),
-      
-      // 🏠 Main App (Placeholder - will be implemented)
       GoRoute(
         path: AppRoutes.home,
-        builder: (context, state) => const _ComingSoonScreen(
-          title: 'Home',
-          message: 'Main dashboard coming soon...',
-        ),
+        builder: (context, state) => const MainNavShell(initialIndex: 0),
       ),
-      
-      // 💬 Chats
-      GoRoute(
-        path: AppRoutes.chats,
-        builder: (context, state) => const MainNavShell(
-          currentIndex: 0,
-          child: ChatsScreen(),
-        ),
-      ),
-      
-      // 💬 Individual Chat
       GoRoute(
         path: '${AppRoutes.chat}/:chatId',
         builder: (context, state) {
@@ -116,41 +98,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           return _ChatScreen(chatId: chatId);
         },
       ),
-      
-      // 🤖 AI Chat
-      GoRoute(
-        path: AppRoutes.ai,
-        builder: (context, state) => const MainNavShell(
-          currentIndex: 1,
-          child: AiAssistantScreen(),
-        ),
-      ),
-      
-      // 🔒 VPN
-      GoRoute(
-        path: AppRoutes.vpn,
-        builder: (context, state) => const MainNavShell(
-          currentIndex: 2,
-          child: VpnScreen(),
-        ),
-      ),
-      
-      // 👤 Profile (Placeholder)
-      GoRoute(
-        path: AppRoutes.profile,
-        builder: (context, state) => const _ComingSoonScreen(
-          title: 'Profile',
-          message: 'Profile management coming soon...',
-        ),
-      ),
-      
-      // ⚙️ Settings (Placeholder)
       GoRoute(
         path: AppRoutes.settings,
-        builder: (context, state) => const _ComingSoonScreen(
-          title: 'Settings',
-          message: 'Settings interface coming soon...',
-        ),
+        builder: (context, state) => const SettingsScreen(),
       ),
     ],
     
@@ -355,7 +305,7 @@ class _ChatScreen extends StatelessWidget {
             AiryButton(
               text: 'Back to Chats',
               onPressed: () {
-                context.go(AppRoutes.chats);
+                context.go(AppRoutes.home);
               },
               icon: const Icon(Icons.arrow_back, size: 18),
             ),

@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:vtalk_app/core/constants.dart';
+import 'package:vtalk_app/core/constants/app_constants.dart';
 
 class AiryChatHeader extends StatelessWidget {
   final String title;
   final VoidCallback onSearchPressed;
-  final VoidCallback onAvatarPressed;
+  final VoidCallback? onAvatarPressed;
+  final bool showProfileIcon;
 
   const AiryChatHeader({
     super.key,
     required this.title,
     required this.onSearchPressed,
-    required this.onAvatarPressed,
+    this.onAvatarPressed,
+    this.showProfileIcon = true,
   });
 
   @override
@@ -17,29 +22,38 @@ class AiryChatHeader extends StatelessWidget {
     return SliverAppBar(
       pinned: true,
       floating: true,
-      backgroundColor: Colors.white, // White background for Telegram Light
-      elevation: 0.5, // Light elevation
+      backgroundColor: Colors.white,
+      elevation: 0.5,
       centerTitle: false,
       title: Text(
         title,
-        style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 28),
+        style: TextStyle(
+          color: AppColors.onSurface,
+          fontWeight: FontWeight.bold,
+          fontSize: 22,
+        ),
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.search, color: Colors.black87),
+          icon: Icon(Icons.search, color: AppColors.onSurface),
           onPressed: onSearchPressed,
         ),
-        const SizedBox(width: 4),
-        GestureDetector( // Using GestureDetector to avoid InkWell padding issues
-          onTap: onAvatarPressed,
-          child: const Padding(
-            padding: EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              radius: 18,
-              backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=my'),
+        if (showProfileIcon)
+          IconButton(
+            icon: Icon(Icons.person_outline_rounded, color: AppColors.onSurface),
+            onPressed: () => context.push(AppRoutes.settings),
+          )
+        else if (onAvatarPressed != null)
+          GestureDetector(
+            onTap: onAvatarPressed,
+            child: const Padding(
+              padding: EdgeInsets.only(right: 8),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=my'),
+              ),
             ),
           ),
-        ),
       ],
     );
   }

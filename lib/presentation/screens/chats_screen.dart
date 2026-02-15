@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import '../../core/constants/app_constants.dart';
-import '../../core/providers/chat_provider.dart';
-import '../widgets/airy_chat_header.dart';
-import '../widgets/airy_chat_list_item.dart';
-import '../widgets/chat_search_delegate.dart';
-import '../../data/models/chat_room.dart';
-import '../../../data/models/message_model.dart';
-import 'chat_room_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:vtalk_app/core/constants/app_constants.dart';
+import 'package:vtalk_app/core/controllers/chat_controller.dart';
+import 'package:vtalk_app/core/providers/chat_provider.dart';
+import 'package:vtalk_app/data/models/chat_room.dart';
+import 'package:vtalk_app/data/models/message_model.dart';
+import 'package:vtalk_app/presentation/screens/chat_room_screen.dart';
+import 'package:vtalk_app/presentation/widgets/airy_chat_header.dart';
+import 'package:vtalk_app/presentation/widgets/chat_search_delegate.dart';
+import 'package:vtalk_app/presentation/widgets/airy_chat_list_item.dart';
 
 /// 📱 V-Talk Chats Screen - L4 UI Layer
 /// Airy design with glassmorphism header and structured chat list
@@ -124,12 +125,12 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
         slivers: [
           // The Header
           AiryChatHeader(
-            title: 'Чаты',
+            title: 'Chats',
             onSearchPressed: () => showSearch(
               context: context,
               delegate: ChatSearchDelegate(chats: chatRooms),
             ),
-            onAvatarPressed: () => print("Open Profile"),
+            showProfileIcon: true,
           ),
           // The List or Empty State
           chatRooms.isEmpty
@@ -148,7 +149,9 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
                     (context, index) => AiryChatListItem(
                       chatRoom: chatRooms[index],
                       onTap: () {
-                        ref.read(chatProvider.notifier).markAsRead(chatRooms[index].id);
+                        final chatId = chatRooms[index].id;
+                        ref.read(chatProvider.notifier).markAsRead(chatId);
+                        Provider.of<ChatController>(context, listen: false).markAsRead(chatId);
                         Navigator.push(
                           context,
                           CupertinoPageRoute(builder: (context) => ChatRoomScreen(chat: chatRooms[index])),

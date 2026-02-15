@@ -7,13 +7,13 @@ import 'package:vtalk_app/presentation/atoms/vpn_connect_button.dart';
 import 'package:vtalk_app/presentation/molecules/server_picker.dart';
 import 'package:vtalk_app/presentation/molecules/split_tunneling_toggle.dart';
 
-/// Default demo servers (NekoBox-style locations).
-List<ServerModel> get defaultVpnServers => [
-  const ServerModel(id: 'us', name: 'United States', countryCode: 'US', flagEmoji: '🇺🇸', host: 'us.example.com', port: 443),
-  const ServerModel(id: 'de', name: 'Germany', countryCode: 'DE', flagEmoji: '🇩🇪', host: 'de.example.com', port: 443),
-  const ServerModel(id: 'nl', name: 'Netherlands', countryCode: 'NL', flagEmoji: '🇳🇱', host: 'nl.example.com', port: 443),
-  const ServerModel(id: 'jp', name: 'Japan', countryCode: 'JP', flagEmoji: '🇯🇵', host: 'jp.example.com', port: 443),
-  const ServerModel(id: 'sg', name: 'Singapore', countryCode: 'SG', flagEmoji: '🇸🇬', host: 'sg.example.com', port: 443),
+/// Default demo servers (NekoBox-style locations). Single list, no duplicates.
+List<ServerModel> get defaultVpnServers => const [
+  ServerModel(id: 'us', name: 'United States', countryCode: 'US', flagEmoji: '🇺🇸', host: 'us.example.com', port: 443),
+  ServerModel(id: 'de', name: 'Germany', countryCode: 'DE', flagEmoji: '🇩🇪', host: 'de.example.com', port: 443),
+  ServerModel(id: 'nl', name: 'Netherlands', countryCode: 'NL', flagEmoji: '🇳🇱', host: 'nl.example.com', port: 443),
+  ServerModel(id: 'jp', name: 'Japan', countryCode: 'JP', flagEmoji: '🇯🇵', host: 'jp.example.com', port: 443),
+  ServerModel(id: 'sg', name: 'Singapore', countryCode: 'SG', flagEmoji: '🇸🇬', host: 'sg.example.com', port: 443),
 ];
 
 /// HAI3 Organism: VPN panel – connect button, server picker, split tunneling (Airy).

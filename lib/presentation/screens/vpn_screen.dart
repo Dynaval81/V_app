@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:vtalk_app/core/constants.dart';
+import 'package:vtalk_app/core/constants/app_constants.dart';
 import 'package:vtalk_app/core/controllers/vpn_controller.dart';
 import 'package:vtalk_app/presentation/widgets/organisms/vpn_panel.dart';
 
@@ -22,9 +24,15 @@ class VpnScreen extends StatelessWidget {
             style: TextStyle(
               color: AppColors.onSurface,
               fontWeight: FontWeight.w600,
-              fontSize: 20,
+              fontSize: 22,
             ),
           ),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.person_outline_rounded, color: AppColors.onSurface),
+              onPressed: () => context.push(AppRoutes.settings),
+            ),
+          ],
         ),
         body: const VpnPanel(),
       ),
