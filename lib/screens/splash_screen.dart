@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../presentation/widgets/organisms/main_nav_shell.dart';
@@ -70,8 +71,18 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       }
     });
     
-    // Navigate after 2 seconds
-    _navigateToNextScreen();
+    // NAVIGATION LOGIC: Use dedicated Timer to guarantee execution
+    Timer(const Duration(milliseconds: 2500), () async {
+      if (!mounted) return;
+      final user = FirebaseAuth.instance.currentUser;
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => user == null ? const LoginScreen() : const MainNavShell(),
+          transitionsBuilder: (_, anim, __, child) => FadeTransition(opacity: anim, child: child),
+          transitionDuration: const Duration(milliseconds: 800),
+        ),
+      );
+    });
   }
 
   @override
@@ -81,49 +92,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     super.dispose();
   }
 
-  void _navigateToNextScreen() async {
-    Future.delayed(const Duration(seconds: 2), () async {
-      if (!mounted) return;
-      
-      // RE-IMPLEMENT authentication check using FirebaseAuth
-      final user = FirebaseAuth.instance.currentUser;
-      
-      if (user != null) {
-        // Go to Dashboard
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => MainNavShell(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return FadeTransition(
-                opacity: animation,
-                child: child,
-              );
-            },
-            transitionDuration: const Duration(milliseconds: 1000),
-          ),
-        );
-      } else {
-        // Go to AuthScreen
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => LoginScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return FadeTransition(
-                opacity: animation,
-                child: child,
-              );
-            },
-            transitionDuration: const Duration(milliseconds: 1000),
-          ),
-        );
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0E14), // Deep Midnight
+      backgroundColor: const Color(0xFFFAFAFA), // Light background
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -139,34 +111,44 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                         opacity: _fadeAnimation,
                         child: ScaleTransition(
                           scale: _scaleAnimation,
-                          child: Container(
-                            width: 240, // Responsive logo size
-                            height: 240,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(24),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0x3300F5FF), // Neon Aura
-                                  blurRadius: 80,
-                                  spreadRadius: 2,
-                                ),
-                              ],
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(24),
-                              child: ColorFiltered(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // Logo with Active Blue tint
+                              ColorFiltered(
                                 colorFilter: ColorFilter.mode(
-                                  const Color(0xFF00F5FF), // Electric Cyan
+                                  const Color(0xFF2196F3), // Active Blue
                                   BlendMode.srcIn,
                                 ),
                                 child: Image.asset(
-                                  'assets/images/logo wnb.png',
-                                  width: 240,
-                                  height: 240,
+                                  'assets/images/logo_bnb.png',
+                                  width: 120,
+                                  height: 120,
                                   fit: BoxFit.contain,
                                 ),
                               ),
-                            ),
+                              const SizedBox(height: 20),
+                              // VTALK text
+                              Text(
+                                'VTALK',
+                                style: TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.w200,
+                                  letterSpacing: 10,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              // Tagline
+                              Text(
+                                'SECURE • SIMPLE • SEAMLESS',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  letterSpacing: 2,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -175,7 +157,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 ),
               ),
               
-              // Bottom attribution
+              // Bottom HAI3 attribution
               AnimatedBuilder(
                 animation: _attributionAnimationController,
                 builder: (context, child) {
@@ -183,29 +165,32 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     opacity: _attributionFadeAnimation,
                     child: Column(
                       children: [
-                        // HAI3 logo with color filter
-                        ColorFiltered(
-                          colorFilter: ColorFilter.mode(
-                            const Color(0xFF00F5FF), // Electric Cyan
-                            BlendMode.srcIn,
-                          ),
-                          child: Image.asset(
-                            'assets/images/hai_3_light.png',
-                            width: 60,
-                            height: 20,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        // HAI3 text
-                        Text(
-                          'POWERED BY HAI3 PRINCIPLES',
-                          style: TextStyle(
-                            fontSize: 10,
-                            letterSpacing: 4.0,
-                            fontWeight: FontWeight.w300,
-                            color: Colors.white.withValues(alpha: 0.6),
-                          ),
+                        const SizedBox(height: 40),
+                        // HAI3 row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'POWERED BY',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
+                            ),
+                            const Padding(padding: EdgeInsets.symmetric(horizontal: 8)),
+                            Image.asset(
+                              'assets/images/hai_3_dark.png',
+                              height: 18,
+                              fit: BoxFit.contain,
+                            ),
+                            Text(
+                              'PRINCIPLES',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 20),
                       ],
