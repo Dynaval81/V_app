@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../presentation/widgets/organisms/main_nav_shell.dart';
-import '../presentation/screens/auth/login_screen.dart';
+import 'package:v_app/presentation/widgets/organisms/main_nav_shell.dart';
+import 'package:v_app/presentation/screens/auth/login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -37,18 +37,29 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     // Start animation (NO REPEAT - plays once and stays)
     _animationController.forward();
     
-    // NAVIGATION LOGIC: Use Timer in initState - do NOT await animation controllers
-    Timer(const Duration(milliseconds: 2500), () {
+    // NAVIGATION LOGIC: Use Future.delayed with proper error handling
+    _navigateAfterDelay();
+  }
+
+  Future<void> _navigateAfterDelay() async {
+    try {
+      await Future.delayed(const Duration(milliseconds: 2500));
       if (!mounted) return;
+      
       final user = FirebaseAuth.instance.currentUser;
+      final destination = user == null ? const LoginScreen() : const MainNavShell();
+      
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (context, _, __) => user == null ? const LoginScreen() : const MainNavShell(),
+          pageBuilder: (context, _, __) => destination,
           transitionsBuilder: (context, anim, __, child) => FadeTransition(opacity: anim, child: child),
           transitionDuration: const Duration(milliseconds: 1000),
         ),
       );
-    });
+    } catch (e) {
+      // Log error but don't crash - stay on splash if navigation fails
+      debugPrint('Navigation error: $e');
+    }
   }
 
   @override
@@ -81,7 +92,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                             BlendMode.srcIn,
                           ),
                           child: Image.asset(
-                            'assets/images/logo_bnb.png',
+                            'assets/images/logo bnb.png',
                             width: 120,
                             height: 120,
                             fit: BoxFit.contain,
@@ -94,7 +105,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                           style: TextStyle(
                             fontSize: 32,
                             fontWeight: FontWeight.w200,
-                            letterSpacing: 10,
+                            letterSpacing: 12.0,
                             color: Colors.black87,
                           ),
                         ),
@@ -104,8 +115,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                           'SECURE • SIMPLE • SEAMLESS',
                           style: TextStyle(
                             fontSize: 10,
+                            fontWeight: FontWeight.w300,
                             color: Colors.grey,
-                            letterSpacing: 2,
+                            letterSpacing: 2.0,
                           ),
                         ),
                       ],
@@ -124,6 +136,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     style: TextStyle(
                       color: Colors.grey,
                       fontSize: 11,
+                      fontWeight: FontWeight.w300,
                       letterSpacing: 1.5,
                     ),
                   ),
@@ -139,6 +152,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     style: TextStyle(
                       color: Colors.grey,
                       fontSize: 11,
+                      fontWeight: FontWeight.w300,
                       letterSpacing: 1.5,
                     ),
                   ),
