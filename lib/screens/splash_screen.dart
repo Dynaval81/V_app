@@ -1,8 +1,7 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../presentation/widgets/organisms/main_nav_shell.dart';
 import '../presentation/screens/auth/login_screen.dart';
+import '../presentation/widgets/organisms/main_nav_shell.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -11,123 +10,77 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-
+class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    
-    // Initialize simple animation controller
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    );
-    
-    // Create fade animation
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
-    
-    // Start animation (NO REPEAT - plays once and stays)
-    _animationController.forward();
-    
-    // NAVIGATION LOGIC: Use Future.delayed with proper error handling
-    _navigateAfterDelay();
-  }
-
-  Future<void> _navigateAfterDelay() async {
-    try {
-      await Future.delayed(const Duration(milliseconds: 2500));
+    print('HAI3_DEBUG: Splash started');
+    Future.delayed(const Duration(milliseconds: 2500), () {
       if (!mounted) return;
-      
       final user = FirebaseAuth.instance.currentUser;
-      final destination = user == null ? LoginScreen() : MainNavShell();
+      print('HAI3_DEBUG: Navigating now. User: ${user?.uid}');
       
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (context, _, __) => destination,
-          transitionsBuilder: (context, anim, __, child) => FadeTransition(opacity: anim, child: child),
-          transitionDuration: const Duration(milliseconds: 1000),
-        ),
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => user == null ? LoginScreen() : MainNavShell()),
+        (route) => false,
       );
-    } catch (e) {
-      // Log error but don't crash - stay on splash if navigation fails
-      debugPrint('Navigation error: $e');
-    }
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA), // Light & Airy background
+      backgroundColor: const Color(0xFFFAFAFA),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
             children: [
-              // Main content area
+              // Main content
               Expanded(
                 child: Center(
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Main Asset with Blue color filter
-                        ColorFiltered(
-                          colorFilter: ColorFilter.mode(
-                            const Color(0xFF2196F3), // Blue
-                            BlendMode.srcIn,
-                          ),
-                          child: Image.asset(
-                            'assets/images/logo bnb.png',
-                            width: 120,
-                            height: 120,
-                            fit: BoxFit.contain,
-                          ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Logo with blue color filter
+                      ColorFiltered(
+                        colorFilter: ColorFilter.mode(
+                          const Color(0xFF2196F3),
+                          BlendMode.srcIn,
                         ),
-                        const SizedBox(height: 20),
-                        // Center Text: VTALK
-                        Text(
-                          'VTALK',
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w200,
-                            letterSpacing: 12.0,
-                            color: Colors.black87,
-                          ),
+                        child: Image.asset(
+                          'assets/images/logo bnb.png',
+                          height: 100,
                         ),
-                        const SizedBox(height: 8),
-                        // Small subtitle
-                        Text(
-                          'SECURE • SIMPLE • SEAMLESS',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w300,
-                            color: Colors.grey,
-                            letterSpacing: 2.0,
-                          ),
+                      ),
+                      const SizedBox(height: 24),
+                      // VTALK title
+                      Text(
+                        'VTALK',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w200,
+                          letterSpacing: 10,
+                          color: Colors.black87,
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Subtitle
+                      Text(
+                        'SECURE • SIMPLE • SEAMLESS',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
               
-              // Bottom Attribution Row
-              const SizedBox(height: 40),
+              // Bottom attribution
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -136,7 +89,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     style: TextStyle(
                       color: Colors.grey,
                       fontSize: 11,
-                      fontWeight: FontWeight.w300,
                       letterSpacing: 1.5,
                     ),
                   ),
@@ -152,13 +104,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                     style: TextStyle(
                       color: Colors.grey,
                       fontSize: 11,
-                      fontWeight: FontWeight.w300,
                       letterSpacing: 1.5,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
             ],
           ),
         ),
