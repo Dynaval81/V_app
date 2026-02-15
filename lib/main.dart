@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vtalk_app/core/constants.dart';
 import 'package:vtalk_app/core/constants/app_constants.dart';
 import 'package:vtalk_app/core/controllers/auth_controller.dart';
@@ -15,7 +16,12 @@ import 'package:vtalk_app/presentation/widgets/organisms/main_nav_shell.dart';
 import 'package:vtalk_app/data/models/chat_room.dart';
 
 /// 🚀 V-Talk Beta - HAI3 Architecture
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+  final initialLocation = isLoggedIn ? AppRoutes.home : AppRoutes.splash;
+
   runApp(
     MultiProvider(
       providers: [
@@ -23,31 +29,48 @@ void main() {
         ChangeNotifierProvider(create: (_) => ChatController()),
         ChangeNotifierProvider(create: (_) => TabVisibilityController()..load()),
       ],
-      child: const VTalkApp(),
+      child: VTalkApp(initialLocation: initialLocation),
     ),
   );
 }
 
-final _goRouter = GoRouter(
-  initialLocation: AppRoutes.splash,
-  routes: [
-    GoRoute(
-      path: AppRoutes.splash,
-      builder: (context, state) => const SplashScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.auth,
-      builder: (context, state) => const LoginScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.home,
-      builder: (context, state) => const MainNavShell(initialIndex: 0),
-    ),
-    GoRoute(
-      path: '${AppRoutes.chat}/:chatId',
-      builder: (context, state) {
-        final chatId = state.pathParameters['chatId']!;
-        return _ChatScreen(chatId: chatId);
+class VTalkApp extends StatelessWidget {
+  final String initialLocation;
+
+  const VTalkApp({super.key, required this.initialLocation});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(
+      routerConfig: _goRouter(initialLocation),
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: Provider.of<ThemeProvider>(context).themeMode,
+      debugShowCheckedModeBanner: false,
+    );
+  }
+
+  GoRouter _goRouter(String initialLocation) {
+    return GoRouter(
+      initialLocation: initialLocation,
+      routes: [
+        GoRoute(
+          path: AppRoutes.splash,
+          builder: (context, state) => const SplashScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.auth,
+          builder: (context, state) => const LoginScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.home,
+          builder: (context, state) => const MainNavShell(initialIndex: 0),
+        ),
+        GoRoute(
+          path: '${AppRoutes.chat}/:chatId',
+          builder: (context, state) {
+            final chatId = state.pathParameters['chatId']!;
+            return _ChatScreen(chatId: chatId);
       },
     ),
     GoRoute(

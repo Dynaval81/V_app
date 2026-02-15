@@ -38,7 +38,7 @@ class _AuthScreenState extends State<AuthScreen> {
   void _onEmailSubmitted() {
     final email = _emailController.text.trim();
     if (email.isEmpty) return;
-    if (_checkEmail(email)) {
+    if (email.contains('@')) {
       setState(() => _currentStep = AuthStep.login);
     } else {
       setState(() => _currentStep = AuthStep.register);

@@ -40,36 +40,31 @@ class DashboardScreen extends StatelessWidget {
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   _SectionCard(
-                    title: 'Tabs',
+                    title: 'Elements',
                     children: [
-                      DropdownButton<String>(
-                        value: tabVisibility.showAiTab ? 'Show AI' : 'Hide AI',
-                        onChanged: (value) {
-                          if (value != null) {
-                            tabVisibility.setShowAiTab(value == 'Show AI');
-                          }
-                        },
-                        items: const [
-                          DropdownMenuItem(value: 'Show AI', child: Text('Show AI')),
-                          DropdownMenuItem(value: 'Hide AI', child: Text('Hide AI')),
-                        ],
-                        isExpanded: true,
-                        hint: Text('AI Assistant tab'),
+                      SwitchListTile(
+                        value: tabVisibility.showAiTab,
+                        onChanged: (v) => tabVisibility.setShowAiTab(v),
+                        title: Text(
+                          'AI Assistant tab',
+                          style: AppTextStyles.body.copyWith(
+                            fontSize: 16,
+                            color: AppColors.onSurface,
+                          ),
+                        ),
+                        activeColor: AppColors.primary,
                       ),
-                      const SizedBox(height: 16),
-                      DropdownButton<String>(
-                        value: tabVisibility.showVpnTab ? 'Show VPN' : 'Hide VPN',
-                        onChanged: (value) {
-                          if (value != null) {
-                            tabVisibility.setShowVpnTab(value == 'Show VPN');
-                          }
-                        },
-                        items: const [
-                          DropdownMenuItem(value: 'Show VPN', child: Text('Show VPN')),
-                          DropdownMenuItem(value: 'Hide VPN', child: Text('Hide VPN')),
-                        ],
-                        isExpanded: true,
-                        hint: Text('VPN tab'),
+                      SwitchListTile(
+                        value: tabVisibility.showVpnTab,
+                        onChanged: (v) => tabVisibility.setShowVpnTab(v),
+                        title: Text(
+                          'VPN tab',
+                          style: AppTextStyles.body.copyWith(
+                            fontSize: 16,
+                            color: AppColors.onSurface,
+                          ),
+                        ),
+                        activeColor: AppColors.primary,
                       ),
                     ],
                   ),
