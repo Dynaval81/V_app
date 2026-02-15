@@ -39,77 +39,80 @@ class _SplashScreenState extends State<SplashScreen> {
       debugPrint('Navigation error: $e');
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            children: [
-              Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(24.0),
-                        ),
-                        child: ColorFiltered(
-                          colorFilter: ColorFilter.mode(
-                            const Color(0xFF2196F3),
-                            BlendMode.srcIn,
-                          ),
-                          child: Image.asset(
-                            'assets/images/app_logo_mercury.png',
-                            width: 150,
-                            height: 100,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TweenAnimationBuilder(
+              tween: Tween<double>(begin: 1.0, end: 1.1),
+              duration: const Duration(seconds: 2),
+              builder: (context, double scale, child) {
+                return Transform.scale(
+                  scale: scale,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24.0),
+                    ),
+                    child: ColorFiltered(
+                      colorFilter: const ColorFilter.mode(
+                        Color(0xFF2196F3),
+                        BlendMode.srcIn,
                       ),
-                      const SizedBox(height: 24),
-                      Text(
-                        'VTALK',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w200,
-                          letterSpacing: 10.0,
-                          color: Colors.black87,
-                        ),
+                      child: Image.asset(
+                        'assets/images/logo_bnb.png',
+                        height: 100,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'SECURE • SIMPLE • SEAMLESS',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey,
-                          letterSpacing: 2.0,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                );
+              },
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'V-TALK',
+              style: TextStyle(
+                fontWeight: FontWeight.w200,
+                letterSpacing: 12.0,
+                fontSize: 28,
+                color: Color(0xFF2196F3),
               ),
-              Container(
-                padding: const EdgeInsets.all(20.0),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24.0),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Next Gen Messaging',
+              style: TextStyle(
+                fontStyle: FontStyle.italic,
+                fontWeight: FontWeight.w300,
+                fontSize: 14,
+                color: Colors.grey,
+              ),
+            ),
+            const Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/images/hai_3_dark.png',
+                  height: 20,
                 ),
-                child: Text(
-                  'POWERED BY HAI3 PRINCIPLES',
+                const SizedBox(width: 10),
+                const Text(
+                  'Powered by HAI3 | Zen Canons Applied',
                   style: TextStyle(
+                    fontWeight: FontWeight.w200,
+                    fontSize: 10,
+                    letterSpacing: 2.0,
                     color: Colors.grey,
-                    fontSize: 11,
-                    letterSpacing: 1.5,
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+            const SizedBox(height: 20),
+          ],
         ),
       ),
     );

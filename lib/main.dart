@@ -1,179 +1,110 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:vtalk_app/core/constants.dart';
-import 'package:vtalk_app/core/constants/app_constants.dart';
-import 'package:vtalk_app/core/controllers/auth_controller.dart';
-import 'package:vtalk_app/core/controllers/chat_controller.dart';
-import 'package:vtalk_app/core/controllers/tab_visibility_controller.dart';
-import 'package:vtalk_app/presentation/screens/auth/login_screen.dart';
-import 'package:vtalk_app/presentation/screens/chat/chat_room_screen.dart';
-import 'package:vtalk_app/presentation/screens/settings_screen.dart';
+import 'theme_provider.dart';
+import 'providers/user_provider.dart';
+import 'screens/tabs/chats_screen.dart';
+import 'screens/tabs/vpn_screen.dart';
+import 'screens/tabs/ai_screen.dart';
+import 'screens/dashboard_screen.dart';
+import 'screens/chat_room_screen.dart';
+import 'widgets/premium_guard.dart';
 import 'package:vtalk_app/screens/splash_screen.dart';
-import 'package:vtalk_app/presentation/widgets/airy_button.dart';
-import 'package:vtalk_app/presentation/widgets/organisms/main_nav_shell.dart';
-import 'package:vtalk_app/data/models/chat_room.dart';
-import 'package:vtalk_app/theme_provider.dart';
-import 'package:vtalk_app/theme/app_theme.dart';
-import 'l10n/app_localizations.dart';
 
-/// 🚀 V-Talk Beta - HAI3 Architecture
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  final prefs = await SharedPreferences.getInstance();
-  final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-  final initialLocation = isLoggedIn ? AppRoutes.home : AppRoutes.splash;
-
+void main() {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthController()),
-        ChangeNotifierProvider(create: (_) => ChatController()),
-        ChangeNotifierProvider(create: (_) => TabVisibilityController()..load()),
-        ChangeNotifierProvider(create: (_) => ThemeProvider()..initializeTheme()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
       ],
-      child: VTalkApp(initialLocation: initialLocation),
+      child: const MyApp(),
     ),
   );
 }
 
-class VTalkApp extends StatelessWidget {
-  final String initialLocation;
-
-  const VTalkApp({super.key, required this.initialLocation});
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      routerConfig: _goRouter(initialLocation),
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+    return MaterialApp(
+      title: 'V-Talk',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: const Color(0xFFFAFAFA),
+      ),
       themeMode: ThemeMode.light,
-      debugShowCheckedModeBanner: false,
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: AppLocalizations.supportedLocales,
-    );
-  }
-
-  GoRouter _goRouter(String initialLocation) {
-    return GoRouter(
-      initialLocation: initialLocation,
-      routes: [
-        GoRoute(
-          path: AppRoutes.splash,
-          builder: (context, state) => const SplashScreen(),
-        ),
-        GoRoute(
-          path: AppRoutes.auth,
-          builder: (context, state) => const LoginScreen(),
-        ),
-        GoRoute(
-          path: AppRoutes.home,
-          builder: (context, state) => const MainNavShell(initialIndex: 0),
-        ),
-        GoRoute(
-          path: '${AppRoutes.chat}/:chatId',
-          builder: (context, state) {
-            final chatId = state.pathParameters['chatId']!;
-            return _ChatScreen(chatId: chatId);
-          },
-        ),
-        GoRoute(
-          path: AppRoutes.settings,
-          builder: (context, state) => const SettingsScreen(),
-        ),
-      ],
-      errorBuilder: (context, state) => _ErrorScreen(error: state.error),
+      home: const SplashScreen(),
     );
   }
 }
 
-class _ErrorScreen extends StatelessWidget {
-  final Exception? error;
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
 
-  const _ErrorScreen({this.error});
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Получаем состояние темы из ThemeProvider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Load user data if not already present
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      if (userProvider.user == null && !userProvider.isLoading) {
+        userProvider.refreshUserData();
+      }
+    });
+  }
+
+  void _switchTab(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    // ПОДПИСЫВАЕМСЯ НА ИЗМЕНЕНИЯ:
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
+
     return Scaffold(
-      backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        title: Text(
-          'Error',
-          style: TextStyle(
-            color: AppColors.onSurface,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+      backgroundColor: Colors.transparent,
+      body: IndexedStack(
+        index: _currentIndex,
+        children: [
+          const ChatsScreen(),
+          PremiumGuard(child: const AIScreen()),
+          PremiumGuard(child: const VPNScreen()),
+          DashboardScreen(onTabSwitch: _switchTab),
+        ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red,
-            ),
-            const SizedBox(height: AppSpacing.buttonPadding),
-            Text(
-              'Something went wrong',
-              style: AppTextStyles.h3.copyWith(
-                color: AppColors.onSurface,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.inputPadding),
-            Text(
-              error?.toString() ?? 'Unknown error occurred',
-              style: AppTextStyles.body.copyWith(
-                color: AppColors.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.buttonPadding * 3),
-            AiryButton(
-              text: 'Go to Auth',
-              onPressed: () => context.go(AppRoutes.auth),
-              icon: const Icon(Icons.refresh, size: 18),
-            ),
+      bottomNavigationBar: Container(
+        // Динамический цвет фона
+        color: isDark ? const Color(0xFF252541) : const Color(0xFFF5F5F5),
+        child: BottomNavigationBar(
+          elevation: 0,
+          backgroundColor: Colors.transparent, // Чтобы видеть цвет контейнера
+          currentIndex: _currentIndex,
+          onTap: (index) => setState(() => _currentIndex = index),
+          type: BottomNavigationBarType.fixed,
+          selectedItemColor: Colors.blueAccent,
+          unselectedItemColor: isDark ? Colors.white54 : Colors.black38, // Динамические цвета иконок
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: 'Chats'),
+            BottomNavigationBarItem(icon: Icon(Icons.auto_awesome), label: 'Vtalk AI'),
+            BottomNavigationBarItem(icon: Icon(Icons.vpn_lock), label: 'VPN'),
+            BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Dashboard'),
           ],
         ),
       ),
     );
-  }
-}
-
-class _ChatScreen extends StatelessWidget {
-  final String chatId;
-
-  const _ChatScreen({required this.chatId});
-
-  @override
-  Widget build(BuildContext context) {
-    final controller = context.read<ChatController>();
-    ChatRoom? room;
-    try {
-      room = controller.chatRooms.firstWhere((r) => r.id == chatId);
-    } catch (_) {}
-    if (room == null) {
-      return Scaffold(
-        backgroundColor: const Color(0xFF000000),
-        appBar: AppBar(title: Text('Chat $chatId')),
-        body: const Center(child: Text('Chat not found')),
-      );
-    }
-    return ChatRoomScreen(chat: room);
   }
 }
