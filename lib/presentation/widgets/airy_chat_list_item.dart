@@ -104,12 +104,10 @@ class _AiryChatListItemState extends State<AiryChatListItem> {
                           ),
                           child: Text('$unreadCount', style: const TextStyle(color: Colors.white, fontSize: 10)),
                         )
-                      else if (lastMessage != null && (lastMessage.isMe || (lastMsg?.isMe ?? false)))
+                      else if (lastMessage != null)
                         Icon(
                           Icons.done_all,
-                          color: (lastMessage.isRead || (lastMsg?.isRead ?? false))
-                              ? const Color(0xFF00A3FF)
-                              : const Color(0xFF757575),
+                          color: const Color(0xFF00A3FF),
                           size: 17,
                         ),
                     ],

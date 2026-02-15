@@ -20,16 +20,9 @@ class MainNavShell extends StatefulWidget {
 class _MainNavShellState extends State<MainNavShell> {
   late PageController _pageController;
   late int _currentIndex;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   int? _lastTabsHash;
-
-  String _getTabId(int index, bool showAi, bool showVpn) {
-    List<String> activeIds = ['dashboard', 'chats'];
-    if (showAi) activeIds.add('ai');
-    if (showVpn) activeIds.add('vpn');
-    activeIds.add('settings');
-    return (index < activeIds.length) ? activeIds[index] : 'dashboard';
-  }
 
   @override
   void initState() {
@@ -122,10 +115,9 @@ class _MainNavShellState extends State<MainNavShell> {
       });
     }
     return Scaffold(
-      body: PageView(
-        controller: _pageController,
-        onPageChanged: (index) => setState(() => _currentIndex = index),
-        physics: const BouncingScrollPhysics(),
+      key: _scaffoldKey,
+      body: IndexedStack(
+        index: newIndex,
         children: pages,
       ),
       bottomNavigationBar: Container(
@@ -138,6 +130,7 @@ class _MainNavShellState extends State<MainNavShell> {
           ),
         ),
         child: BottomNavigationBar(
+          key: ValueKey(_tabsHash(showAi, showVpn)),
           currentIndex: newIndex,
           onTap: _onTabTapped,
           type: BottomNavigationBarType.fixed,
@@ -151,7 +144,7 @@ class _MainNavShellState extends State<MainNavShell> {
               .map((index, t) => MapEntry(
                     index,
                     BottomNavigationBarItem(
-                      key: ValueKey(_getTabId(index, showAi, showVpn)),
+                      key: ValueKey('tab_$index'),
                       icon: Icon(t.icon),
                       label: t.label,
                     ),
