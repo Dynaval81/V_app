@@ -64,8 +64,10 @@ class _SplashScreenState extends State<SplashScreen> {
                             BlendMode.srcIn,
                           ),
                           child: Image.asset(
-                            'assets/images/logo bnb.png',
+                            'assets/images/app_logo_mercury.png',
+                            width: 150,
                             height: 100,
+                            fit: BoxFit.contain,
                           ),
                         ),
                       ),
