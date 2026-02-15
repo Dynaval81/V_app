@@ -7,7 +7,7 @@ import 'package:vtalk_app/presentation/screens/chats_screen.dart';
 import 'package:vtalk_app/presentation/screens/dashboard/dashboard_screen.dart';
 import 'package:vtalk_app/presentation/screens/vpn_screen.dart';
 
-/// HAI3 Organism: Main app shell – Dashboard, Chats, optional AI, optional VPN; swipeable PageView.
+/// HAI3 Organism: Main app shell – Dashboard, Chats, optional AI, optional VPN; rock-solid navigation.
 class MainNavShell extends StatefulWidget {
   final int initialIndex;
 
@@ -19,21 +19,15 @@ class MainNavShell extends StatefulWidget {
 
 class _MainNavShellState extends State<MainNavShell> {
   late PageController _pageController;
-  String _currentTabId = 'chats';
+  String _activeTabId = 'dashboard';
+  int _currentIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
-  // ID-based navigation map
-  final Map<String, int> _tabMap = {
-    'chats': 0,
-    'ai': 1,
-    'vpn': 2,
-    'dashboard': 3,
-  };
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: 0);
+    _currentIndex = 0;
   }
 
   @override
@@ -45,46 +39,36 @@ class _MainNavShellState extends State<MainNavShell> {
   }
 
   void _onTabTapped(String tabId) {
-    if (_currentTabId == tabId) return;
+    if (_activeTabId == tabId) return;
     
-    final newIndex = _getTabIndex(tabId);
+    HapticFeedback.lightImpact();
     
     setState(() {
-      _currentTabId = tabId;
+      _activeTabId = tabId;
+      _currentIndex = _getIndexOfId(tabId);
     });
     
     if (_pageController.hasClients) {
-      _pageController.jumpToPage(newIndex);
+      _pageController.jumpToPage(_currentIndex);
     }
   }
 
-  int _getTabIndex(String tabId) {
+  int _getIndexOfId(String tabId) {
     final tabVisibility = context.read<TabVisibilityController>();
     final showAi = tabVisibility.showAiTab;
     final showVpn = tabVisibility.showVpnTab;
     
-    int index = 0;
-    
-    // Always have chats first
-    if (tabId == 'chats') return 0;
-    index++;
-    
-    // Add AI if visible
-    if (showAi) {
-      if (tabId == 'ai') return index;
-      index++;
+    switch (tabId) {
+      case 'chats':
+        return 0;
+      case 'ai':
+        return showAi ? 1 : 0;
+      case 'vpn':
+        return (showAi ? 1 : 0) + (showVpn ? 1 : 0);
+      case 'dashboard':
+      default:
+        return (1 + (showAi ? 1 : 0) + (showVpn ? 1 : 0));
     }
-    
-    // Add VPN if visible
-    if (showVpn) {
-      if (tabId == 'vpn') return index;
-      index++;
-    }
-    
-    // Dashboard is always last
-    if (tabId == 'dashboard') return index;
-    
-    return 0; // fallback to chats
   }
 
   @override
@@ -101,18 +85,34 @@ class _MainNavShellState extends State<MainNavShell> {
     ];
     
     final pages = <Widget>[
-      const ChatsScreen(),
-      if (showAi) const AiAssistantScreen(),
-      if (showVpn) const VpnScreen(),
-      const DashboardScreen(),
+      const ChatsScreen(
+        key: PageStorageKey<String>('chats'),
+      ),
+      if (showAi) const AiAssistantScreen(
+        key: PageStorageKey<String>('ai'),
+      ),
+      if (showVpn) const VpnScreen(
+        key: PageStorageKey<String>('vpn'),
+      ),
+      const DashboardScreen(
+        key: PageStorageKey<String>('dashboard'),
+      ),
     ];
 
-    // Update current index synchronously when tabs change
-    final newIndex = _getTabIndex(_currentTabId);
-    
-    // Synchronous update to prevent lag
-    if (_pageController.hasClients && _pageController.page?.round() != newIndex) {
-      _pageController.jumpToPage(newIndex);
+    // Force index recalculation when tabs visibility changes
+    if (tabVisibility.hasChanged) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _currentIndex = _getIndexOfId(_activeTabId);
+          });
+          if (_pageController.hasClients) {
+            _pageController.jumpToPage(_currentIndex);
+          }
+          // Reset the changed flag after processing
+          tabVisibility.resetChangedFlag();
+        }
+      });
     }
 
     return Scaffold(
@@ -120,14 +120,20 @@ class _MainNavShellState extends State<MainNavShell> {
       body: PageView(
         controller: _pageController,
         onPageChanged: (index) {
-          // Update current tab ID based on page index
-          final activeTabs = <String>['chats'];
-          if (showAi) activeTabs.add('ai');
-          if (showVpn) activeTabs.add('vpn');
-          activeTabs.add('dashboard');
+          // Update active tab based on current page index
+          String newTabId = 'chats';
+          if (index == 0) {
+            newTabId = 'chats';
+          } else if (showAi && index == 1) {
+            newTabId = 'ai';
+          } else if (showVpn && index == (showAi ? 2 : 1)) {
+            newTabId = 'vpn';
+          } else {
+            newTabId = 'dashboard';
+          }
           
-          if (index < activeTabs.length) {
-            setState(() => _currentTabId = activeTabs[index]);
+          if (newTabId != _activeTabId) {
+            setState(() => _activeTabId = newTabId);
           }
         },
         physics: const NeverScrollableScrollPhysics(),
@@ -143,7 +149,7 @@ class _MainNavShellState extends State<MainNavShell> {
           ),
         ),
         child: BottomNavigationBar(
-          currentIndex: newIndex,
+          currentIndex: _currentIndex,
           onTap: (index) => _onTabTapped(tabs[index].id),
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.white,
