@@ -20,6 +20,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     await prefs.setBool('isLoggedIn', false);
     if (mounted) context.go(AppRoutes.auth);
   }
+
+  @override
+  Widget build(BuildContext context) {
     final tabVisibility = context.watch<TabVisibilityController>();
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -45,7 +48,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: CustomScrollView(
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: 20),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   _SectionCard(
@@ -77,7 +80,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   _SectionCard(
                     title: 'App info',
                     children: [
@@ -85,12 +88,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _InfoRow(label: 'Version', value: '${AppConstants.appVersion} (${AppConstants.appBuildNumber})'),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   _SectionCard(
                     title: 'Donations',
                     children: [
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        padding: EdgeInsets.symmetric(vertical: 8),
                         child: Text(
                           'Support the project – donations help keep V-Talk free and open.',
                           style: AppTextStyles.body.copyWith(
@@ -101,7 +104,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   _SectionCard(
                     title: 'Version',
                     children: [
@@ -109,29 +112,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _InfoRow(label: 'API', value: AppConstants.apiVersion),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   _SectionCard(
                     title: 'Account',
                     children: [
-                      AiryButton(
-                        text: 'Log Out',
+                      ElevatedButton(
                         onPressed: _logout,
-                        fullWidth: true,
+                        child: Text('Log Out'),
                       ),
                     ],
                   ),
+                ]),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _SectionCard extends StatelessWidget {
   final String title;
   final List<Widget> children;
 
-  const _SectionCard({required this.title, required this.children});
+  _SectionCard({required this.title, required this.children});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -144,13 +154,13 @@ class _SectionCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: AppTextStyles.body.copyWith(
-              fontWeight: FontWeight.w600,
+            style: AppTextStyles.h3.copyWith(
               fontSize: 18,
+              fontWeight: FontWeight.w600,
               color: AppColors.onSurface,
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 16),
           ...children,
         ],
       ),
@@ -162,12 +172,12 @@ class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const _InfoRow({required this.label, required this.value});
+  _InfoRow({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

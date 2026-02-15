@@ -48,7 +48,7 @@ class VTalkApp extends StatelessWidget {
       routerConfig: _goRouter(initialLocation),
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: Provider.of<ThemeProvider>(context).themeMode,
+      themeMode: ThemeMode.system,
       debugShowCheckedModeBanner: false,
     );
   }
@@ -115,7 +115,7 @@ class _ErrorScreen extends StatelessWidget {
             Icon(
               Icons.error_outline,
               size: 64,
-              color: AppColors.error,
+              color: Colors.red,
             ),
             const SizedBox(height: AppSpacing.buttonPadding),
             Text(
