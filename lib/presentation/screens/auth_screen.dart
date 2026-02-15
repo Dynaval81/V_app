@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/constants.dart';
-import '../../core/constants/app_constants.dart';
-import '../widgets/airy_input_field.dart';
-import '../widgets/airy_button.dart';
+import 'package:vtalk_app/core/constants.dart';
+import 'package:vtalk_app/core/constants/app_constants.dart';
+import 'package:vtalk_app/presentation/widgets/airy_input_field.dart';
+import 'package:vtalk_app/presentation/widgets/airy_button.dart';
 
 /// 🔐 HAI3 Authentication Screen
 /// Airy design with generous spacing and bright blue accent
-class AuthScreen extends ConsumerStatefulWidget {
+class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
 
   @override
-  ConsumerState<AuthScreen> createState() => _AuthScreenState();
+  State<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends ConsumerState<AuthScreen>
+class _AuthScreenState extends State<AuthScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _emailController = TextEditingController();

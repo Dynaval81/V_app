@@ -1,49 +1,76 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart' as provider;
+import 'package:provider/provider.dart';
 import 'package:vtalk_app/core/constants.dart';
 import 'package:vtalk_app/core/constants/app_constants.dart';
 import 'package:vtalk_app/core/controllers/auth_controller.dart';
 import 'package:vtalk_app/core/controllers/chat_controller.dart';
+import 'package:vtalk_app/core/controllers/tab_visibility_controller.dart';
 import 'package:vtalk_app/presentation/screens/auth/login_screen.dart';
+import 'package:vtalk_app/presentation/screens/chat/chat_room_screen.dart';
 import 'package:vtalk_app/presentation/screens/settings_screen.dart';
 import 'package:vtalk_app/presentation/screens/splash_screen.dart';
 import 'package:vtalk_app/presentation/widgets/airy_button.dart';
 import 'package:vtalk_app/presentation/widgets/organisms/main_nav_shell.dart';
+import 'package:vtalk_app/data/models/chat_room.dart';
 
 /// 🚀 V-Talk Beta - HAI3 Architecture
 void main() {
   runApp(
-    ProviderScope(
-      child: provider.MultiProvider(
-        providers: [
-          provider.ChangeNotifierProvider(create: (_) => AuthController()),
-          provider.ChangeNotifierProvider(create: (_) => ChatController()..loadChats()),
-        ],
-        child: const VTalkApp(),
-      ),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthController()),
+        ChangeNotifierProvider(create: (_) => ChatController()),
+        ChangeNotifierProvider(create: (_) => TabVisibilityController()..load()),
+      ],
+      child: const VTalkApp(),
     ),
   );
 }
 
-class VTalkApp extends ConsumerWidget {
+final _goRouter = GoRouter(
+  initialLocation: AppRoutes.splash,
+  routes: [
+    GoRoute(
+      path: AppRoutes.splash,
+      builder: (context, state) => const SplashScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.auth,
+      builder: (context, state) => const LoginScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.home,
+      builder: (context, state) => const MainNavShell(initialIndex: 0),
+    ),
+    GoRoute(
+      path: '${AppRoutes.chat}/:chatId',
+      builder: (context, state) {
+        final chatId = state.pathParameters['chatId']!;
+        return _ChatScreen(chatId: chatId);
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.settings,
+      builder: (context, state) => const SettingsScreen(),
+    ),
+  ],
+  errorBuilder: (context, state) => _ErrorScreen(error: state.error),
+);
+
+class VTalkApp extends StatelessWidget {
   const VTalkApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final router = ref.watch(routerProvider);
-    
+  Widget build(BuildContext context) {
     return MaterialApp.router(
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
-      
-      // 🎨 HAI3 Material 3 Theme Configuration
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Color(0xFF00A3FF),
+          seedColor: const Color(0xFF00A3FF),
           brightness: Brightness.light,
         ),
       ),
@@ -51,20 +78,16 @@ class VTalkApp extends ConsumerWidget {
         useMaterial3: true,
         brightness: Brightness.dark,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Color(0xFF00A3FF),
+          seedColor: const Color(0xFF00A3FF),
           brightness: Brightness.dark,
         ),
       ),
-      themeMode: ThemeMode.system, // � Adaptive to system (Light/Dark)
-      
-      // 🧭 GoRouter Configuration
-      routerConfig: router,
-      
-      // 📱 Global text scaling disabled (HAI3 consistency)
+      themeMode: ThemeMode.system,
+      routerConfig: _goRouter,
       builder: (context, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(
-            textScaleFactor: 1.0,
+            textScaler: TextScaler.linear(1.0),
           ),
           child: child!,
         );
@@ -73,146 +96,26 @@ class VTalkApp extends ConsumerWidget {
   }
 }
 
-/// 🧭 HAI3 Router Configuration
-final routerProvider = Provider<GoRouter>((ref) {
-  return GoRouter(
-    initialLocation: AppRoutes.splash,
-    
-    routes: [
-      GoRoute(
-        path: AppRoutes.splash,
-        builder: (context, state) => const SplashScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.auth,
-        builder: (context, state) => const LoginScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.home,
-        builder: (context, state) => const MainNavShell(initialIndex: 0),
-      ),
-      GoRoute(
-        path: '${AppRoutes.chat}/:chatId',
-        builder: (context, state) {
-          final chatId = state.pathParameters['chatId']!;
-          return _ChatScreen(chatId: chatId);
-        },
-      ),
-      GoRoute(
-        path: AppRoutes.settings,
-        builder: (context, state) => const SettingsScreen(),
-      ),
-    ],
-    
-    // 🚨 Error Handling
-    errorBuilder: (context, state) => _ErrorScreen(error: state.error),
-  );
-});
-
-/// 🎯 Placeholder Screen for Coming Soon Features
-class _ComingSoonScreen extends ConsumerWidget {
-  final String title;
-  final String message;
-  
-  const _ComingSoonScreen({
-    super.key,
-    required this.title,
-    required this.message,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      backgroundColor: Color(0xFF000000),
-      appBar: AppBar(
-        title: Text(title),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.screenPadding),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // 🎯 Icon
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(AppBorderRadius.button),
-                  boxShadow: [AppShadows.md],
-                ),
-                child: const Icon(
-                  Icons.construction,
-                  color: AppColors.onPrimary,
-                  size: 40,
-                ),
-              ),
-              
-              SizedBox(height: AppSpacing.buttonPadding),
-              
-              // 📝 Title
-              Text(
-                title,
-                style: AppTextStyles.h3.copyWith(
-                  color: AppColors.onSurface,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              
-              SizedBox(height: AppSpacing.inputPadding),
-              
-              // 📝 Message
-              Text(
-                message,
-                style: AppTextStyles.body.copyWith(
-                  color: AppColors.onSurfaceVariant,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              
-              SizedBox(height: AppSpacing.buttonPadding * 3),
-              
-              // 🔙 Back button
-              AiryButton(
-                text: 'Back to Auth',
-                onPressed: () {
-                  context.go(AppRoutes.auth);
-                },
-                icon: const Icon(Icons.arrow_back, size: 18),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// 🚨 Error Screen
-class _ErrorScreen extends ConsumerWidget {
+class _ErrorScreen extends StatelessWidget {
   final Object? error;
-  
-  const _ErrorScreen({super.key, this.error});
+
+  const _ErrorScreen({this.error});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF000000),
+      backgroundColor: const Color(0xFF000000),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.screenPadding),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // 🚨 Error Icon
               Container(
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: Color(0xFFFF3B30).withOpacity(0.1),
+                  color: const Color(0xFFFF3B30).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(AppBorderRadius.button),
                 ),
                 child: const Icon(
@@ -221,10 +124,7 @@ class _ErrorScreen extends ConsumerWidget {
                   size: 40,
                 ),
               ),
-              
-              SizedBox(height: AppSpacing.buttonPadding),
-              
-              // 📝 Error Title
+              const SizedBox(height: AppSpacing.buttonPadding),
               Text(
                 'Something went wrong',
                 style: AppTextStyles.h3.copyWith(
@@ -232,10 +132,7 @@ class _ErrorScreen extends ConsumerWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              
-              SizedBox(height: AppSpacing.inputPadding),
-              
-              // 📝 Error Message
+              const SizedBox(height: AppSpacing.inputPadding),
               Text(
                 error?.toString() ?? 'Unknown error occurred',
                 style: AppTextStyles.body.copyWith(
@@ -243,15 +140,10 @@ class _ErrorScreen extends ConsumerWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
-              
-              SizedBox(height: AppSpacing.buttonPadding * 3),
-              
-              // 🔄 Retry button
+              const SizedBox(height: AppSpacing.buttonPadding * 3),
               AiryButton(
                 text: 'Go to Auth',
-                onPressed: () {
-                  context.go(AppRoutes.auth);
-                },
+                onPressed: () => context.go(AppRoutes.auth),
                 icon: const Icon(Icons.refresh, size: 18),
               ),
             ],
@@ -262,56 +154,25 @@ class _ErrorScreen extends ConsumerWidget {
   }
 }
 
-/// 💬 Individual Chat Screen (Placeholder)
 class _ChatScreen extends StatelessWidget {
   final String chatId;
-  
-  const _ChatScreen({super.key, required this.chatId});
+
+  const _ChatScreen({required this.chatId});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFF000000),
-      appBar: AppBar(
-        title: Text('Chat $chatId'),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Color(0xFF121212),
-        elevation: 0,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.chat_bubble_outline,
-              color: Color(0xFF00A3FF),
-              size: 80,
-            ),
-            const SizedBox(height: AppSpacing.buttonPadding),
-            Text(
-              'Chat Room: $chatId',
-              style: AppTextStyles.h3.copyWith(
-                color: Color(0xFF121212),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.inputPadding),
-            Text(
-              'Individual chat screen coming soon...',
-              style: AppTextStyles.body.copyWith(
-                color: Color(0xFF757575),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.buttonPadding),
-            AiryButton(
-              text: 'Back to Chats',
-              onPressed: () {
-                context.go(AppRoutes.home);
-              },
-              icon: const Icon(Icons.arrow_back, size: 18),
-            ),
-          ],
-        ),
-      ),
-    );
+    final controller = context.read<ChatController>();
+    ChatRoom? room;
+    try {
+      room = controller.chatRooms.firstWhere((r) => r.id == chatId);
+    } catch (_) {}
+    if (room == null) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF000000),
+        appBar: AppBar(title: Text('Chat $chatId')),
+        body: const Center(child: Text('Chat not found')),
+      );
+    }
+    return ChatRoomScreen(chat: room);
   }
 }

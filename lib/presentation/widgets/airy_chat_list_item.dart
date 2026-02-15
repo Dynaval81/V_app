@@ -7,7 +7,7 @@ import '../../core/controllers/chat_controller.dart';
 import '../../core/services/chat_service.dart';
 import '../../data/models/chat_room.dart';
 import '../../data/mock/mock_messages.dart';
-import '../screens/chat_room_screen.dart';
+import '../screens/chat/chat_room_screen.dart';
 
 class AiryChatListItem extends StatefulWidget {
   final ChatRoom chatRoom;

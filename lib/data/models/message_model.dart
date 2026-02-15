@@ -103,6 +103,7 @@ class MessageModel {
   MessageModel copyWith({
     String? id,
     String? text,
+    String? chatId,
     bool? isMe,
     DateTime? timestamp,
     Map<String, int>? reactions,
@@ -118,6 +119,7 @@ class MessageModel {
     return MessageModel(
       id: id ?? this.id,
       text: text ?? this.text,
+      chatId: chatId ?? this.chatId,
       isMe: isMe ?? this.isMe,
       timestamp: timestamp ?? this.timestamp,
       status: status ?? this.status,

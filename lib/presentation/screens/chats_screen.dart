@@ -1,129 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart';
-import 'package:vtalk_app/core/constants/app_constants.dart';
 import 'package:vtalk_app/core/controllers/chat_controller.dart';
-import 'package:vtalk_app/core/providers/chat_provider.dart';
-import 'package:vtalk_app/data/models/chat_room.dart';
-import 'package:vtalk_app/data/models/message_model.dart';
-import 'package:vtalk_app/presentation/screens/chat_room_screen.dart';
+import 'package:vtalk_app/presentation/screens/chat/chat_room_screen.dart';
 import 'package:vtalk_app/presentation/widgets/airy_chat_header.dart';
 import 'package:vtalk_app/presentation/widgets/chat_search_delegate.dart';
 import 'package:vtalk_app/presentation/widgets/airy_chat_list_item.dart';
 
 /// 📱 V-Talk Chats Screen - L4 UI Layer
 /// Airy design with glassmorphism header and structured chat list
-class ChatsScreen extends ConsumerStatefulWidget {
+class ChatsScreen extends StatefulWidget {
   const ChatsScreen({super.key});
 
   @override
-  ConsumerState<ChatsScreen> createState() => _ChatsScreenState();
+  State<ChatsScreen> createState() => _ChatsScreenState();
 }
 
-class _ChatsScreenState extends ConsumerState<ChatsScreen> {
+class _ChatsScreenState extends State<ChatsScreen> {
   final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (ref.read(chatProvider).chatRooms.isEmpty) {
-        ref.read(chatProvider.notifier).loadChatRooms();
+      final controller = context.read<ChatController>();
+      if (controller.chatRooms.isEmpty) {
+        controller.loadChatRooms();
       }
     });
   }
 
-  // Mock messages for demonstration
-  List<MessageModel> _getMockMessages(String chatId) {
-    if (chatId == '1') {
-      return [
-        MessageModel(
-          id: '1',
-          senderId: 'user1',
-          text: 'Hey, how are you?',
-          timestamp: DateTime.now().subtract(const Duration(minutes: 10)),
-          type: MessageType.text,
-          status: MessageStatus.read,
-        ),
-        MessageModel(
-          id: '2',
-          senderId: 'me',
-          text: 'I\'m good, thanks! How about you?',
-          timestamp: DateTime.now().subtract(const Duration(minutes: 8)),
-          type: MessageType.text,
-          status: MessageStatus.read,
-        ),
-        MessageModel(
-          id: '3',
-          senderId: 'me',
-          text: 'Doing great! Just working on some projects.',
-          timestamp: DateTime.now().subtract(const Duration(minutes: 6)),
-          type: MessageType.text,
-          status: MessageStatus.read,
-        ),
-      ];
-    } else if (chatId == '2') {
-      return [
-        MessageModel(
-          id: '1',
-          senderId: 'user2',
-          text: 'See you tomorrow!',
-          timestamp: DateTime.now().subtract(const Duration(hours: 1)),
-          type: MessageType.text,
-          status: MessageStatus.read,
-        ),
-      ];
-    } else if (chatId == '3') {
-      return [
-        MessageModel(
-          id: '1',
-          senderId: 'user3',
-          text: 'Thanks for the help!',
-          timestamp: DateTime.now().subtract(const Duration(hours: 3)),
-          type: MessageType.text,
-          status: MessageStatus.read,
-        ),
-      ];
-    }
-    return [];
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
-
-  // Mock data to prove it works
-  final List<ChatRoom> mockChats = [
-    ChatRoom(
-      id: '1',
-      name: 'Alice Johnson',
-      unread: 2,
-      lastActivity: DateTime.now().subtract(const Duration(minutes: 5)),
-    ),
-    ChatRoom(
-      id: '2',
-      name: 'Bob Smith',
-      unread: 0,
-      lastActivity: DateTime.now().subtract(const Duration(hours: 1)),
-    ),
-    ChatRoom(
-      id: '3',
-      name: 'Carol Davis',
-      unread: 1,
-      lastActivity: DateTime.now().subtract(const Duration(hours: 3)),
-    ),
-  ];
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final chatState = ref.watch(chatProvider);
-    final List<ChatRoom> chatRooms = chatState.chatRooms;
+    final controller = context.watch<ChatController>();
+    final chatRooms = controller.chatRooms;
 
     return Scaffold(
-      backgroundColor: Colors.white, // Force white background for Telegram Light
+      backgroundColor: Colors.white,
       body: CustomScrollView(
         controller: _scrollController,
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // The Header
           AiryChatHeader(
             title: 'Chats',
             onSearchPressed: () => showSearch(
@@ -132,49 +56,50 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
             ),
             showProfileIcon: true,
           ),
-          // The List or Empty State
           chatRooms.isEmpty
-            ? SliverFillRemaining(
-                child: Center(
-                  child: Text(
-                    "No messages yet",
-                    style: TextStyle(color: Colors.grey, fontSize: 16),
-                  ),
-                ),
-              )
-            : SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 0), // Full width
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) => AiryChatListItem(
-                      chatRoom: chatRooms[index],
-                      onTap: () {
-                        final chatId = chatRooms[index].id;
-                        ref.read(chatProvider.notifier).markAsRead(chatId);
-                        Provider.of<ChatController>(context, listen: false).markAsRead(chatId);
-                        Navigator.push(
-                          context,
-                          CupertinoPageRoute(builder: (context) => ChatRoomScreen(chat: chatRooms[index])),
-                        );
-                      },
+              ? const SliverFillRemaining(
+                  child: Center(
+                    child: Text(
+                      "No messages yet",
+                      style: TextStyle(color: Colors.grey, fontSize: 16),
                     ),
-                    childCount: chatRooms.length,
+                  ),
+                )
+              : SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 0),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => AiryChatListItem(
+                        chatRoom: chatRooms[index],
+                        onTap: () {
+                          final chatId = chatRooms[index].id;
+                          controller.markAsRead(chatId);
+                          Navigator.push(
+                            context,
+                            CupertinoPageRoute(
+                              builder: (context) => ChatRoomScreen(
+                                chat: chatRooms[index],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      childCount: chatRooms.length,
+                    ),
                   ),
                 ),
-              ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _createNewChat,
         backgroundColor: theme.colorScheme.primary,
         foregroundColor: theme.colorScheme.onPrimary,
-        child: const Icon(Icons.message, size: 24), // Message icon for new chat
+        child: const Icon(Icons.message, size: 24),
       ),
     );
   }
 
   void _createNewChat() {
     // TODO: Implement new chat creation
-    print('Create new chat');
   }
 }

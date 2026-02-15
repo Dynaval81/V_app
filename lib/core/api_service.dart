@@ -1,11 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// 🚨 Провайдер для Dio (HTTP клиент)
-final dioProvider = Provider<Dio>((ref) {
+/// Creates a default Dio instance (no Riverpod).
+Dio createDefaultDio() {
   final dio = Dio();
-  
-  // 🚨 Базовая конфигурация
   dio.options = BaseOptions(
     baseUrl: 'https://hypermax.duckdns.org/api/v1',
     connectTimeout: const Duration(seconds: 10),
@@ -16,8 +13,6 @@ final dioProvider = Provider<Dio>((ref) {
       'Accept': 'application/json',
     },
   );
-  
-  // 🚨 Интерцептор для логирования
   dio.interceptors.add(LogInterceptor(
     requestBody: true,
     responseBody: true,
@@ -27,15 +22,8 @@ final dioProvider = Provider<Dio>((ref) {
       print('🌐 API: $object');
     },
   ));
-  
-  // 🚨 Интерцептор для токена
   dio.interceptors.add(InterceptorsWrapper(
     onRequest: (options, handler) async {
-      // 🚨 Здесь можно добавить токен из secure storage
-      // final token = await _storage.read(key: 'auth_token');
-      // if (token != null) {
-      //   options.headers['Authorization'] = 'Bearer $token';
-      // }
       handler.next(options);
     },
     onError: (error, handler) {
@@ -44,20 +32,14 @@ final dioProvider = Provider<Dio>((ref) {
       handler.next(error);
     },
   ));
-  
   return dio;
-});
+}
 
-// 🚨 API сервис
+/// API service (Provider-only app: inject Dio or use default).
 class ApiService {
   final Dio _dio;
-  
-  ApiService(this._dio);
-  
-  // 🚨 Провайдер для API сервиса
-  static final apiServiceProvider = Provider<ApiService>((ref) {
-    return ApiService(ref.read(dioProvider));
-  });
+
+  ApiService([Dio? dio]) : _dio = dio ?? createDefaultDio();
   
   // 🚨 Методы для работы с пользователями
   Future<Map<String, dynamic>> getUserData() async {

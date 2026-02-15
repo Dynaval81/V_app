@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:vtalk_app/core/constants.dart';
 import 'package:vtalk_app/core/constants/app_constants.dart';
+import 'package:vtalk_app/core/controllers/tab_visibility_controller.dart';
 
-/// HAI3 Dashboard: App info, Donations, Version (Airy).
+/// HAI3 Dashboard: App info, Donations, Version, AI/VPN toggles (Airy).
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final tabVisibility = context.watch<TabVisibilityController>();
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
@@ -36,6 +39,36 @@ class DashboardScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
+                  _SectionCard(
+                    title: 'Tabs',
+                    children: [
+                      SwitchListTile(
+                        value: tabVisibility.showAiTab,
+                        onChanged: (v) => tabVisibility.setShowAiTab(v),
+                        title: Text(
+                          'AI Assistant tab',
+                          style: AppTextStyles.body.copyWith(
+                            fontSize: 16,
+                            color: AppColors.onSurface,
+                          ),
+                        ),
+                        activeColor: AppColors.primary,
+                      ),
+                      SwitchListTile(
+                        value: tabVisibility.showVpnTab,
+                        onChanged: (v) => tabVisibility.setShowVpnTab(v),
+                        title: Text(
+                          'VPN tab',
+                          style: AppTextStyles.body.copyWith(
+                            fontSize: 16,
+                            color: AppColors.onSurface,
+                          ),
+                        ),
+                        activeColor: AppColors.primary,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
                   _SectionCard(
                     title: 'App info',
                     children: [

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:vtalk_app/core/constants.dart';
-import 'package:vtalk_app/core/constants/app_constants.dart';
+import 'package:vtalk_app/core/controllers/tab_visibility_controller.dart';
 import 'package:vtalk_app/presentation/screens/ai/ai_assistant_screen.dart';
 import 'package:vtalk_app/presentation/screens/chats_screen.dart';
 import 'package:vtalk_app/presentation/screens/dashboard/dashboard_screen.dart';
 import 'package:vtalk_app/presentation/screens/vpn_screen.dart';
 
-/// HAI3 Organism: Main app shell – 4 tabs (Dashboard, Chats, AI, VPN), swipeable PageView, profile → Settings.
+/// HAI3 Organism: Main app shell – Dashboard, Chats, optional AI, optional VPN; swipeable PageView.
 class MainNavShell extends StatefulWidget {
   final int initialIndex;
 
@@ -24,19 +24,8 @@ class _MainNavShellState extends State<MainNavShell> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(initialPage: widget.initialIndex.clamp(0, 3));
-    _currentIndex = widget.initialIndex.clamp(0, 3);
-  }
-
-  @override
-  void didUpdateWidget(MainNavShell oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.initialIndex != widget.initialIndex &&
-        widget.initialIndex >= 0 &&
-        widget.initialIndex <= 3) {
-      _currentIndex = widget.initialIndex;
-      _pageController.jumpToPage(widget.initialIndex);
-    }
+    _pageController = PageController(initialPage: 0);
+    _currentIndex = 0;
   }
 
   @override
@@ -55,26 +44,36 @@ class _MainNavShellState extends State<MainNavShell> {
     );
   }
 
-  static const List<_TabItem> _tabs = [
-    _TabItem(icon: Icons.dashboard_rounded, label: 'Dashboard'),
-    _TabItem(icon: Icons.chat_bubble_outline_rounded, label: 'Chats'),
-    _TabItem(icon: Icons.psychology_rounded, label: 'AI'),
-    _TabItem(icon: Icons.vpn_lock_rounded, label: 'VPN'),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final tabVisibility = context.watch<TabVisibilityController>();
+    final tabs = <_TabItem>[
+      const _TabItem(icon: Icons.dashboard_rounded, label: 'Dashboard'),
+      const _TabItem(icon: Icons.chat_bubble_outline_rounded, label: 'Chats'),
+      if (tabVisibility.showAiTab) const _TabItem(icon: Icons.psychology_rounded, label: 'AI'),
+      if (tabVisibility.showVpnTab) const _TabItem(icon: Icons.vpn_lock_rounded, label: 'VPN'),
+    ];
+    final pages = <Widget>[
+      const DashboardScreen(),
+      const ChatsScreen(),
+      if (tabVisibility.showAiTab) const AiAssistantScreen(),
+      if (tabVisibility.showVpnTab) const VpnScreen(),
+    ];
+    final indexClamped = _currentIndex.clamp(0, pages.length - 1);
+    if (indexClamped != _currentIndex) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() => _currentIndex = indexClamped);
+          _pageController.jumpToPage(indexClamped);
+        }
+      });
+    }
     return Scaffold(
       body: PageView(
         controller: _pageController,
         onPageChanged: (index) => setState(() => _currentIndex = index),
         physics: const BouncingScrollPhysics(),
-        children: const [
-          DashboardScreen(),
-          ChatsScreen(),
-          AiAssistantScreen(),
-          VpnScreen(),
-        ],
+        children: pages,
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -86,7 +85,7 @@ class _MainNavShellState extends State<MainNavShell> {
           ),
         ),
         child: BottomNavigationBar(
-          currentIndex: _currentIndex,
+          currentIndex: indexClamped,
           onTap: _onTabTapped,
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.white,
@@ -94,7 +93,7 @@ class _MainNavShellState extends State<MainNavShell> {
           unselectedItemColor: AppColors.onSurfaceVariant,
           selectedFontSize: 14,
           unselectedFontSize: 14,
-          items: _tabs
+          items: tabs
               .map((t) => BottomNavigationBarItem(
                     icon: Icon(t.icon),
                     label: t.label,

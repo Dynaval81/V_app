@@ -1,21 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart';
 import 'package:vtalk_app/core/constants.dart';
 import 'package:vtalk_app/core/controllers/chat_controller.dart';
-import 'package:vtalk_app/core/providers/chat_provider.dart';
 import 'package:vtalk_app/data/models/chat_room.dart';
 import 'package:vtalk_app/presentation/widgets/molecules/chat_input_field.dart';
 import 'package:vtalk_app/presentation/widgets/molecules/message_bubble.dart';
 
-/// Airy chat background – clean, light surface.
 const Color _kChatBackground = Color(0xFFF8F9FA);
 const Color _kChatAppBarBackground = Color(0xFFFFFFFF);
 const Color _kChatDividerLabel = Color(0xFF00A3FF);
 
 /// HAI3 Screen: Chat room – message thread + input.
-/// Stateless build; state only for scroll controller and initial hasUnread.
-class ChatRoomScreen extends ConsumerStatefulWidget {
+class ChatRoomScreen extends StatefulWidget {
   final ChatRoom chat;
 
   const ChatRoomScreen({
@@ -24,10 +20,10 @@ class ChatRoomScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ChatRoomScreen> createState() => _ChatRoomScreenState();
+  State<ChatRoomScreen> createState() => _ChatRoomScreenState();
 }
 
-class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
+class _ChatRoomScreenState extends State<ChatRoomScreen> {
   late bool hasUnread;
   final ScrollController _scrollController = ScrollController();
 
@@ -39,7 +35,6 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         context.read<ChatController>().markAsRead(widget.chat.id);
       });
-      ref.read(chatProvider.notifier).markAsRead(widget.chat.id);
     }
   }
 
@@ -51,10 +46,8 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final chatState = ref.watch(chatProvider);
-    final chatMessages = chatState.messages
-        .where((m) => m.chatId == widget.chat.id)
-        .toList();
+    final controller = context.watch<ChatController>();
+    final chatMessages = controller.messagesForChat(widget.chat.id);
 
     return Scaffold(
       backgroundColor: _kChatBackground,
@@ -84,7 +77,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
           ),
           ChatInputField(
             onSendMessage: (text) {
-              ref.read(chatProvider.notifier).sendMessage(widget.chat.id, text);
+              controller.sendMessage(widget.chat.id, text);
             },
           ),
         ],
@@ -118,7 +111,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
               children: [
                 Text(
                   widget.chat.name ?? 'Unknown',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppColors.onSurface,
                     fontWeight: FontWeight.w600,
                     fontSize: 18,

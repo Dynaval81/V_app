@@ -4,6 +4,7 @@ import 'package:vtalk_app/core/constants.dart';
 import 'package:vtalk_app/core/controllers/vpn_controller.dart';
 import 'package:vtalk_app/data/models/server_model.dart';
 import 'package:vtalk_app/presentation/atoms/vpn_connect_button.dart';
+import 'package:vtalk_app/presentation/widgets/molecules/premium_bottom_sheet.dart';
 import 'package:vtalk_app/presentation/molecules/server_picker.dart';
 import 'package:vtalk_app/presentation/molecules/split_tunneling_toggle.dart';
 
@@ -37,7 +38,17 @@ class VpnPanel extends StatelessWidget {
                 VpnConnectButton(
                   isConnected: vpn.isConnected,
                   isConnecting: vpn.isConnecting,
-                  onPressed: () => vpn.toggleVpn(),
+                  onPressed: () {
+                    if (vpn.isConnected) {
+                      vpn.toggleVpn();
+                    } else {
+                      showPremiumBottomSheet(
+                        context,
+                        title: 'VPN is Premium',
+                        message: 'Upgrade to Premium to use VPN and secure your connection.',
+                      );
+                    }
+                  },
                 ),
                 const SizedBox(height: 24),
                 ServerPicker(
