@@ -1,3 +1,6 @@
+## Copilot Specific Instructions
+Always prioritize code context from open tabs and follow the Flutter architecture defined in AI_GUIDELINES.md.
+
 # Cursor Rules for Flutter Project (v_app)
 
 ## Stack and Architecture (Logic & State)

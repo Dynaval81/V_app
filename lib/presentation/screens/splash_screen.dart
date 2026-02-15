@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:vtalk_app/core/constants.dart';
 import 'package:vtalk_app/core/constants/app_constants.dart';
 import 'package:vtalk_app/core/controllers/auth_controller.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// 🎨 HAI3 Splash Screen with animated logo
 /// Minimalist design with smooth transitions
@@ -62,10 +63,11 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _navigateToAuth() {
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 2), () async {
       if (!mounted) return;
-      final auth = Provider.of<AuthController>(context, listen: false);
-      context.go(auth.isAuthenticated ? AppRoutes.home : AppRoutes.auth);
+      final prefs = await SharedPreferences.getInstance();
+      final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+      context.go(isLoggedIn ? '/chats' : '/auth');
     });
   }
 

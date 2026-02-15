@@ -48,16 +48,16 @@ class _MainNavShellState extends State<MainNavShell> {
   Widget build(BuildContext context) {
     final tabVisibility = context.watch<TabVisibilityController>();
     final tabs = <_TabItem>[
-      const _TabItem(icon: Icons.dashboard_rounded, label: 'Dashboard'),
       const _TabItem(icon: Icons.chat_bubble_outline_rounded, label: 'Chats'),
       if (tabVisibility.showAiTab) const _TabItem(icon: Icons.psychology_rounded, label: 'AI'),
       if (tabVisibility.showVpnTab) const _TabItem(icon: Icons.vpn_lock_rounded, label: 'VPN'),
+      const _TabItem(icon: Icons.dashboard_rounded, label: 'Dashboard'),
     ];
     final pages = <Widget>[
-      const DashboardScreen(),
       const ChatsScreen(),
       if (tabVisibility.showAiTab) const AiAssistantScreen(),
       if (tabVisibility.showVpnTab) const VpnScreen(),
+      const DashboardScreen(),
     ];
     final indexClamped = _currentIndex.clamp(0, pages.length - 1);
     if (indexClamped != _currentIndex) {

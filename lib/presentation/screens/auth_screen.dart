@@ -3,6 +3,8 @@ import 'package:vtalk_app/core/constants.dart';
 import 'package:vtalk_app/core/constants/app_constants.dart';
 import 'package:vtalk_app/presentation/widgets/airy_input_field.dart';
 import 'package:vtalk_app/presentation/widgets/airy_button.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:go_router/go_router.dart';
 
 /// 🔐 HAI3 Authentication Screen
 /// Airy design with generous spacing and bright blue accent
@@ -13,9 +15,10 @@ class AuthScreen extends StatefulWidget {
   State<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+enum AuthStep { email, login, register }
+
+class _AuthScreenState extends State<AuthScreen> {
+  AuthStep _currentStep = AuthStep.email;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -26,15 +29,53 @@ class _AuthScreenState extends State<AuthScreen>
   bool _isLoading = false;
   bool _rememberMe = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+  static const List<String> _existingEmails = ['user@example.com', 'test@test.com'];
+
+  bool _checkEmail(String email) {
+    return _existingEmails.contains(email.trim().toLowerCase());
+  }
+
+  void _onEmailSubmitted() {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) return;
+    if (_checkEmail(email)) {
+      setState(() => _currentStep = AuthStep.login);
+    } else {
+      setState(() => _currentStep = AuthStep.register);
+    }
+  }
+
+  void _onBackToEmail() {
+    setState(() {
+      _currentStep = AuthStep.email;
+      _passwordController.clear();
+      _confirmPasswordController.clear();
+      _usernameController.clear();
+    });
+  }
+
+  Future<void> _login() async {
+    setState(() => _isLoading = true);
+    await Future.delayed(const Duration(seconds: 1)); // Simulate login
+    setState(() => _isLoading = false);
+    if (_rememberMe) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', true);
+    }
+    if (mounted) context.go('/chats');
+  }
+
+  Future<void> _register() async {
+    setState(() => _isLoading = true);
+    await Future.delayed(const Duration(seconds: 1)); // Simulate register
+    setState(() => _isLoading = false);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', true);
+    if (mounted) context.go('/chats');
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -56,20 +97,13 @@ class _AuthScreenState extends State<AuthScreen>
               
               SizedBox(height: AppSpacing.buttonPadding * 3),
               
-              // 📝 Tab bar for Login/Register
-              _buildTabBar(),
-              
-              SizedBox(height: AppSpacing.buttonPadding),
-              
-              // 📱 Form content
+              //  Form content
               Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildLoginForm(),
-                    _buildRegisterForm(),
-                  ],
-                ),
+                child: _currentStep == AuthStep.email
+                  ? _buildEmailForm()
+                  : _currentStep == AuthStep.login
+                    ? _buildLoginForm()
+                    : _buildRegisterForm(),
               ),
             ],
           ),
@@ -128,34 +162,22 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
-  /// 📝 Build tab bar
-  Widget _buildTabBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Color(0xFFF8F9FA),
-        borderRadius: BorderRadius.circular(AppBorderRadius.input),
-      ),
-      child: TabBar(
-        controller: _tabController,
-        indicator: BoxDecoration(
-          gradient: LinearGradient(
-              colors: [Color(0xFF00A3FF), Color(0xFF0066FF)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          borderRadius: BorderRadius.circular(AppBorderRadius.input),
-        ),
-        labelColor: Colors.white,
-        unselectedLabelColor: Color(0xFF757575),
-        labelStyle: AppTextStyles.button,
-        unselectedLabelStyle: AppTextStyles.button.copyWith(
-          color: Color(0xFF757575),
-        ),
-        indicatorSize: TabBarIndicatorSize.tab,
-        dividerColor: Colors.transparent,
-        tabs: const [
-          Tab(text: 'Login'),
-          Tab(text: 'Register'),
+  /// � Build email form
+  Widget _buildEmailForm() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          AiryInputField(
+            controller: _emailController,
+            hintText: 'Email',
+            keyboardType: TextInputType.emailAddress,
+          ),
+          SizedBox(height: AppSpacing.buttonPadding),
+          AiryButton(
+            text: 'Continue',
+            onPressed: _onEmailSubmitted,
+            isLoading: _isLoading,
+          ),
         ],
       ),
     );
@@ -163,89 +185,188 @@ class _AuthScreenState extends State<AuthScreen>
 
   /// 🔐 Build login form
   Widget _buildLoginForm() {
-    return Column(
-      children: [
-        // 📧 Email field
-        AiryInputField(
-          controller: _emailController,
-          label: 'Email',
-          hint: 'Enter your email',
-          keyboardType: TextInputType.emailAddress,
-          prefixIcon: Icons.email_outlined,
-        ),
-        
-        SizedBox(height: AppSpacing.inputPadding),
-        
-        // 🔒 Password field
-        AiryInputField(
-          controller: _passwordController,
-          label: 'Password',
-          hint: 'Enter your password',
-          obscureText: !_isPasswordVisible,
-          prefixIcon: Icons.lock_outline,
-          suffixIcon: IconButton(
-            icon: Icon(
-              _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
-              color: Color(0xFF757575),
-            ),
-            onPressed: () {
-              setState(() {
-                _isPasswordVisible = !_isPasswordVisible;
-              });
-            },
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Row(
+            children: [
+              IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: _onBackToEmail,
+              ),
+              Spacer(),
+            ],
           ),
-        ),
-        
-        SizedBox(height: AppSpacing.inputPadding / 2),
-        
-        // 📝 Remember me checkbox
-        Row(
-          children: [
-            Checkbox(
-              value: _rememberMe,
-              onChanged: (value) {
+          // 📧 Email field
+          AiryInputField(
+            controller: _emailController,
+            label: 'Email',
+            hint: 'Enter your email',
+            keyboardType: TextInputType.emailAddress,
+            prefixIcon: Icons.email_outlined,
+            enabled: false,
+          ),
+          
+          SizedBox(height: AppSpacing.inputPadding),
+          
+          // 🔒 Password field
+          AiryInputField(
+            controller: _passwordController,
+            label: 'Password',
+            hint: 'Enter your password',
+            obscureText: !_isPasswordVisible,
+            prefixIcon: Icons.lock_outline,
+            suffixIcon: IconButton(
+              icon: Icon(
+                _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                color: Color(0xFF757575),
+              ),
+              onPressed: () {
                 setState(() {
-                  _rememberMe = value ?? false;
+                  _isPasswordVisible = !_isPasswordVisible;
                 });
               },
             ),
-            Text(
-              'Remember me',
-              style: AppTextStyles.body.copyWith(
-                color: Color(0xFF757575),
-                fontSize: 14,
+          ),
+          
+          SizedBox(height: AppSpacing.inputPadding / 2),
+          
+          // 📝 Remember me checkbox
+          Row(
+            children: [
+              Checkbox(
+                value: _rememberMe,
+                onChanged: (value) {
+                  setState(() {
+                    _rememberMe = value ?? false;
+                  });
+                },
               ),
-            ),
-            const Spacer(),
-            TextButton(
-              onPressed: () {
-                // TODO: Implement forgot password
-              },
-              child: Text(
-                'Forgot password?',
+              Text(
+                'Remember me',
                 style: AppTextStyles.body.copyWith(
-                  color: Color(0xFF00A3FF),
-                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF757575),
                   fontSize: 14,
                 ),
               ),
-            ),
-          ],
-        ),
-        
-        SizedBox(height: AppSpacing.buttonPadding),
-        
-        // 🔐 Login button
-        AiryButton(
-          text: 'Sign In',
-          onPressed: _handleLogin,
-          isLoading: _isLoading,
-          fullWidth: true,
-        ),
-      ],
+              const Spacer(),
+              TextButton(
+                onPressed: () {
+                  // TODO: Implement forgot password
+                },
+                child: Text(
+                  'Forgot password?',
+                  style: AppTextStyles.body.copyWith(
+                    color: Color(0xFF00A3FF),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          
+          SizedBox(height: AppSpacing.buttonPadding),
+          
+          // 🔐 Login button
+          AiryButton(
+            text: 'Sign In',
+            onPressed: _login,
+            isLoading: _isLoading,
+            fullWidth: true,
+          ),
+        ],
+      ),
     );
   }
 
+  /// � Build register form
+  Widget _buildRegisterForm() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Row(
+            children: [
+              IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: _onBackToEmail,
+              ),
+              Spacer(),
+            ],
+          ),
+          // � Username field
+          AiryInputField(
+            controller: _usernameController,
+            label: 'Username',
+            hint: 'Choose a username',
+            prefixIcon: Icons.person_outline,
+          ),
+          
+          SizedBox(height: AppSpacing.inputPadding),
+          
+          // � Email field
+          AiryInputField(
+            controller: _emailController,
+            label: 'Email',
+            hint: 'Enter your email',
+            keyboardType: TextInputType.emailAddress,
+            prefixIcon: Icons.email_outlined,
+            enabled: false,
+          ),
+          
+          SizedBox(height: AppSpacing.inputPadding),
+          
+          // 🔒 Password field
+          AiryInputField(
+            controller: _passwordController,
+            label: 'Password',
+            hint: 'Create a password',
+            obscureText: !_isPasswordVisible,
+            prefixIcon: Icons.lock_outline,
+            suffixIcon: IconButton(
+              icon: Icon(
+                _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                color: Color(0xFF757575),
+              ),
+              onPressed: () {
+                setState(() {
+                  _isPasswordVisible = !_isPasswordVisible;
+                });
+              },
+            ),
+          ),
+          
+          SizedBox(height: AppSpacing.inputPadding),
+          
+          // � Confirm password field
+          AiryInputField(
+            controller: _confirmPasswordController,
+            label: 'Confirm Password',
+            hint: 'Confirm your password',
+            obscureText: !_isConfirmPasswordVisible,
+            prefixIcon: Icons.lock_outline,
+            suffixIcon: IconButton(
+              icon: Icon(
+                _isConfirmPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                color: Color(0xFF757575),
+              ),
+              onPressed: () {
+                setState(() {
+                  _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                });
+              },
+            ),
+          ),
+          
+          SizedBox(height: AppSpacing.buttonPadding),
+          
+          // � Register button
+          AiryButton(
+            text: 'Sign Up',
+            onPressed: _register,
+            isLoading: _isLoading,
+            fullWidth: true,
+          ),
   /// 📝 Build register form
   Widget _buildRegisterForm() {
     return Column(
