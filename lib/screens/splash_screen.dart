@@ -1,21 +1,34 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
-import 'dart:async';
-import 'auth/register_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:vtalk_app/screens/auth/login_screen.dart';
+import 'package:vtalk_app/screens/main_app.dart';
 
 class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
   @override
-  _SplashScreenState createState() => _SplashScreenState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Timer(Duration(seconds: 2), () {
-      Navigator.pushReplacement(
+    Future.delayed(const Duration(milliseconds: 2500), () {
+      if (!mounted) return;
+      final user = FirebaseAuth.instance.currentUser;
+      
+      Navigator.pushAndRemoveUntil(
         context,
-        CupertinoPageRoute(builder: (context) => RegisterScreen()),
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => user == null ? LoginScreen() : MainApp(),
+          transitionsBuilder: (context, animation, _, child) => FadeTransition(
+            opacity: animation,
+            child: child,
+          ),
+          transitionDuration: const Duration(milliseconds: 800),
+        ),
+        (route) => false,
       );
     });
   }
@@ -23,28 +36,65 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF1A1A2E),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Vtalk',
-              style: TextStyle(
-                fontSize: 48,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+      backgroundColor: const Color(0xFFFAFAFA),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ColorFiltered(
+                        colorFilter: ColorFilter.mode(
+                          const Color(0xFF2196F3),
+                          BlendMode.srcIn,
+                        ),
+                        child: Image.asset(
+                          'assets/images/logo bnb.png',
+                          height: 100,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'VTALK',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w200,
+                          letterSpacing: 10.0,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'SECURE • SIMPLE • SEAMLESS',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey,
+                          letterSpacing: 2.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-            SizedBox(height: 20),
-            Text(
-              'Private & Secure',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.white70,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'POWERED BY HAI3 PRINCIPLES',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 11,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
