@@ -19,59 +19,73 @@ class MainNavShell extends StatefulWidget {
 
 class _MainNavShellState extends State<MainNavShell> {
   late PageController _pageController;
-  late int _currentIndex;
+  String _currentTabId = 'chats';
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  int? _lastTabsHash;
+  // ID-based navigation map
+  final Map<String, int> _tabMap = {
+    'chats': 0,
+    'ai': 1,
+    'vpn': 2,
+    'dashboard': 3,
+  };
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: 0);
-    _currentIndex = 0;
-  }
-
-  int _tabsHash(bool showAi, bool showVpn) {
-    return (showAi ? 1 : 0) | (showVpn ? 2 : 0);
-  }
-
-  int _currentTabId(bool showAi, bool showVpn) {
-    if (_currentIndex == 0) return 0; // chats
-    if (showAi && _currentIndex == 1) return 1; // ai
-    if (showVpn && _currentIndex == (showAi ? 2 : 1)) return 2; // vpn
-    return 3; // dashboard
-  }
-
-  int _indexFromTabId(int tabId, bool showAi, bool showVpn) {
-    switch (tabId) {
-      case 0:
-        return 0;
-      case 1:
-        return showAi ? 1 : 0;
-      case 2:
-        if (!showVpn) return showAi ? 1 : 0;
-        return showAi ? 2 : 1;
-      case 3:
-      default:
-        return (1 + (showAi ? 1 : 0) + (showVpn ? 1 : 0));
-    }
   }
 
   @override
   void dispose() {
-    _pageController.dispose();
+    if (_pageController.hasClients) {
+      _pageController.dispose();
+    }
     super.dispose();
   }
 
-  void _onTabTapped(int index) {
-    print('--- NAV CLICK --- New Index: $index');
-    if (_currentIndex == index) return;
-    setState(() => _currentIndex = index);
-    _pageController.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeInOut,
-    );
+  void _onTabTapped(String tabId) {
+    if (_currentTabId == tabId) return;
+    
+    setState(() => _currentTabId = tabId);
+    
+    final newIndex = _getTabIndex(tabId);
+    if (_pageController.hasClients) {
+      _pageController.animateToPage(
+        newIndex,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  int _getTabIndex(String tabId) {
+    final tabVisibility = context.read<TabVisibilityController>();
+    final showAi = tabVisibility.showAiTab;
+    final showVpn = tabVisibility.showVpnTab;
+    
+    int index = 0;
+    
+    // Always have chats first
+    if (tabId == 'chats') return 0;
+    index++;
+    
+    // Add AI if visible
+    if (showAi) {
+      if (tabId == 'ai') return index;
+      index++;
+    }
+    
+    // Add VPN if visible
+    if (showVpn) {
+      if (tabId == 'vpn') return index;
+      index++;
+    }
+    
+    // Dashboard is always last
+    if (tabId == 'dashboard') return index;
+    
+    return 0; // fallback to chats
   }
 
   @override
@@ -79,12 +93,14 @@ class _MainNavShellState extends State<MainNavShell> {
     final tabVisibility = context.watch<TabVisibilityController>();
     final showAi = tabVisibility.showAiTab;
     final showVpn = tabVisibility.showVpnTab;
+    
     final tabs = <_TabItem>[
-      const _TabItem(icon: Icons.chat_bubble_outline_rounded, label: 'Chats'),
-      if (showAi) const _TabItem(icon: Icons.psychology_rounded, label: 'AI'),
-      if (showVpn) const _TabItem(icon: Icons.vpn_lock_rounded, label: 'VPN'),
-      const _TabItem(icon: Icons.dashboard_rounded, label: 'Dashboard'),
+      const _TabItem(icon: Icons.chat_bubble_outline_rounded, label: 'Chats', id: 'chats'),
+      if (showAi) const _TabItem(icon: Icons.psychology_rounded, label: 'AI', id: 'ai'),
+      if (showVpn) const _TabItem(icon: Icons.vpn_lock_rounded, label: 'VPN', id: 'vpn'),
+      const _TabItem(icon: Icons.dashboard_rounded, label: 'Dashboard', id: 'dashboard'),
     ];
+    
     final pages = <Widget>[
       const ChatsScreen(),
       if (showAi) const AiAssistantScreen(),
@@ -92,35 +108,32 @@ class _MainNavShellState extends State<MainNavShell> {
       const DashboardScreen(),
     ];
 
-    print('--- NAV DEBUG --- Current Index: $_currentIndex, Tabs: ${tabs.length}');
-
-    final hash = _tabsHash(showAi, showVpn);
-    var newIndex = _currentIndex;
-    if (_lastTabsHash != null && _lastTabsHash != hash) {
-      final tabId = _currentTabId(showAi, showVpn);
-      newIndex = _indexFromTabId(tabId, showAi, showVpn);
-    } else if (_currentIndex >= pages.length) {
-      newIndex = pages.length - 1;
-    }
-
-    if (newIndex != _currentIndex || _lastTabsHash != hash) {
+    // Update current index when tabs change
+    final newIndex = _getTabIndex(_currentTabId);
+    if (_pageController.hasClients && _pageController.page?.round() != newIndex) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        _lastTabsHash = hash;
-        if (_currentIndex != newIndex) {
-          setState(() => _currentIndex = newIndex);
-          if (_pageController.hasClients) {
-            _pageController.jumpToPage(newIndex);
-          }
-        } else {
-          _lastTabsHash = hash;
+        if (mounted && _pageController.hasClients) {
+          _pageController.jumpToPage(newIndex);
         }
       });
     }
+
     return Scaffold(
-      key: UniqueKey(),
-      body: IndexedStack(
-        index: newIndex,
+      key: _scaffoldKey,
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          // Update current tab ID based on page index
+          final activeTabs = <String>['chats'];
+          if (showAi) activeTabs.add('ai');
+          if (showVpn) activeTabs.add('vpn');
+          activeTabs.add('dashboard');
+          
+          if (index < activeTabs.length) {
+            setState(() => _currentTabId = activeTabs[index]);
+          }
+        },
+        physics: const BouncingScrollPhysics(),
         children: pages,
       ),
       bottomNavigationBar: Container(
@@ -133,9 +146,8 @@ class _MainNavShellState extends State<MainNavShell> {
           ),
         ),
         child: BottomNavigationBar(
-          key: ValueKey(_tabsHash(showAi, showVpn)),
           currentIndex: newIndex,
-          onTap: _onTabTapped,
+          onTap: (index) => _onTabTapped(tabs[index].id),
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.white,
           selectedItemColor: AppColors.primary,
@@ -143,16 +155,11 @@ class _MainNavShellState extends State<MainNavShell> {
           selectedFontSize: 14,
           unselectedFontSize: 14,
           items: tabs
-              .asMap()
-              .map((index, t) => MapEntry(
-                    index,
-                    BottomNavigationBarItem(
-                      key: ValueKey('tab_$index'),
-                      icon: Icon(t.icon),
-                      label: t.label,
-                    ),
+              .map((t) => BottomNavigationBarItem(
+                    key: ValueKey(t.id),
+                    icon: Icon(t.icon),
+                    label: t.label,
                   ))
-              .values
               .toList(),
         ),
       ),
@@ -163,5 +170,6 @@ class _MainNavShellState extends State<MainNavShell> {
 class _TabItem {
   final IconData icon;
   final String label;
-  const _TabItem({required this.icon, required this.label});
+  final String id;
+  const _TabItem({required this.icon, required this.label, required this.id});
 }
