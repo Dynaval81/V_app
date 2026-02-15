@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:vtalk_app/screens/auth/login_screen.dart';
-import 'package:vtalk_app/screens/main_app.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -16,18 +14,9 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     Future.delayed(const Duration(milliseconds: 2500), () {
       if (!mounted) return;
-      final user = FirebaseAuth.instance.currentUser;
-      
       Navigator.pushAndRemoveUntil(
         context,
-        PageRouteBuilder(
-          pageBuilder: (_, __, ___) => user == null ? LoginScreen() : MainApp(),
-          transitionsBuilder: (context, animation, _, child) => FadeTransition(
-            opacity: animation,
-            child: child,
-          ),
-          transitionDuration: const Duration(milliseconds: 800),
-        ),
+        MaterialPageRoute(builder: (_) => LoginScreen()), // Just go to Login
         (route) => false,
       );
     });
