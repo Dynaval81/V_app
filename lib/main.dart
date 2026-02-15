@@ -14,6 +14,8 @@ import 'package:vtalk_app/presentation/screens/splash_screen.dart';
 import 'package:vtalk_app/presentation/widgets/airy_button.dart';
 import 'package:vtalk_app/presentation/widgets/organisms/main_nav_shell.dart';
 import 'package:vtalk_app/data/models/chat_room.dart';
+import 'package:vtalk_app/theme_provider.dart';
+import 'package:vtalk_app/theme/app_theme.dart';
 
 /// 🚀 V-Talk Beta - HAI3 Architecture
 void main() async {
@@ -28,6 +30,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AuthController()),
         ChangeNotifierProvider(create: (_) => ChatController()),
         ChangeNotifierProvider(create: (_) => TabVisibilityController()..load()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()..initializeTheme()),
       ],
       child: VTalkApp(initialLocation: initialLocation),
     ),
@@ -71,106 +74,72 @@ class VTalkApp extends StatelessWidget {
           builder: (context, state) {
             final chatId = state.pathParameters['chatId']!;
             return _ChatScreen(chatId: chatId);
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.settings,
-      builder: (context, state) => const SettingsScreen(),
-    ),
-  ],
-  errorBuilder: (context, state) => _ErrorScreen(error: state.error),
-);
-
-class VTalkApp extends StatelessWidget {
-  const VTalkApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: AppConstants.appName,
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.light,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF00A3FF),
-          brightness: Brightness.light,
+          },
         ),
-      ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF00A3FF),
-          brightness: Brightness.dark,
+        GoRoute(
+          path: AppRoutes.settings,
+          builder: (context, state) => const SettingsScreen(),
         ),
-      ),
-      themeMode: ThemeMode.system,
-      routerConfig: _goRouter,
-      builder: (context, child) {
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            textScaler: TextScaler.linear(1.0),
-          ),
-          child: child!,
-        );
-      },
+      ],
+      errorBuilder: (context, state) => _ErrorScreen(error: state.error),
     );
   }
 }
 
 class _ErrorScreen extends StatelessWidget {
-  final Object? error;
+  final Exception? error;
 
   const _ErrorScreen({this.error});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF000000),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.screenPadding),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFF3B30).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(AppBorderRadius.button),
-                ),
-                child: const Icon(
-                  Icons.error_outline,
-                  color: Color(0xFFFF3B30),
-                  size: 40,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.buttonPadding),
-              Text(
-                'Something went wrong',
-                style: AppTextStyles.h3.copyWith(
-                  color: AppColors.onSurface,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.inputPadding),
-              Text(
-                error?.toString() ?? 'Unknown error occurred',
-                style: AppTextStyles.body.copyWith(
-                  color: AppColors.onSurfaceVariant,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppSpacing.buttonPadding * 3),
-              AiryButton(
-                text: 'Go to Auth',
-                onPressed: () => context.go(AppRoutes.auth),
-                icon: const Icon(Icons.refresh, size: 18),
-              ),
-            ],
+      backgroundColor: AppColors.surface,
+      appBar: AppBar(
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+        title: Text(
+          'Error',
+          style: TextStyle(
+            color: AppColors.onSurface,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
           ),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: AppColors.error,
+            ),
+            const SizedBox(height: AppSpacing.buttonPadding),
+            Text(
+              'Something went wrong',
+              style: AppTextStyles.h3.copyWith(
+                color: AppColors.onSurface,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.inputPadding),
+            Text(
+              error?.toString() ?? 'Unknown error occurred',
+              style: AppTextStyles.body.copyWith(
+                color: AppColors.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.buttonPadding * 3),
+            AiryButton(
+              text: 'Go to Auth',
+              onPressed: () => context.go(AppRoutes.auth),
+              icon: const Icon(Icons.refresh, size: 18),
+            ),
+          ],
         ),
       ),
     );
