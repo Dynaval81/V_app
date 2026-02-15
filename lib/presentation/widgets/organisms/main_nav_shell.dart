@@ -71,6 +71,36 @@ class _MainNavShellState extends State<MainNavShell> {
     }
   }
 
+  void _handleTabVisibilityChange() {
+    final tabVisibility = context.read<TabVisibilityController>();
+    final showAi = tabVisibility.showAiTab;
+    final showVpn = tabVisibility.showVpnTab;
+    
+    // Calculate new tabs list
+    final newTabs = <_TabItem>[
+      const _TabItem(icon: Icons.chat_bubble_outline_rounded, label: 'Chats', id: 'chats'),
+      if (showAi) const _TabItem(icon: Icons.psychology_rounded, label: 'AI', id: 'ai'),
+      if (showVpn) const _TabItem(icon: Icons.vpn_lock_rounded, label: 'VPN', id: 'vpn'),
+      const _TabItem(icon: Icons.dashboard_rounded, label: 'Dashboard', id: 'dashboard'),
+    ];
+
+    // Calculate NEW index for current _activeTabId in FUTURE tabs list
+    final newIndex = _getIndexOfId(_activeTabId);
+    
+    // First jump to correct position
+    if (_pageController.hasClients) {
+      _pageController.jumpToPage(newIndex);
+    }
+    
+    // Then update state
+    setState(() {
+      _currentIndex = newIndex;
+    });
+    
+    // Reset changed flag after processing
+    tabVisibility.resetChangedFlag();
+  }
+
   @override
   Widget build(BuildContext context) {
     final tabVisibility = context.watch<TabVisibilityController>();
@@ -83,6 +113,11 @@ class _MainNavShellState extends State<MainNavShell> {
       if (showVpn) const _TabItem(icon: Icons.vpn_lock_rounded, label: 'VPN', id: 'vpn'),
       const _TabItem(icon: Icons.dashboard_rounded, label: 'Dashboard', id: 'dashboard'),
     ];
+    
+    // Crash protection: safety check
+    if (_currentIndex >= tabs.length) {
+      _currentIndex = 0;
+    }
     
     final pages = <Widget>[
       const ChatsScreen(
@@ -99,18 +134,11 @@ class _MainNavShellState extends State<MainNavShell> {
       ),
     ];
 
-    // Force index recalculation when tabs visibility changes
+    // Handle tab visibility changes
     if (tabVisibility.hasChanged) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          setState(() {
-            _currentIndex = _getIndexOfId(_activeTabId);
-          });
-          if (_pageController.hasClients) {
-            _pageController.jumpToPage(_currentIndex);
-          }
-          // Reset changed flag after processing
-          tabVisibility.resetChangedFlag();
+          _handleTabVisibilityChange();
         }
       });
     }

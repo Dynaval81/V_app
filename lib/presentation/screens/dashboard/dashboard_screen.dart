@@ -12,9 +12,12 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen> with AutomaticKeepAliveClientMixin {
   bool _showAiTab = true;
   bool _showVpnTab = true;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -82,6 +85,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+    
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
