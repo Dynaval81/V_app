@@ -132,9 +132,10 @@ class _AiryChatListItemState extends State<AiryChatListItem> {
                               ],
                             ),
                           ),
-                          // 🕒 Time only
-                          SizedBox(
-                            width: 65, // Fixed width to prevent layout shift
+                          // 🕒 Time and badge
+                          Container(
+                            width: 65.0,
+                            alignment: Alignment.centerRight,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               mainAxisAlignment: MainAxisAlignment.center,

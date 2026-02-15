@@ -17,7 +17,7 @@ class AuthScreen extends StatefulWidget {
 
 enum AuthStep { email, login, register }
 
-enum LoginType { email, phone, username, vtId }
+enum LoginType { email, username, vtId }
 
 class _AuthScreenState extends State<AuthScreen> {
   AuthStep _currentStep = AuthStep.email;
@@ -44,8 +44,6 @@ class _AuthScreenState extends State<AuthScreen> {
         return 'VT ';
       case LoginType.username:
         return '@';
-      case LoginType.phone:
-        return '+';
       default:
         return null;
     }
@@ -54,7 +52,6 @@ class _AuthScreenState extends State<AuthScreen> {
   TextInputType _getKeyboardType() {
     switch (_loginType) {
       case LoginType.vtId:
-      case LoginType.phone:
         return TextInputType.number;
       default:
         return TextInputType.emailAddress;
@@ -68,8 +65,6 @@ class _AuthScreenState extends State<AuthScreen> {
         return input.contains('@') && RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(input);
       case LoginType.vtId:
         return RegExp(r'^\d{5,}$').hasMatch(input);
-      case LoginType.phone:
-        return RegExp(r'^\+?\d{10,}$').hasMatch(input);
       case LoginType.username:
         return input.length >= 3;
     }
@@ -212,8 +207,7 @@ class _AuthScreenState extends State<AuthScreen> {
             child: Row(
               children: [
                 _buildLoginTypeButton(LoginType.email, 'Email', Icons.email_outlined),
-                _buildLoginTypeButton(LoginType.phone, 'Phone', Icons.phone_outlined),
-                _buildLoginTypeButton(LoginType.username, 'Username', Icons.person_outline),
+                _buildLoginTypeButton(LoginType.username, 'Nickname', Icons.person_outline),
                 _buildLoginTypeButton(LoginType.vtId, 'VT-ID', Icons.vpn_key_outlined),
               ],
             ),
@@ -221,7 +215,7 @@ class _AuthScreenState extends State<AuthScreen> {
           SizedBox(height: AppSpacing.inputPadding),
           AiryInputField(
             controller: _emailController,
-            hintText: _loginType == LoginType.email ? 'Email' : _loginType == LoginType.phone ? 'Phone' : _loginType == LoginType.username ? 'Username' : 'VT-ID',
+            hintText: _loginType == LoginType.email ? 'Email' : _loginType == LoginType.username ? 'Nickname' : 'VT-ID',
             keyboardType: _getKeyboardType(),
             prefixText: _getPrefixText(),
           ),

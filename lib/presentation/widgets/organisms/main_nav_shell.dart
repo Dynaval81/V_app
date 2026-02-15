@@ -60,8 +60,8 @@ class _MainNavShellState extends State<MainNavShell> {
       const DashboardScreen(),
     ];
     
-    // Keep current index if possible, only adjust if out of bounds
-    final newIndex = _currentIndex.clamp(0, pages.length - 1);
+    // Preserve current index when tabs visibility changes
+    final newIndex = _currentIndex < pages.length ? _currentIndex : pages.length - 1;
     if (newIndex != _currentIndex) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {

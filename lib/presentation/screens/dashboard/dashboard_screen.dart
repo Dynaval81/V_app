@@ -93,52 +93,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ],
                   ),
                   SizedBox(height: 32),
-                  // Developer/Admin Section
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
+                  // Elements Store Section
+                  ExpansionTile(
+                    title: Text(
+                      'Элементы',
+                      style: AppTextStyles.h3.copyWith(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.onSurface,
+                      ),
+                    ),
+                    tilePadding: EdgeInsets.zero,
+                    childrenPadding: EdgeInsets.all(20),
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Developer Options',
-                          style: AppTextStyles.h3.copyWith(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
+                    children: [
+                      SwitchListTile(
+                        value: tabVisibility.showAiTab,
+                        onChanged: (v) => tabVisibility.setShowAiTab(v),
+                        title: Text(
+                          'AI Assistant tab',
+                          style: AppTextStyles.body.copyWith(
+                            fontSize: 16,
                             color: AppColors.onSurface,
                           ),
                         ),
-                        SizedBox(height: 16),
-                        SwitchListTile(
-                          value: tabVisibility.showAiTab,
-                          onChanged: (v) => tabVisibility.setShowAiTab(v),
-                          title: Text(
-                            'AI Assistant tab',
-                            style: AppTextStyles.body.copyWith(
-                              fontSize: 16,
-                              color: AppColors.onSurface,
-                            ),
+                        activeColor: AppColors.primary,
+                      ),
+                      SwitchListTile(
+                        value: tabVisibility.showVpnTab,
+                        onChanged: (v) => tabVisibility.setShowVpnTab(v),
+                        title: Text(
+                          'VPN tab',
+                          style: AppTextStyles.body.copyWith(
+                            fontSize: 16,
+                            color: AppColors.onSurface,
                           ),
-                          activeColor: AppColors.primary,
                         ),
-                        SwitchListTile(
-                          value: tabVisibility.showVpnTab,
-                          onChanged: (v) => tabVisibility.setShowVpnTab(v),
-                          title: Text(
-                            'VPN tab',
-                            style: AppTextStyles.body.copyWith(
-                              fontSize: 16,
-                              color: AppColors.onSurface,
-                            ),
-                          ),
-                          activeColor: AppColors.primary,
-                        ),
-                      ],
-                    ),
+                        activeColor: AppColors.primary,
+                      ),
+                    ],
                   ),
                 ]),
               ),
