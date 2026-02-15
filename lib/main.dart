@@ -11,7 +11,7 @@ import 'package:vtalk_app/core/controllers/tab_visibility_controller.dart';
 import 'package:vtalk_app/presentation/screens/auth/login_screen.dart';
 import 'package:vtalk_app/presentation/screens/chat/chat_room_screen.dart';
 import 'package:vtalk_app/presentation/screens/settings_screen.dart';
-import 'package:vtalk_app/presentation/screens/splash_screen.dart';
+import 'package:vtalk_app/screens/splash_screen.dart';
 import 'package:vtalk_app/presentation/widgets/airy_button.dart';
 import 'package:vtalk_app/presentation/widgets/organisms/main_nav_shell.dart';
 import 'package:vtalk_app/data/models/chat_room.dart';

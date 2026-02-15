@@ -42,6 +42,8 @@ dependencies:
   flutter_launcher_icons: ^0.13.1
   flutter_native_splash: ^2.3.6
   flutter_emoji: ^2.2.0
+  firebase_core: ^2.24.2
+  firebase_auth: ^4.15.3
   
   # 🚨 НОВЫЕ ПАКЕТЫ ДЛЯ BETA:
   flutter_chat_ui: ^1.6.10
