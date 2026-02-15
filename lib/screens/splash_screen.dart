@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:v_app/presentation/widgets/organisms/main_nav_shell.dart';
-import 'package:v_app/presentation/screens/auth/login_screen.dart';
+import '../presentation/widgets/organisms/main_nav_shell.dart';
+import '../presentation/screens/auth/login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -47,7 +47,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       if (!mounted) return;
       
       final user = FirebaseAuth.instance.currentUser;
-      final destination = user == null ? const LoginScreen() : const MainNavShell();
+      final destination = user == null ? LoginScreen() : MainNavShell();
       
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
