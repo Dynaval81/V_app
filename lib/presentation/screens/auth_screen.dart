@@ -17,8 +17,11 @@ class AuthScreen extends StatefulWidget {
 
 enum AuthStep { email, login, register }
 
+enum LoginType { email, username, vtId }
+
 class _AuthScreenState extends State<AuthScreen> {
   AuthStep _currentStep = AuthStep.email;
+  LoginType _loginType = LoginType.email;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -35,14 +38,36 @@ class _AuthScreenState extends State<AuthScreen> {
     return _existingEmails.contains(email.trim().toLowerCase());
   }
 
-  void _onEmailSubmitted() {
-    final email = _emailController.text.trim();
-    if (email.isEmpty) return;
-    if (email.contains('@')) {
-      setState(() => _currentStep = AuthStep.login);
-    } else {
-      setState(() => _currentStep = AuthStep.register);
+  String? _getPrefixText() {
+    switch (_loginType) {
+      case LoginType.vtId:
+        return 'VT ';
+      case LoginType.username:
+        return '@';
+      default:
+        return null;
     }
+  }
+
+  TextInputType _getKeyboardType() {
+    return _loginType == LoginType.vtId ? TextInputType.number : TextInputType.text;
+  }
+
+  bool _validateInput() {
+    final input = _emailController.text.trim();
+    switch (_loginType) {
+      case LoginType.email:
+        return input.contains('@') && RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(input);
+      case LoginType.vtId:
+        return RegExp(r'^\d{5,}$').hasMatch(input);
+      case LoginType.username:
+        return input.length >= 3;
+    }
+  }
+
+  void _onEmailSubmitted() {
+    if (!_validateInput()) return;
+    setState(() => _currentStep = AuthStep.login);
   }
 
   void _onBackToEmail() {
@@ -162,19 +187,48 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  /// � Build email form
+  /// 📧 Build email form
   Widget _buildEmailForm() {
     return SingleChildScrollView(
       child: Column(
         children: [
+          // Login type selector
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: DropdownButton<LoginType>(
+              value: _loginType,
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _loginType = value;
+                    _emailController.clear();
+                  });
+                }
+              },
+              items: [
+                DropdownMenuItem(value: LoginType.email, child: Text('Email')),
+                DropdownMenuItem(value: LoginType.username, child: Text('Username')),
+                DropdownMenuItem(value: LoginType.vtId, child: Text('VT-ID')),
+              ],
+              underline: SizedBox(),
+              isExpanded: true,
+            ),
+          ),
+          SizedBox(height: AppSpacing.inputPadding),
           AiryInputField(
             controller: _emailController,
-            hintText: 'Email',
-            keyboardType: TextInputType.emailAddress,
+            hintText: _loginType == LoginType.email ? 'Email' : _loginType == LoginType.username ? 'Username' : 'VT-ID',
+            keyboardType: _getKeyboardType(),
+            prefixText: _getPrefixText(),
           ),
           SizedBox(height: AppSpacing.buttonPadding),
           AiryButton(
-            text: 'Continue',
+            text: 'Start',
             onPressed: _onEmailSubmitted,
             isLoading: _isLoading,
           ),

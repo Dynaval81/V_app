@@ -1,16 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vtalk_app/core/constants.dart';
 import 'package:vtalk_app/core/constants/app_constants.dart';
 import 'package:vtalk_app/core/controllers/tab_visibility_controller.dart';
 
 /// HAI3 Dashboard: App info, Donations, Version, AI/VPN toggles (Airy).
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  Future<void> _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', false);
+    if (mounted) context.go(AppRoutes.auth);
+  }
     final tabVisibility = context.watch<TabVisibilityController>();
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -100,15 +109,17 @@ class DashboardScreen extends StatelessWidget {
                       _InfoRow(label: 'API', value: AppConstants.apiVersion),
                     ],
                   ),
-                  const SizedBox(height: 32),
-                ]),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+                  const SizedBox(height: 16),
+                  _SectionCard(
+                    title: 'Account',
+                    children: [
+                      AiryButton(
+                        text: 'Log Out',
+                        onPressed: _logout,
+                        fullWidth: true,
+                      ),
+                    ],
+                  ),
 }
 
 class _SectionCard extends StatelessWidget {
