@@ -6,6 +6,7 @@ import 'package:vtalk_app/core/constants/app_constants.dart';
 import 'package:vtalk_app/core/controllers/auth_controller.dart';
 import 'package:vtalk_app/presentation/atoms/airy_button.dart';
 import 'package:vtalk_app/presentation/atoms/airy_input_field.dart';
+import 'package:vtalk_app/l10n/app_localizations.dart';
 
 // Airy white style – scaffold is white; inputs use surface.
 
@@ -18,13 +19,98 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
+  final _loginController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
+  int _loginMethodIndex = 0;
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _loginController.dispose();
     super.dispose();
+  }
+
+  String _getLoginHint(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (_loginMethodIndex) {
+      case 0:
+        return l10n.login_hint_email;
+      case 1:
+        return l10n.login_hint_vtalk_id;
+      case 2:
+        return l10n.login_hint_nickname;
+      default:
+        return l10n.login_hint_email;
+    }
+  }
+
+  TextInputType _getKeyboardType() {
+    switch (_loginMethodIndex) {
+      case 0:
+        return TextInputType.emailAddress;
+      case 1:
+        return TextInputType.text;
+      case 2:
+        return TextInputType.text;
+      default:
+        return TextInputType.text;
+    }
+  }
+
+  Widget _buildLoginMethodToggle(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: SegmentedButton<int>(
+        segments: <ButtonSegment<int>>[
+          ButtonSegment<int>(
+            value: 0,
+            label: Text(
+              l10n.login_method_email,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          ButtonSegment<int>(
+            value: 1,
+            label: Text(
+              l10n.login_method_vtalk_id,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          ButtonSegment<int>(
+            value: 2,
+            label: Text(
+              l10n.login_method_nickname,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+        selected: <int>{_loginMethodIndex},
+        onSelectionChanged: (newSelection) {
+          final next = newSelection.isNotEmpty ? newSelection.first : _loginMethodIndex;
+          if (_loginMethodIndex == next) return;
+          setState(() {
+            _loginMethodIndex = next;
+          });
+        },
+        style: ButtonStyle(
+          visualDensity: VisualDensity.standard,
+          padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 12)),
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          ),
+          side: const WidgetStatePropertyAll(BorderSide(color: Colors.transparent)),
+          backgroundColor: const WidgetStatePropertyAll(Colors.transparent),
+        ),
+      ),
+    );
   }
 
   void _onLetsStart() {
@@ -33,13 +119,14 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildDivider() {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       children: [
         Expanded(child: Divider(color: AppColors.onSurfaceVariant.withValues(alpha: 0.3))),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            'or',
+            l10n.login_divider_or,
             style: AppTextStyles.body.copyWith(
               color: AppColors.onSurfaceVariant,
               fontSize: 14,
@@ -65,6 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -85,22 +173,24 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Sign in with your phone or email',
+                  l10n.login_subtitle,
                   style: AppTextStyles.body.copyWith(
                     color: AppColors.onSurfaceVariant,
                     fontSize: 16,
                   ),
                 ),
                 const SizedBox(height: 40),
+                _buildLoginMethodToggle(context),
+                const SizedBox(height: 16),
                 AiryInputField(
-                  controller: _emailController,
-                  label: 'Phone or Email',
-                  hint: 'Enter your phone number or email',
-                  keyboardType: TextInputType.emailAddress,
+                  controller: _loginController,
+                  label: l10n.login_label,
+                  hint: _getLoginHint(context),
+                  keyboardType: _getKeyboardType(),
                 ),
                 const SizedBox(height: 32),
                 AiryButton(
-                  text: "Let's Start",
+                  text: l10n.login_primary_button,
                   onPressed: _onLetsStart,
                   fullWidth: true,
                   height: 52,
@@ -109,7 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 _buildDivider(),
                 const SizedBox(height: 24),
                 AiryButton(
-                  text: 'Sign in with Google',
+                  text: l10n.login_google,
                   onPressed: _onSignInWithGoogle,
                   fullWidth: true,
                   height: 52,
@@ -119,7 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 12),
                 AiryButton(
-                  text: 'Sign in with Apple',
+                  text: l10n.login_apple,
                   onPressed: _onSignInWithApple,
                   fullWidth: true,
                   height: 52,

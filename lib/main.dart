@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:vtalk_app/core/constants.dart';
 import 'package:vtalk_app/core/constants/app_constants.dart';
 import 'package:vtalk_app/core/controllers/auth_controller.dart';
@@ -16,6 +17,7 @@ import 'package:vtalk_app/presentation/widgets/organisms/main_nav_shell.dart';
 import 'package:vtalk_app/data/models/chat_room.dart';
 import 'package:vtalk_app/theme_provider.dart';
 import 'package:vtalk_app/theme/app_theme.dart';
+import 'l10n/app_localizations.dart';
 
 /// 🚀 V-Talk Beta - HAI3 Architecture
 void main() async {
@@ -50,6 +52,13 @@ class VTalkApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
     );
   }
 

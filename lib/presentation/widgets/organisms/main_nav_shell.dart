@@ -21,11 +21,39 @@ class _MainNavShellState extends State<MainNavShell> {
   late PageController _pageController;
   late int _currentIndex;
 
+  int? _lastTabsHash;
+
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: 0);
     _currentIndex = 0;
+  }
+
+  int _tabsHash(bool showAi, bool showVpn) {
+    return (showAi ? 1 : 0) | (showVpn ? 2 : 0);
+  }
+
+  int _currentTabId(bool showAi, bool showVpn) {
+    if (_currentIndex == 0) return 0; // chats
+    if (showAi && _currentIndex == 1) return 1; // ai
+    if (showVpn && _currentIndex == (showAi ? 2 : 1)) return 2; // vpn
+    return 3; // dashboard
+  }
+
+  int _indexFromTabId(int tabId, bool showAi, bool showVpn) {
+    switch (tabId) {
+      case 0:
+        return 0;
+      case 1:
+        return showAi ? 1 : 0;
+      case 2:
+        if (!showVpn) return showAi ? 1 : 0;
+        return showAi ? 2 : 1;
+      case 3:
+      default:
+        return (1 + (showAi ? 1 : 0) + (showVpn ? 1 : 0));
+    }
   }
 
   @override
@@ -47,25 +75,41 @@ class _MainNavShellState extends State<MainNavShell> {
   @override
   Widget build(BuildContext context) {
     final tabVisibility = context.watch<TabVisibilityController>();
+    final showAi = tabVisibility.showAiTab;
+    final showVpn = tabVisibility.showVpnTab;
     final tabs = <_TabItem>[
       const _TabItem(icon: Icons.chat_bubble_outline_rounded, label: 'Chats'),
-      if (tabVisibility.showAiTab) const _TabItem(icon: Icons.psychology_rounded, label: 'AI'),
-      if (tabVisibility.showVpnTab) const _TabItem(icon: Icons.vpn_lock_rounded, label: 'VPN'),
+      if (showAi) const _TabItem(icon: Icons.psychology_rounded, label: 'AI'),
+      if (showVpn) const _TabItem(icon: Icons.vpn_lock_rounded, label: 'VPN'),
       const _TabItem(icon: Icons.dashboard_rounded, label: 'Dashboard'),
     ];
     final pages = <Widget>[
       const ChatsScreen(),
-      if (tabVisibility.showAiTab) const AiAssistantScreen(),
-      if (tabVisibility.showVpnTab) const VpnScreen(),
+      if (showAi) const AiAssistantScreen(),
+      if (showVpn) const VpnScreen(),
       const DashboardScreen(),
     ];
-    
-    // Preserve current index when tabs visibility changes
-    final newIndex = _currentIndex < pages.length ? _currentIndex : pages.length - 1;
-    if (newIndex != _currentIndex) {
+
+    final hash = _tabsHash(showAi, showVpn);
+    var newIndex = _currentIndex;
+    if (_lastTabsHash != null && _lastTabsHash != hash) {
+      final tabId = _currentTabId(showAi, showVpn);
+      newIndex = _indexFromTabId(tabId, showAi, showVpn);
+    } else if (_currentIndex >= pages.length) {
+      newIndex = pages.length - 1;
+    }
+
+    if (newIndex != _currentIndex || _lastTabsHash != hash) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
+        if (!mounted) return;
+        _lastTabsHash = hash;
+        if (_currentIndex != newIndex) {
           setState(() => _currentIndex = newIndex);
+          if (_pageController.hasClients) {
+            _pageController.jumpToPage(newIndex);
+          }
+        } else {
+          _lastTabsHash = hash;
         }
       });
     }

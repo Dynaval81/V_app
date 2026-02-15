@@ -51,50 +51,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: EdgeInsets.symmetric(horizontal: 20),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  _SectionCard(
-                    title: 'App info',
-                    children: [
-                      _InfoRow(label: 'App', value: AppConstants.appName),
-                      _InfoRow(label: 'Version', value: '${AppConstants.appVersion} (${AppConstants.appBuildNumber})'),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  _SectionCard(
-                    title: 'Donations',
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                        child: Text(
-                          'Support the project – donations help keep V-Talk free and open.',
-                          style: AppTextStyles.body.copyWith(
-                            fontSize: 16,
-                            color: AppColors.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  _SectionCard(
-                    title: 'Version',
-                    children: [
-                      _InfoRow(label: 'Build', value: AppConstants.appBuildNumber),
-                      _InfoRow(label: 'API', value: AppConstants.apiVersion),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  _SectionCard(
-                    title: 'Account',
-                    children: [
-                      ElevatedButton(
-                        onPressed: _logout,
-                        child: Text('Log Out'),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 32),
                   // Elements Store Section
                   ExpansionTile(
+                    key: const PageStorageKey('elements_store_key'),
+                    initiallyExpanded: true,
                     title: Text(
                       'Элементы',
                       style: AppTextStyles.h3.copyWith(
@@ -133,6 +93,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ),
                         activeColor: AppColors.primary,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  _SectionCard(
+                    title: 'App info',
+                    children: [
+                      _InfoRow(label: 'App', value: AppConstants.appName),
+                      _InfoRow(label: 'Version', value: '${AppConstants.appVersion} (${AppConstants.appBuildNumber})'),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  _SectionCard(
+                    title: 'Donations',
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          'Support the project – donations help keep V-Talk free and open.',
+                          style: AppTextStyles.body.copyWith(
+                            fontSize: 16,
+                            color: AppColors.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  _SectionCard(
+                    title: 'Version',
+                    children: [
+                      _InfoRow(label: 'Build', value: AppConstants.appBuildNumber),
+                      _InfoRow(label: 'API', value: AppConstants.apiVersion),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  _SectionCard(
+                    title: 'Account',
+                    children: [
+                      ElevatedButton(
+                        onPressed: _logout,
+                        child: Text('Log Out'),
                       ),
                     ],
                   ),

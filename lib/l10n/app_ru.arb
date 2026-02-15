@@ -1,0 +1,16 @@
+{
+  "@@locale": "ru",
+  "login_title": "Вход",
+  "login_subtitle": "Войдите в свой аккаунт",
+  "login_method_email": "Email",
+  "login_method_vtalk_id": "V-Talk ID",
+  "login_method_nickname": "Никнейм",
+  "login_label": "Логин",
+  "login_hint_email": "Введите email",
+  "login_hint_vtalk_id": "Введите V-Talk ID",
+  "login_hint_nickname": "Введите никнейм",
+  "login_primary_button": "Поехали",
+  "login_divider_or": "или",
+  "login_google": "Войти через Google",
+  "login_apple": "Войти через Apple"
+}

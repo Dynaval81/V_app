@@ -1,0 +1,16 @@
+{
+  "@@locale": "de",
+  "login_title": "Anmelden",
+  "login_subtitle": "Melde dich bei deinem Konto an",
+  "login_method_email": "E-Mail",
+  "login_method_vtalk_id": "V-Talk ID",
+  "login_method_nickname": "Spitzname",
+  "login_label": "Login",
+  "login_hint_email": "E-Mail eingeben",
+  "login_hint_vtalk_id": "V-Talk ID eingeben",
+  "login_hint_nickname": "Spitznamen eingeben",
+  "login_primary_button": "Los geht's",
+  "login_divider_or": "oder",
+  "login_google": "Mit Google anmelden",
+  "login_apple": "Mit Apple anmelden"
+}

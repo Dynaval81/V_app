@@ -1,0 +1,16 @@
+{
+  "@@locale": "en",
+  "login_title": "Sign in",
+  "login_subtitle": "Sign in to your account",
+  "login_method_email": "Email",
+  "login_method_vtalk_id": "V-Talk ID",
+  "login_method_nickname": "Nickname",
+  "login_label": "Login",
+  "login_hint_email": "Enter your email",
+  "login_hint_vtalk_id": "Enter your V-Talk ID",
+  "login_hint_nickname": "Enter your nickname",
+  "login_primary_button": "Let's Start",
+  "login_divider_or": "or",
+  "login_google": "Sign in with Google",
+  "login_apple": "Sign in with Apple"
+}
