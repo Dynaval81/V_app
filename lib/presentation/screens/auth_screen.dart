@@ -17,7 +17,7 @@ class AuthScreen extends StatefulWidget {
 
 enum AuthStep { email, login, register }
 
-enum LoginType { email, username, vtId }
+enum LoginType { email, phone, username, vtId }
 
 class _AuthScreenState extends State<AuthScreen> {
   AuthStep _currentStep = AuthStep.email;
@@ -44,13 +44,21 @@ class _AuthScreenState extends State<AuthScreen> {
         return 'VT ';
       case LoginType.username:
         return '@';
+      case LoginType.phone:
+        return '+';
       default:
         return null;
     }
   }
 
   TextInputType _getKeyboardType() {
-    return _loginType == LoginType.vtId ? TextInputType.number : TextInputType.text;
+    switch (_loginType) {
+      case LoginType.vtId:
+      case LoginType.phone:
+        return TextInputType.number;
+      default:
+        return TextInputType.emailAddress;
+    }
   }
 
   bool _validateInput() {
@@ -60,6 +68,8 @@ class _AuthScreenState extends State<AuthScreen> {
         return input.contains('@') && RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(input);
       case LoginType.vtId:
         return RegExp(r'^\d{5,}$').hasMatch(input);
+      case LoginType.phone:
+        return RegExp(r'^\+?\d{10,}$').hasMatch(input);
       case LoginType.username:
         return input.length >= 3;
     }
@@ -192,37 +202,26 @@ class _AuthScreenState extends State<AuthScreen> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          // Login type selector
+          // Login type selector with custom toggle
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey.shade300),
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(24),
             ),
-            child: DropdownButton<LoginType>(
-              value: _loginType,
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _loginType = value;
-                    _emailController.clear();
-                  });
-                }
-              },
-              items: [
-                DropdownMenuItem(value: LoginType.email, child: Text('Email')),
-                DropdownMenuItem(value: LoginType.username, child: Text('Username')),
-                DropdownMenuItem(value: LoginType.vtId, child: Text('VT-ID')),
+            child: Row(
+              children: [
+                _buildLoginTypeButton(LoginType.email, 'Email', Icons.email_outlined),
+                _buildLoginTypeButton(LoginType.phone, 'Phone', Icons.phone_outlined),
+                _buildLoginTypeButton(LoginType.username, 'Username', Icons.person_outline),
+                _buildLoginTypeButton(LoginType.vtId, 'VT-ID', Icons.vpn_key_outlined),
               ],
-              underline: SizedBox(),
-              isExpanded: true,
             ),
           ),
           SizedBox(height: AppSpacing.inputPadding),
           AiryInputField(
             controller: _emailController,
-            hintText: _loginType == LoginType.email ? 'Email' : _loginType == LoginType.username ? 'Username' : 'VT-ID',
+            hintText: _loginType == LoginType.email ? 'Email' : _loginType == LoginType.phone ? 'Phone' : _loginType == LoginType.username ? 'Username' : 'VT-ID',
             keyboardType: _getKeyboardType(),
             prefixText: _getPrefixText(),
           ),
@@ -233,6 +232,45 @@ class _AuthScreenState extends State<AuthScreen> {
             isLoading: _isLoading,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLoginTypeButton(LoginType type, String label, IconData icon) {
+    final isSelected = _loginType == type;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _loginType = type;
+            _emailController.clear();
+          });
+        },
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.primary : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: isSelected ? Colors.white : AppColors.onSurfaceVariant,
+              ),
+              SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isSelected ? Colors.white : AppColors.onSurfaceVariant,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

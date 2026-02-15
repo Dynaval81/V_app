@@ -59,12 +59,13 @@ class _MainNavShellState extends State<MainNavShell> {
       if (tabVisibility.showVpnTab) const VpnScreen(),
       const DashboardScreen(),
     ];
-    final indexClamped = _currentIndex.clamp(0, pages.length - 1);
-    if (indexClamped != _currentIndex) {
+    
+    // Keep current index if possible, only adjust if out of bounds
+    final newIndex = _currentIndex.clamp(0, pages.length - 1);
+    if (newIndex != _currentIndex) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          setState(() => _currentIndex = indexClamped);
-          _pageController.jumpToPage(indexClamped);
+          setState(() => _currentIndex = newIndex);
         }
       });
     }
@@ -85,7 +86,7 @@ class _MainNavShellState extends State<MainNavShell> {
           ),
         ),
         child: BottomNavigationBar(
-          currentIndex: indexClamped,
+          currentIndex: newIndex,
           onTap: _onTabTapped,
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.white,

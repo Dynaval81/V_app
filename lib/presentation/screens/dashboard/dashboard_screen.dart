@@ -52,36 +52,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   _SectionCard(
-                    title: 'Elements',
-                    children: [
-                      SwitchListTile(
-                        value: tabVisibility.showAiTab,
-                        onChanged: (v) => tabVisibility.setShowAiTab(v),
-                        title: Text(
-                          'AI Assistant tab',
-                          style: AppTextStyles.body.copyWith(
-                            fontSize: 16,
-                            color: AppColors.onSurface,
-                          ),
-                        ),
-                        activeColor: AppColors.primary,
-                      ),
-                      SwitchListTile(
-                        value: tabVisibility.showVpnTab,
-                        onChanged: (v) => tabVisibility.setShowVpnTab(v),
-                        title: Text(
-                          'VPN tab',
-                          style: AppTextStyles.body.copyWith(
-                            fontSize: 16,
-                            color: AppColors.onSurface,
-                          ),
-                        ),
-                        activeColor: AppColors.primary,
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  _SectionCard(
                     title: 'App info',
                     children: [
                       _InfoRow(label: 'App', value: AppConstants.appName),
@@ -122,6 +92,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ],
                   ),
+                  SizedBox(height: 32),
+                  // Developer/Admin Section
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Developer Options',
+                          style: AppTextStyles.h3.copyWith(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.onSurface,
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        SwitchListTile(
+                          value: tabVisibility.showAiTab,
+                          onChanged: (v) => tabVisibility.setShowAiTab(v),
+                          title: Text(
+                            'AI Assistant tab',
+                            style: AppTextStyles.body.copyWith(
+                              fontSize: 16,
+                              color: AppColors.onSurface,
+                            ),
+                          ),
+                          activeColor: AppColors.primary,
+                        ),
+                        SwitchListTile(
+                          value: tabVisibility.showVpnTab,
+                          onChanged: (v) => tabVisibility.setShowVpnTab(v),
+                          title: Text(
+                            'VPN tab',
+                            style: AppTextStyles.body.copyWith(
+                              fontSize: 16,
+                              color: AppColors.onSurface,
+                            ),
+                          ),
+                          activeColor: AppColors.primary,
+                        ),
+                      ],
+                    ),
+                  ),
                 ]),
               ),
             ),
@@ -144,10 +162,14 @@ class _SectionCard extends StatelessWidget {
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.onSurfaceVariant.withValues(alpha: 0.15),
-        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

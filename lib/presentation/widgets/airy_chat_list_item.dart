@@ -134,7 +134,7 @@ class _AiryChatListItemState extends State<AiryChatListItem> {
                           ),
                           // 🕒 Time only
                           SizedBox(
-                            width: 60,
+                            width: 65, // Fixed width to prevent layout shift
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               mainAxisAlignment: MainAxisAlignment.center,
