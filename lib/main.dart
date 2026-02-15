@@ -9,6 +9,7 @@ import 'screens/tabs/ai_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/chat_room_screen.dart';
 import 'screens/auth_screen.dart';
+import 'screens/splash_screen.dart';
 import 'widgets/premium_guard.dart';
 
 void main() {
@@ -33,17 +34,7 @@ class VtalkApp extends StatelessWidget {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: themeProvider.currentTheme,
-          // 🚨 НОВОЕ: AuthGate - слушаем состояние UserProvider
-          home: Consumer<UserProvider>(
-            builder: (context, auth, _) {
-              // 🚨 НОВОЕ: Если токена нет — ТОЛЬКО экран логина/авторизации
-              if (auth.token == null) {
-                return const AuthScreen(); 
-              }
-              // 🚨 НОВОЕ: Если токен есть — заходим в приложение
-              return const MainScreen();
-            },
-          ),
+          home: const SplashScreen(),
           onGenerateRoute: (settings) {
             switch (settings.name) {
               case '/chat':
