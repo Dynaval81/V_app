@@ -87,16 +87,31 @@ class _AiryChatListItemState extends State<AiryChatListItem> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (lastMessage != null)
-                        Text(chatService.formatMessageTime(lastMessage.timestamp), style: AppTextStyles.body.copyWith(color: const Color(0xFF757575), fontSize: 13.0)),
+                        Text(
+                          chatService.formatMessageTime(lastMessage.timestamp),
+                          style: AppTextStyles.body.copyWith(
+                            color: const Color(0xFF757575),
+                            fontSize: 12.0,
+                          ),
+                        ),
                       const SizedBox(height: 4),
                       if (unreadCount > 0)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(color: const Color(0xFF00A3FF), borderRadius: BorderRadius.circular(10)),
-                          child: Text(unreadCount > 99 ? '99+' : unreadCount.toString(), style: AppTextStyles.body.copyWith(color: Colors.white, fontSize: 10)),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF00A3FF),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text('$unreadCount', style: const TextStyle(color: Colors.white, fontSize: 10)),
                         )
-                      else if (lastMessage != null && lastMessage.isMe)
-                        Icon(Icons.done_all, color: lastMessage.isRead ? AppColors.primary : const Color(0xFF757575), size: 16),
+                      else if (lastMessage != null && (lastMessage.isMe || (lastMsg?.isMe ?? false)))
+                        Icon(
+                          Icons.done_all,
+                          color: (lastMessage.isRead || (lastMsg?.isRead ?? false))
+                              ? const Color(0xFF00A3FF)
+                              : const Color(0xFF757575),
+                          size: 17,
+                        ),
                     ],
                   ),
                 ),

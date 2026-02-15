@@ -23,6 +23,14 @@ class _MainNavShellState extends State<MainNavShell> {
 
   int? _lastTabsHash;
 
+  String _getTabId(int index, bool showAi, bool showVpn) {
+    List<String> activeIds = ['dashboard', 'chats'];
+    if (showAi) activeIds.add('ai');
+    if (showVpn) activeIds.add('vpn');
+    activeIds.add('settings');
+    return (index < activeIds.length) ? activeIds[index] : 'dashboard';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -139,10 +147,16 @@ class _MainNavShellState extends State<MainNavShell> {
           selectedFontSize: 14,
           unselectedFontSize: 14,
           items: tabs
-              .map((t) => BottomNavigationBarItem(
-                    icon: Icon(t.icon),
-                    label: t.label,
+              .asMap()
+              .map((index, t) => MapEntry(
+                    index,
+                    BottomNavigationBarItem(
+                      key: ValueKey(_getTabId(index, showAi, showVpn)),
+                      icon: Icon(t.icon),
+                      label: t.label,
+                    ),
                   ))
+              .values
               .toList(),
         ),
       ),
