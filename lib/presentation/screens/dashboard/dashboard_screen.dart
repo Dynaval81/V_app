@@ -54,7 +54,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   // Elements Store Section
                   ExpansionTile(
                     key: const PageStorageKey('elements_store_key'),
-                    initiallyExpanded: true,
+                    initiallyExpanded: false,
                     title: Text(
                       'Элементы',
                       style: AppTextStyles.h3.copyWith(

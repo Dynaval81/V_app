@@ -140,7 +140,7 @@ class _AiryChatListItemState extends State<AiryChatListItem> {
                 
                 const SizedBox(width: 12),
                 
-                // 🏰 Trailing widget with structured Column
+                // 🏰 Trailing widget with time + status (fixed width)
                 SizedBox(
                   width: 72.0,
                   child: Column(
@@ -179,23 +179,13 @@ class _AiryChatListItemState extends State<AiryChatListItem> {
                             textAlign: TextAlign.center,
                           ),
                         )
-                      else if (lastMessage != null)
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (lastMessage.isRead)
-                              const Icon(
-                                Icons.done_all,
-                                color: Color(0xFF00A3FF),
-                                size: 16,
-                              )
-                            else
-                              const Icon(
-                                Icons.done,
-                                color: Color(0xFF757575),
-                                size: 16,
-                              ),
-                          ],
+                      else if (lastMessage != null && lastMessage.isMe)
+                        Icon(
+                          Icons.done_all,
+                          color: lastMessage.isRead
+                              ? AppColors.primary
+                              : const Color(0xFF757575),
+                          size: 16,
                         ),
                     ],
                   ),
