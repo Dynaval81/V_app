@@ -11,6 +11,7 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
@@ -25,6 +26,15 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     // Create fade animation
     _fadeAnimation = Tween<double>(
       begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+    
+    // Create scale animation
+    _scaleAnimation = Tween<double>(
+      begin: 0.9,
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _animationController,
@@ -52,25 +62,83 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Center(
-        child: TweenAnimationBuilder<double>(
-          tween: Tween<double>(begin: 0.0, end: 1.0),
-          duration: const Duration(milliseconds: 1500),
-          builder: (context, opacity, child) {
-            return Opacity(
-              opacity: opacity,
-              child: child,
-            );
-          },
-          child: const Text(
-            'Airy',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              // Main content area
+              Expanded(
+                child: Center(
+                  child: AnimatedBuilder(
+                    animation: _animationController,
+                    builder: (context, child) {
+                      return FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: ScaleTransition(
+                          scale: _scaleAnimation,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(24),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (primaryColor.withOpacity(0.2)),
+                                  blurRadius: 40,
+                                  spreadRadius: 2,
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(24),
+                              child: Image.asset(
+                                isDarkMode 
+                                    ? 'assets/images/logo wnb.png'
+                                    : 'assets/images/logo bnb.png',
+                                width: 120,
+                                height: 120,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              
+              // Bottom attribution
+              Column(
+                children: [
+                  // HAI3 logo
+                  Image.asset(
+                    isDarkMode 
+                        ? 'assets/images/hai_3_light.png'
+                        : 'assets/images/hai_3_dark.png',
+                    width: 60,
+                    height: 20,
+                    fit: BoxFit.contain,
+                  ),
+                  const SizedBox(height: 8),
+                  // HAI3 text
+                  Text(
+                    'POWERED BY HAI3 PRINCIPLES',
+                    style: TextStyle(
+                      fontSize: 10,
+                      letterSpacing: 4.0,
+                      fontWeight: FontWeight.w300,
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ],
           ),
         ),
       ),
