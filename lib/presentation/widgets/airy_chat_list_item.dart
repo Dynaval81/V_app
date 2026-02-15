@@ -79,38 +79,42 @@ class _AiryChatListItemState extends State<AiryChatListItem> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                SizedBox(
-                  width: 72.0,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (lastMessage != null)
-                        Text(
-                          chatService.formatMessageTime(lastMessage.timestamp),
-                          style: AppTextStyles.body.copyWith(
-                            color: const Color(0xFF757575),
-                            fontSize: 12.0,
+                Container(
+                  color: Colors.red.withOpacity(0.5),
+                  child: SizedBox(
+                    width: 72.0,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('TEST', style: TextStyle(color: Colors.white)),
+                        if (lastMessage != null)
+                          Text(
+                            chatService.formatMessageTime(lastMessage.timestamp),
+                            style: AppTextStyles.body.copyWith(
+                              color: const Color(0xFF757575),
+                              fontSize: 12.0,
+                            ),
                           ),
-                        ),
-                      const SizedBox(height: 4),
-                      if (unreadCount > 0)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
+                        const SizedBox(height: 4),
+                        if (unreadCount > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF00A3FF),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text('$unreadCount', style: const TextStyle(color: Colors.white, fontSize: 10)),
+                          )
+                        else if (lastMessage != null)
+                          Icon(
+                            Icons.done_all,
                             color: const Color(0xFF00A3FF),
-                            borderRadius: BorderRadius.circular(10),
+                            size: 17,
                           ),
-                          child: Text('$unreadCount', style: const TextStyle(color: Colors.white, fontSize: 10)),
-                        )
-                      else if (lastMessage != null)
-                        Icon(
-                          Icons.done_all,
-                          color: const Color(0xFF00A3FF),
-                          size: 17,
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],

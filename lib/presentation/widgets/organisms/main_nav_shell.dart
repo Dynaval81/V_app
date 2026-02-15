@@ -64,6 +64,7 @@ class _MainNavShellState extends State<MainNavShell> {
   }
 
   void _onTabTapped(int index) {
+    print('--- NAV CLICK --- New Index: $index');
     if (_currentIndex == index) return;
     setState(() => _currentIndex = index);
     _pageController.animateToPage(
@@ -91,6 +92,8 @@ class _MainNavShellState extends State<MainNavShell> {
       const DashboardScreen(),
     ];
 
+    print('--- NAV DEBUG --- Current Index: $_currentIndex, Tabs: ${tabs.length}');
+
     final hash = _tabsHash(showAi, showVpn);
     var newIndex = _currentIndex;
     if (_lastTabsHash != null && _lastTabsHash != hash) {
@@ -115,7 +118,7 @@ class _MainNavShellState extends State<MainNavShell> {
       });
     }
     return Scaffold(
-      key: _scaffoldKey,
+      key: UniqueKey(),
       body: IndexedStack(
         index: newIndex,
         children: pages,
