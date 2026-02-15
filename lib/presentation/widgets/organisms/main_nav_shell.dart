@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:vtalk_app/core/constants.dart';
+import 'package:vtalk_app/constants/app_colors.dart';
 import 'package:vtalk_app/core/controllers/tab_visibility_controller.dart';
 import 'package:vtalk_app/presentation/screens/ai/ai_assistant_screen.dart';
 import 'package:vtalk_app/presentation/screens/chats_screen.dart';
@@ -19,7 +19,7 @@ class MainNavShell extends StatefulWidget {
 
 class _MainNavShellState extends State<MainNavShell> {
   late PageController _pageController;
-  String _activeTabId = 'dashboard';
+  String _activeTabId = 'chats';
   int _currentIndex = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -41,11 +41,11 @@ class _MainNavShellState extends State<MainNavShell> {
   void _onTabTapped(String tabId) {
     if (_activeTabId == tabId) return;
     
-    HapticFeedback.lightImpact();
+    final newIndex = _getIndexOfId(tabId);
     
     setState(() {
       _activeTabId = tabId;
-      _currentIndex = _getIndexOfId(tabId);
+      _currentIndex = newIndex;
     });
     
     if (_pageController.hasClients) {
@@ -109,7 +109,7 @@ class _MainNavShellState extends State<MainNavShell> {
           if (_pageController.hasClients) {
             _pageController.jumpToPage(_currentIndex);
           }
-          // Reset the changed flag after processing
+          // Reset changed flag after processing
           tabVisibility.resetChangedFlag();
         }
       });
@@ -144,7 +144,7 @@ class _MainNavShellState extends State<MainNavShell> {
           color: Colors.white,
           border: Border(
             top: BorderSide(
-              color: AppColors.onSurfaceVariant.withValues(alpha: 0.12),
+              color: Colors.grey.withValues(alpha: 0.12),
             ),
           ),
         ),
@@ -153,8 +153,8 @@ class _MainNavShellState extends State<MainNavShell> {
           onTap: (index) => _onTabTapped(tabs[index].id),
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.white,
-          selectedItemColor: AppColors.primary,
-          unselectedItemColor: AppColors.onSurfaceVariant,
+          selectedItemColor: AppColors.primaryBlue,
+          unselectedItemColor: Colors.grey,
           selectedFontSize: 14,
           unselectedFontSize: 14,
           items: tabs
