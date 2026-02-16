@@ -56,51 +56,64 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Using AppConstants and AppLocalizations where available to avoid hardcoded UI strings.
+    // Splash is shown before full localization context in some flows, so keep this minimal.
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Spacer(),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image.asset(
-                    'assets/images/logo_bnb.png',
-                    height: 110,
-                    fit: BoxFit.contain,
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'VTALK',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w200,
-                      letterSpacing: 10.0,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: Text(
-                  'POWERED BY HAI3 PRINCIPLES',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 10,
-                    letterSpacing: 2.0,
-                    color: Colors.grey.shade600,
-                    fontWeight: FontWeight.w400,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Spacer(flex: 3),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  'assets/images/logo_bnb.png',
+                  height: 110,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  AppConstants.appName,
+                  style: const TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w200,
+                    letterSpacing: 10.0,
+                    color: Colors.black87,
                   ),
                 ),
+              ],
+            ),
+            const Spacer(flex: 4),
+            SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      AppConstants.splashFooter,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 10,
+                        letterSpacing: 1.2,
+                        color: Colors.grey.shade600,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Image.asset(
+                      'assets/images/hai_3_dark.png',
+                      height: 20,
+                      fit: BoxFit.contain,
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

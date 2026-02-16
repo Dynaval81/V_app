@@ -154,90 +154,122 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 48),
-                Text(
-                  AppConstants.appName,
-                  style: AppTextStyles.h3.copyWith(
-                    fontSize: 22,
-                    color: AppColors.onSurface,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment(0, -0.4),
+            radius: 1.2,
+            colors: [
+              Color(0xFFFFFFFF),
+              Color(0xFFE3F2FD),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 48),
+                  Text(
+                    'VTALK',
+                    style: AppTextStyles.h3.copyWith(
+                      fontSize: 26,
+                      letterSpacing: 10.0,
+                      fontWeight: FontWeight.w200,
+                      color: const Color(0xFF1A1A1A).withOpacity(0.8),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  l10n.login_subtitle,
-                  style: AppTextStyles.body.copyWith(
-                    color: AppColors.onSurfaceVariant,
-                    fontSize: 16,
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.login_subtitle,
+                    style: AppTextStyles.body.copyWith(
+                      color: AppColors.onSurfaceVariant,
+                      fontSize: 16,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 40),
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0x0D000000),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
+                  const SizedBox(height: 40),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.03),
+                          blurRadius: 50,
+                          offset: const Offset(0, 20),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        AiryInputField(
+                          controller: _loginController,
+                          label: l10n.login_label,
+                          hint: _getLoginHint(context),
+                          keyboardType: _getKeyboardType(),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildLoginMethodToggle(context),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _onLetsStart,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
                       ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildLoginMethodToggle(context),
-                      const SizedBox(height: 16),
-                      AiryInputField(
-                        controller: _loginController,
-                        label: l10n.login_label,
-                        hint: _getLoginHint(context),
-                        keyboardType: _getKeyboardType(),
+                      child: Text(
+                        l10n.login_primary_button,
+                        style: AppTextStyles.button.copyWith(
+                          letterSpacing: 2.0,
+                        ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 32),
-                AiryButton(
-                  text: l10n.login_primary_button,
-                  onPressed: _onLetsStart,
-                  fullWidth: true,
-                  height: 52,
-                  backgroundColor: const Color(0xFF1A1A1A),
-                ),
-                const SizedBox(height: 24),
-                _buildDivider(),
-                const SizedBox(height: 24),
-                AiryButton(
-                  text: l10n.login_google,
-                  onPressed: _onSignInWithGoogle,
-                  fullWidth: true,
-                  height: 52,
-                  backgroundColor: Colors.white,
-                  textColor: AppColors.onSurface,
-                  icon: Icon(Icons.g_mobiledata_rounded, color: AppColors.onSurface, size: 24),
-                ),
-                const SizedBox(height: 12),
-                AiryButton(
-                  text: l10n.login_apple,
-                  onPressed: _onSignInWithApple,
-                  fullWidth: true,
-                  height: 52,
-                  backgroundColor: AppColors.onSurface,
-                  textColor: Colors.white,
-                  icon: const Icon(Icons.apple, color: Colors.white, size: 24),
-                ),
-              ],
+                  const SizedBox(height: 24),
+                  _buildDivider(),
+                  const SizedBox(height: 24),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(30),
+                    child: AiryButton(
+                      text: l10n.login_google,
+                      onPressed: _onSignInWithGoogle,
+                      fullWidth: true,
+                      height: 52,
+                      backgroundColor: Colors.white,
+                      textColor: AppColors.onSurface,
+                      icon: Icon(Icons.g_mobiledata_rounded, color: AppColors.onSurface, size: 24),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(30),
+                    child: AiryButton(
+                      text: l10n.login_apple,
+                      onPressed: _onSignInWithApple,
+                      fullWidth: true,
+                      height: 52,
+                      backgroundColor: AppColors.onSurface,
+                      textColor: Colors.white,
+                      icon: const Icon(Icons.apple, color: Colors.white, size: 24),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

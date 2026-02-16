@@ -40,7 +40,6 @@ dependencies:
   cached_network_image: ^3.2.3
   image_picker: ^1.2.1
   flutter_launcher_icons: ^0.13.1
-  flutter_native_splash: ^2.3.6
   flutter_emoji: ^2.2.0
   
   # 🚨 НОВЫЕ ПАКЕТЫ ДЛЯ BETA:
@@ -112,12 +111,5 @@ flutter_launcher_icons:
   adaptive_icon_background: "#1A1A2E"
   adaptive_icon_foreground: "assets/images/app_logo_mercury.png"
 
-# Flutter Native Splash Configuration
-flutter_native_splash:
-  color: "#1A1A2E"
-  image: assets/images/app_logo_mercury.png
-  android_12:
-    image: assets/images/app_logo_mercury.png
-    color: "#1A1A2E"
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
