@@ -204,10 +204,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                     ),
-                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+                    padding: const EdgeInsets.fromLTRB(24, 40, 24, 48),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        Center(
+                          child: Image.asset(
+                            'assets/images/logo_bnb.png',
+                            height: 80,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
                         AiryInputField(
                           controller: _loginController,
                           label: l10n.login_label,
@@ -243,16 +251,33 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 24),
                   _buildDivider(),
                   const SizedBox(height: 24),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(30),
-                    child: AiryButton(
-                      text: l10n.login_google,
+                  SizedBox(
+                    height: 52,
+                    child: ElevatedButton(
                       onPressed: _onSignInWithGoogle,
-                      fullWidth: true,
-                      height: 52,
-                      backgroundColor: Colors.white,
-                      textColor: AppColors.onSurface,
-                      icon: Icon(Icons.g_mobiledata_rounded, color: AppColors.onSurface, size: 24),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFF5F5F5),
+                        foregroundColor: Colors.black87,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.g_mobiledata_rounded, size: 24),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              l10n.login_google,
+                              style: AppTextStyles.button,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
