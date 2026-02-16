@@ -39,4 +39,14 @@ class AppColors {
   static const Color onlineStatus = Colors.green;
   static const Color offlineStatus = Colors.red;
   static const Color pendingStatus = Colors.orange;
+  
+  // Design System Colors
+  static const Color primary = Color(0xFF1A1A1A);
+  static const Color accent = Color(0xFF00A3FF);
+  static const Color onSurface = Color(0xFF1A1A1A);
+  static const Color surface = Color(0xFFFFFFFF);
+  static const Color surfaceVariant = Color(0xFFF8F9FA);
+  static const Color onSurfaceVariant = Color(0xFF666666);
+  static const Color background = Color(0xFFFAFAFA);
+  static const Color error = Color(0xFFB00020);
 }

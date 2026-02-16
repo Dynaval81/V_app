@@ -155,6 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: Container(
+        constraints: const BoxConstraints.expand(),
         decoration: const BoxDecoration(
           gradient: RadialGradient(
             center: Alignment(0, -0.4),
@@ -174,13 +175,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 48),
-                  Text(
-                    'VTALK',
-                    style: AppTextStyles.h3.copyWith(
-                      fontSize: 26,
-                      letterSpacing: 10.0,
-                      fontWeight: FontWeight.w200,
-                      color: const Color(0xFF1A1A1A).withOpacity(0.8),
+                  Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset('assets/images/logo_bnb.png', height: 80),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'TALK',
+                          style: TextStyle(
+                            fontSize: 24,
+                            letterSpacing: 12,
+                            fontWeight: FontWeight.w200,
+                            color: Color(0xFF1A1A1A),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -204,17 +214,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                     ),
-                    padding: const EdgeInsets.fromLTRB(24, 40, 24, 48),
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 48),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Center(
-                          child: Image.asset(
-                            'assets/images/logo_bnb.png',
-                            height: 80,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
                         const SizedBox(height: 24),
                         AiryInputField(
                           controller: _loginController,
@@ -256,11 +259,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: ElevatedButton(
                       onPressed: _onSignInWithGoogle,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFF5F5F5),
+                        backgroundColor: const Color(0xFFF8F9FA),
                         foregroundColor: Colors.black87,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
+                          side: const BorderSide(color: Color(0xFFEEEEEE)),
                         ),
                       ),
                       child: Row(
