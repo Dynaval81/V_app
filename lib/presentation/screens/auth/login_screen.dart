@@ -180,13 +180,32 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 40),
-                _buildLoginMethodToggle(context),
-                const SizedBox(height: 16),
-                AiryInputField(
-                  controller: _loginController,
-                  label: l10n.login_label,
-                  hint: _getLoginHint(context),
-                  keyboardType: _getKeyboardType(),
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0x0D000000),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildLoginMethodToggle(context),
+                      const SizedBox(height: 16),
+                      AiryInputField(
+                        controller: _loginController,
+                        label: l10n.login_label,
+                        hint: _getLoginHint(context),
+                        keyboardType: _getKeyboardType(),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 32),
                 AiryButton(
@@ -194,6 +213,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: _onLetsStart,
                   fullWidth: true,
                   height: 52,
+                  backgroundColor: const Color(0xFF1A1A1A),
                 ),
                 const SizedBox(height: 24),
                 _buildDivider(),
