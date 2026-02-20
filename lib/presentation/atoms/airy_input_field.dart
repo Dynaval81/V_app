@@ -54,6 +54,15 @@ class AiryInputField extends StatelessWidget {
             errorText: errorText,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppBorderRadius.input),
+              borderSide: const BorderSide(color: Colors.transparent),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppBorderRadius.input),
+              borderSide: const BorderSide(color: Colors.transparent),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppBorderRadius.input),
+              borderSide: const BorderSide(color: Color(0xFFBBDEFB), width: 1.5),
             ),
             filled: true,
             fillColor: AppColors.surface,
