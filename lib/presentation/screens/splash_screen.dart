@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vtalk_app/core/constants.dart';
 import 'package:vtalk_app/core/constants/app_constants.dart';
-import 'package:vtalk_app/core/controllers/auth_controller.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-/// 🎨 HAI3 Splash Screen with animated logo
-/// Minimalist design with smooth transitions
+/// HAI3 Splash Screen — светлый фон, логотип BnB, плавный переход.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -17,138 +14,130 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
+  late final AnimationController _controller;
+  late final Animation<double> _fadeAnimation;
+  late final Animation<double> _scaleAnimation;
+  late final Animation<double> _exitAnimation;
 
   @override
   void initState() {
     super.initState();
-    
-    // 🎬 Initialize animations
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+
+    _controller = AnimationController(
       vsync: this,
+      duration: const Duration(milliseconds: 2000), // совпадает с задержкой навигации
     );
 
-    // 🌟 Fade animation
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+    // Логотип появляется за первые 40% времени
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.4, curve: Curves.easeOut),
+      ),
+    );
 
-    // 📏 Scale animation
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.elasticOut,
-    ));
+    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.4, curve: Curves.easeOut),
+      ),
+    );
 
-    // 🚀 Start animation
-    _animationController.forward();
+    // Логотип уходит в последние 20% — плавно перед переходом
+    _exitAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.8, 1.0, curve: Curves.easeIn),
+      ),
+    );
 
-    // 🔄 Navigate to auth after delay
-    _navigateToAuth();
+    _controller.forward();
+    _navigateNext();
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
-  void _navigateToAuth() {
-    Future.delayed(const Duration(seconds: 2), () async {
-      if (!mounted) return;
-      final prefs = await SharedPreferences.getInstance();
-      final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-      context.go(isLoggedIn ? '/chats' : '/auth');
-    });
+  Future<void> _navigateNext() async {
+    await Future.delayed(const Duration(milliseconds: 2000));
+    if (!mounted) return;
+    final prefs = await SharedPreferences.getInstance();
+    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    context.go(isLoggedIn ? AppRoutes.home : AppRoutes.auth);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF000000),
+      // Белый фон — нет резкого перехода с нативным сплешем
+      backgroundColor: Colors.white,
       body: Center(
         child: AnimatedBuilder(
-          animation: _animationController,
+          animation: _controller,
           builder: (context, child) {
             return FadeTransition(
-              opacity: _fadeAnimation,
-              child: ScaleTransition(
-                scale: _scaleAnimation,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // 🎯 Logo with HAI3 styling
-                    _buildLogo(),
-                    SizedBox(height: AppSpacing.buttonPadding),
-                    // 📝 App name with HAI3 typography
-                    _buildAppName(),
-                    SizedBox(height: AppSpacing.buttonPadding * 3),
-                    // 🔄 Loading indicator with HAI3 colors
-                    _buildLoadingIndicator(),
-                  ],
+              opacity: _exitAnimation,
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: child,
                 ),
               ),
             );
           },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ── Логотип ───────────────────────────────────────────
+              Container(
+                width: 96,
+                height: 96,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: const [AppShadows.xl],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: Image.asset(
+                    'assets/images/logo_bnb.png',
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // ── Название ──────────────────────────────────────────
+              Text(
+                AppConstants.appName,
+                style: AppTextStyles.h3.copyWith(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                  color: AppColors.onSurface,
+                ),
+              ),
+
+              const SizedBox(height: 48),
+
+              // ── Индикатор загрузки ────────────────────────────────
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                  backgroundColor: AppColors.onSurface.withOpacity(0.08),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
-
-  /// Build animated logo
-  Widget _buildLogo() {
-    return Container(
-      width: 80,
-      height: 80,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-              colors: [Color(0xFF00A3FF), Color(0xFF0066FF)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-        borderRadius: BorderRadius.circular(AppBorderRadius.button),
-        boxShadow: [
-          AppShadows.md,
-        ],
-      ),
-      child: const Icon(
-        Icons.chat_bubble_outline,
-        color: Color(0xFFFFFFFF),
-        size: 40,
-      ),
-    );
-  }
-
-  /// 📝 Build app name with HAI3 typography
-  Widget _buildAppName() {
-    return Text(
-      AppConstants.appName,
-      style: AppTextStyles.h3.copyWith(
-        color: Color(0xFF121212),
-        fontWeight: FontWeight.w800,
-        letterSpacing: 2.0,
-      ),
-    );
-  }
-
-  /// 🔄 Build loading indicator with HAI3 styling
-  Widget _buildLoadingIndicator() {
-    return SizedBox(
-      width: 24,
-      height: 24,
-      child: CircularProgressIndicator(
-        strokeWidth: 2,
-        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00A3FF)),
-        backgroundColor: Color(0xFF121212).withOpacity(0.2),
       ),
     );
   }
