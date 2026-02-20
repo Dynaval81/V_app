@@ -7,7 +7,6 @@ import 'package:vtalk_app/core/constants/app_constants.dart';
 import 'package:vtalk_app/core/controllers/auth_controller.dart';
 import 'package:vtalk_app/presentation/atoms/airy_input_field.dart';
 
-/// HAI3 Zen Login Screen
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -67,15 +66,9 @@ class _LoginScreenState extends State<LoginScreen>
     if (text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            _getLoginHint(AppLocalizations.of(context)!),
-            style: const TextStyle(color: Colors.white),
-          ),
+          content: Text(_getLoginHint(AppLocalizations.of(context)!)),
           backgroundColor: AppColors.onSurface,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
         ),
       );
       return;
@@ -95,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   void _onRegister() {
-    // TODO: context.go(AppRoutes.register);
+    // TODO: навигация на регистрацию
   }
 
   void _selectMethod(int index) {
@@ -108,49 +101,40 @@ class _LoginScreenState extends State<LoginScreen>
     final AppLocalizations l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      // Фон всего экрана — светло-серый, чтобы не было обрыва
-      backgroundColor: const Color(0xFFF1F3F5),
+      backgroundColor: Colors.white,
       body: SafeArea(
+        bottom: false,
         child: FadeTransition(
           opacity: _fadeAnimation,
           child: Column(
             children: [
-              // ── Скроллируемый контент ────────────────────────────
+              // ── Скроллируемая область ──────────────────────────
               Expanded(
                 child: SingleChildScrollView(
                   clipBehavior: Clip.none,
-                  padding: const EdgeInsets.fromLTRB(28, 0, 28, 0),
+                  padding: const EdgeInsets.symmetric(horizontal: 28),
                   child: Form(
                     key: _formKey,
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const SizedBox(height: 56),
-
-                        // ── Лого + название ──────────────────────
+                        const SizedBox(height: 40),
                         Image.asset(
                           'assets/images/logo_bnb.png',
-                          width: 88,
-                          height: 88,
+                          width: 100,
                           color: AppColors.primary,
-                          fit: BoxFit.contain,
                         ),
-
-                        const SizedBox(height: 16),
-
-                        Text(
-                          AppConstants.appName,
-                          style: const TextStyle(
+                        const SizedBox(height: 12),
+                        const Text(
+                          "VTALK",
+                          style: TextStyle(
                             fontSize: 32,
                             fontWeight: FontWeight.w200,
                             letterSpacing: 10,
                             color: AppColors.primary,
+                            height: 1.0,
                           ),
                         ),
-
-                        const SizedBox(height: 52),
-
-                        // ── Карточка: поле + селектор ────────────
+                        const SizedBox(height: 40),
                         Container(
                           decoration: BoxDecoration(
                             color: Colors.white,
@@ -159,7 +143,6 @@ class _LoginScreenState extends State<LoginScreen>
                           ),
                           padding: const EdgeInsets.all(20),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               AiryInputField(
                                 controller: _loginController,
@@ -180,91 +163,52 @@ class _LoginScreenState extends State<LoginScreen>
                             ],
                           ),
                         ),
-
                         const SizedBox(height: 24),
-
-                        // ── Основная кнопка ──────────────────────
                         _ZenButton(
                           onPressed: _onLetsStart,
                           backgroundColor: AppColors.primary,
-                          child: Text(
-                            l10n.login_primary_button,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
+                          child: Text(l10n.login_primary_button,
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         ),
-
-                        const SizedBox(height: 28),
-
+                        const SizedBox(height: 24),
                         _ZenDivider(label: l10n.login_divider_or),
-
-                        const SizedBox(height: 28),
-
-                        // ── Google ───────────────────────────────
+                        const SizedBox(height: 24),
                         _ZenButton(
                           onPressed: _onSignInWithGoogle,
                           backgroundColor: Colors.white,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.g_mobiledata_rounded,
-                                  color: AppColors.onSurface, size: 24),
-                              const SizedBox(width: 8),
-                              Flexible(
-                                child: Text(
-                                  l10n.login_google,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: AppTextStyles.body.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
+                              Icon(Icons.g_mobiledata_rounded, color: AppColors.onSurface, size: 32),
+                              const SizedBox(width: 4),
+                              Text(l10n.login_google, style: const TextStyle(fontWeight: FontWeight.w500)),
                             ],
                           ),
                         ),
-
                         const SizedBox(height: 12),
-
-                        // ── Apple ────────────────────────────────
                         _ZenButton(
                           onPressed: _onSignInWithApple,
                           backgroundColor: AppColors.onSurface,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.apple,
-                                  color: Colors.white, size: 22),
+                              const Icon(Icons.apple, color: Colors.white, size: 22),
                               const SizedBox(width: 8),
-                              Flexible(
-                                child: Text(
-                                  l10n.login_apple,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
+                              Text(l10n.login_apple, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
                             ],
                           ),
                         ),
-
-                        // Место для тени кнопки Apple
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 40), // Место для тени последней кнопки
                       ],
                     ),
                   ),
                 ),
               ),
 
-              // ── Регистрация — на сером фоне с разделителем ──────
+              // ── Фиксированный футер (Регистрация) ───────────────
               Container(
+                width: double.infinity,
+                padding: const EdgeInsets.only(top: 24), // Отступ, чтобы тень сверху не резалась
                 decoration: BoxDecoration(
                   color: const Color(0xFFF1F3F5),
                   border: Border(
@@ -274,28 +218,27 @@ class _LoginScreenState extends State<LoginScreen>
                     ),
                   ),
                 ),
-                child: GestureDetector(
-                  onTap: _onRegister,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 24),
-                    child: Center(
-                      child: RichText(
-                        text: TextSpan(
-                          style: AppTextStyles.body.copyWith(
-                            color: AppColors.onSurfaceVariant,
-                            fontSize: 14,
-                          ),
-                          children: [
-                            TextSpan(text: l10n.login_no_account),
-                            TextSpan(
-                              text: l10n.login_register,
-                              style: TextStyle(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
+                child: SafeArea(
+                  top: false,
+                  child: GestureDetector(
+                    onTap: _onRegister,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 24),
+                      child: Center(
+                        child: RichText(
+                          text: TextSpan(
+                            style: const TextStyle(color: Colors.grey, fontSize: 14),
+                            children: [
+                              TextSpan(text: l10n.login_no_account),
+                              TextSpan(
+                                text: l10n.login_register,
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -310,7 +253,7 @@ class _LoginScreenState extends State<LoginScreen>
   }
 }
 
-// ── Виджеты ────────────────────────────────────────────────────────────────────
+// ── Вспомогательные виджеты ──────────────────────────────────────────
 
 class _ZenButton extends StatelessWidget {
   final VoidCallback onPressed;
@@ -328,28 +271,26 @@ class _ZenButton extends StatelessWidget {
     final bool isLight = backgroundColor == Colors.white;
     return Container(
       width: double.infinity,
-      height: 54,
+      height: 56,
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(27),
-        border: isLight
-            ? Border.all(color: AppColors.onSurface.withOpacity(0.08))
-            : null,
+        borderRadius: BorderRadius.circular(20),
+        border: isLight ? Border.all(color: AppColors.onSurface.withOpacity(0.08)) : null,
         boxShadow: [
-          isLight
-              ? AppShadows.sm
-              : BoxShadow(
-                  color: backgroundColor.withOpacity(0.30),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
+          isLight 
+            ? AppShadows.sm 
+            : BoxShadow(
+                color: backgroundColor.withOpacity(0.25),
+                blurRadius: 15,
+                offset: const Offset(0, 6),
+              ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(27),
+          borderRadius: BorderRadius.circular(20),
           child: Center(child: child),
         ),
       ),
@@ -371,10 +312,10 @@ class _MethodSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 44,
+      height: 48,
       decoration: BoxDecoration(
         color: const Color(0xFFF1F3F5),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
       ),
       padding: const EdgeInsets.all(4),
       child: Row(
@@ -385,24 +326,19 @@ class _MethodSelector extends StatelessWidget {
               onTap: () => onSelect(index),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
-                curve: const Cubic(0.23, 1.0, 0.32, 1.0),
+                curve: Curves.easeOutCubic,
                 decoration: BoxDecoration(
                   color: isActive ? Colors.white : Colors.transparent,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: isActive ? const [AppShadows.sm] : null,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: isActive ? [AppShadows.sm] : null,
                 ),
                 alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Text(
                   labels[index],
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                    color: isActive
-                        ? AppColors.primary
-                        : AppColors.onSurfaceVariant,
+                    color: isActive ? AppColors.primary : AppColors.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -416,35 +352,18 @@ class _MethodSelector extends StatelessWidget {
 
 class _ZenDivider extends StatelessWidget {
   final String label;
-
   const _ZenDivider({required this.label});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(
-          child: Divider(
-            color: AppColors.onSurface.withOpacity(0.08),
-            thickness: 1,
-          ),
-        ),
+        Expanded(child: Divider(color: AppColors.onSurface.withOpacity(0.06))),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            label,
-            style: AppTextStyles.body.copyWith(
-              color: AppColors.onSurfaceVariant,
-              fontSize: 13,
-            ),
-          ),
+          child: Text(label, style: TextStyle(color: AppColors.onSurfaceVariant.withOpacity(0.5), fontSize: 12)),
         ),
-        Expanded(
-          child: Divider(
-            color: AppColors.onSurface.withOpacity(0.08),
-            thickness: 1,
-          ),
-        ),
+        Expanded(child: Divider(color: AppColors.onSurface.withOpacity(0.06))),
       ],
     );
   }

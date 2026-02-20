@@ -1,9 +1,9 @@
-/// 📋 V-Talk Beta Constants
+/// 📋 VTalk Beta Constants
 /// HAI3 compliant constants and configuration
 
 class AppConstants {
   // 📱 App Information
-  static const String appName = 'V-Talk';
+  static const String appName = 'VTalk';
   static const String appVersion = '1.0.0';
   static const String appBuildNumber = '1';
   
