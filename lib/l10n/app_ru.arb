@@ -12,5 +12,7 @@
   "login_primary_button": "Поехали",
   "login_divider_or": "или",
   "login_google": "Войти через Google",
-  "login_apple": "Войти через Apple"
+  "login_apple": "Войти через Apple",
+  "login_no_account": "Нет аккаунта? ",
+  "login_register": "Зарегистрироваться"
 }

@@ -7,8 +7,7 @@ import 'package:vtalk_app/core/constants/app_constants.dart';
 import 'package:vtalk_app/core/controllers/auth_controller.dart';
 import 'package:vtalk_app/presentation/atoms/airy_input_field.dart';
 
-/// HAI3 Zen Minimalist Login Screen
-/// Philosophy: vast whitespace, soft depth, single focus.
+/// HAI3 Zen Login Screen
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -20,7 +19,6 @@ class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
   final TextEditingController _loginController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
   int _loginMethodIndex = 0;
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
@@ -48,39 +46,30 @@ class _LoginScreenState extends State<LoginScreen>
 
   String _getLoginHint(AppLocalizations l10n) {
     switch (_loginMethodIndex) {
-      case 0:
-        return l10n.login_hint_email;
-      case 1:
-        return l10n.login_hint_vtalk_id;
-      case 2:
-        return l10n.login_hint_nickname;
-      default:
-        return l10n.login_hint_email;
+      case 0: return l10n.login_hint_email;
+      case 1: return l10n.login_hint_vtalk_id;
+      case 2: return l10n.login_hint_nickname;
+      default: return l10n.login_hint_email;
     }
   }
 
   TextInputType _getKeyboardType() {
     switch (_loginMethodIndex) {
-      case 0:
-        return TextInputType.emailAddress;
-      case 1:
-        // V-Talk ID — может содержать цифры и буквы
-        return TextInputType.visiblePassword;
-      case 2:
-        return TextInputType.name;
-      default:
-        return TextInputType.text;
+      case 0: return TextInputType.emailAddress;
+      case 1: return TextInputType.visiblePassword;
+      case 2: return TextInputType.name;
+      default: return TextInputType.text;
     }
   }
 
   void _onLetsStart() {
-    final text = _loginController.text.trim();
+    final String text = _loginController.text.trim();
     if (text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            _getValidationHint(),
-            style: AppTextStyles.body.copyWith(color: Colors.white),
+            _getLoginHint(AppLocalizations.of(context)!),
+            style: const TextStyle(color: Colors.white),
           ),
           backgroundColor: AppColors.onSurface,
           behavior: SnackBarBehavior.floating,
@@ -95,20 +84,6 @@ class _LoginScreenState extends State<LoginScreen>
     context.go(AppRoutes.home);
   }
 
-  String _getValidationHint() {
-    final AppLocalizations l10n = AppLocalizations.of(context)!;
-    switch (_loginMethodIndex) {
-      case 0:
-        return l10n.login_hint_email;
-      case 1:
-        return l10n.login_hint_vtalk_id;
-      case 2:
-        return l10n.login_hint_nickname;
-      default:
-        return l10n.login_hint_email;
-    }
-  }
-
   void _onSignInWithGoogle() {
     context.read<AuthController>().login();
     context.go(AppRoutes.home);
@@ -117,6 +92,10 @@ class _LoginScreenState extends State<LoginScreen>
   void _onSignInWithApple() {
     context.read<AuthController>().login();
     context.go(AppRoutes.home);
+  }
+
+  void _onRegister() {
+    // TODO: context.go(AppRoutes.register);
   }
 
   void _selectMethod(int index) {
@@ -129,166 +108,201 @@ class _LoginScreenState extends State<LoginScreen>
     final AppLocalizations l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F8F8),
+      // Фон всего экрана — светло-серый, чтобы не было обрыва
+      backgroundColor: const Color(0xFFF1F3F5),
       body: SafeArea(
         child: FadeTransition(
           opacity: _fadeAnimation,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 28),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 64),
-
-                  // ── Logo ───────────────────────────────────────────────
-                  const _AppLogo(),
-
-                  const SizedBox(height: 40),
-
-                  // ── Headline ───────────────────────────────────────────
-                  Text(
-                    l10n.login_title,
-                    style: AppTextStyles.h3.copyWith(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 28,
-                      height: 1.15,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    l10n.login_subtitle,
-                    style: AppTextStyles.body.copyWith(
-                      color: AppColors.onSurfaceVariant,
-                      height: 1.5,
-                    ),
-                  ),
-
-                  const SizedBox(height: 40),
-
-                  // ── Card с методом входа и инпутом ─────────────────────
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(28),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.06),
-                          blurRadius: 24,
-                          offset: const Offset(0, 8),
-                        ),
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.03),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              // ── Скроллируемый контент ────────────────────────────
+              Expanded(
+                child: SingleChildScrollView(
+                  clipBehavior: Clip.none,
+                  padding: const EdgeInsets.fromLTRB(28, 0, 28, 0),
+                  child: Form(
+                    key: _formKey,
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        _MethodSelector(
-                          selected: _loginMethodIndex,
-                          labels: [
-                            l10n.login_method_email,
-                            l10n.login_method_vtalk_id,
-                            l10n.login_method_nickname,
-                          ],
-                          onSelect: _selectMethod,
+                        const SizedBox(height: 56),
+
+                        // ── Лого + название ──────────────────────
+                        Image.asset(
+                          'assets/images/logo_bnb.png',
+                          width: 88,
+                          height: 88,
+                          color: AppColors.primary,
+                          fit: BoxFit.contain,
                         ),
+
                         const SizedBox(height: 16),
-                        AiryInputField(
-                          controller: _loginController,
-                          label: l10n.login_label,
-                          hint: _getLoginHint(l10n),
-                          keyboardType: _getKeyboardType(),
+
+                        Text(
+                          AppConstants.appName,
+                          style: const TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w200,
+                            letterSpacing: 10,
+                            color: AppColors.primary,
+                          ),
                         ),
+
+                        const SizedBox(height: 52),
+
+                        // ── Карточка: поле + селектор ────────────
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(28),
+                            boxShadow: const [AppShadows.md],
+                          ),
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              AiryInputField(
+                                controller: _loginController,
+                                label: l10n.login_label,
+                                hint: _getLoginHint(l10n),
+                                keyboardType: _getKeyboardType(),
+                              ),
+                              const SizedBox(height: 16),
+                              _MethodSelector(
+                                selected: _loginMethodIndex,
+                                labels: [
+                                  l10n.login_method_email,
+                                  l10n.login_method_vtalk_id,
+                                  l10n.login_method_nickname,
+                                ],
+                                onSelect: _selectMethod,
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // ── Основная кнопка ──────────────────────
+                        _ZenButton(
+                          onPressed: _onLetsStart,
+                          backgroundColor: AppColors.primary,
+                          child: Text(
+                            l10n.login_primary_button,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 28),
+
+                        _ZenDivider(label: l10n.login_divider_or),
+
+                        const SizedBox(height: 28),
+
+                        // ── Google ───────────────────────────────
+                        _ZenButton(
+                          onPressed: _onSignInWithGoogle,
+                          backgroundColor: Colors.white,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.g_mobiledata_rounded,
+                                  color: AppColors.onSurface, size: 24),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  l10n.login_google,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppTextStyles.body.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // ── Apple ────────────────────────────────
+                        _ZenButton(
+                          onPressed: _onSignInWithApple,
+                          backgroundColor: AppColors.onSurface,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.apple,
+                                  color: Colors.white, size: 22),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  l10n.login_apple,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Место для тени кнопки Apple
+                        const SizedBox(height: 24),
                       ],
                     ),
                   ),
+                ),
+              ),
 
-                  const SizedBox(height: 24),
-
-                  // ── Primary CTA ────────────────────────────────────────
-                  _ShadowButton(
-                    onPressed: _onLetsStart,
-                    backgroundColor: AppColors.primary,
-                    child: Text(
-                      l10n.login_primary_button,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
+              // ── Регистрация — на сером фоне с разделителем ──────
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F3F5),
+                  border: Border(
+                    top: BorderSide(
+                      color: AppColors.onSurface.withOpacity(0.06),
+                      width: 1,
+                    ),
+                  ),
+                ),
+                child: GestureDetector(
+                  onTap: _onRegister,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: RichText(
+                        text: TextSpan(
+                          style: AppTextStyles.body.copyWith(
+                            color: AppColors.onSurfaceVariant,
+                            fontSize: 14,
+                          ),
+                          children: [
+                            TextSpan(text: l10n.login_no_account),
+                            TextSpan(
+                              text: l10n.login_register,
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-
-                  const SizedBox(height: 28),
-
-                  // ── Divider ────────────────────────────────────────────
-                  _ZenDivider(label: l10n.login_divider_or),
-
-                  const SizedBox(height: 28),
-
-                  // ── Social buttons ─────────────────────────────────────
-                  _ShadowButton(
-                    onPressed: _onSignInWithGoogle,
-                    backgroundColor: Colors.white,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.g_mobiledata_rounded,
-                          color: AppColors.onSurface,
-                          size: 24,
-                        ),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            l10n.login_google,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTextStyles.button.copyWith(
-                              color: AppColors.onSurface,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  _ShadowButton(
-                    onPressed: _onSignInWithApple,
-                    backgroundColor: AppColors.onSurface,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.apple, color: Colors.white, size: 22),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            l10n.login_apple,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTextStyles.button.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 48),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
@@ -296,40 +310,14 @@ class _LoginScreenState extends State<LoginScreen>
   }
 }
 
-// ── Atoms ──────────────────────────────────────────────────────────────────────
+// ── Виджеты ────────────────────────────────────────────────────────────────────
 
-/// Реальный логотип приложения из assets/images/
-class _AppLogo extends StatelessWidget {
-  const _AppLogo();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 56,
-      height: 56,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [AppShadows.xl],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Image.asset(
-          'assets/images/logo_bnb.png',
-          fit: BoxFit.contain,
-        ),
-      ),
-    );
-  }
-}
-
-/// Кнопка с мягкой тенью — заменяет AiryButton для HAI3-глубины.
-class _ShadowButton extends StatelessWidget {
+class _ZenButton extends StatelessWidget {
   final VoidCallback onPressed;
   final Color backgroundColor;
   final Widget child;
 
-  const _ShadowButton({
+  const _ZenButton({
     required this.onPressed,
     required this.backgroundColor,
     required this.child,
@@ -345,15 +333,15 @@ class _ShadowButton extends StatelessWidget {
         color: backgroundColor,
         borderRadius: BorderRadius.circular(27),
         border: isLight
-            ? Border.all(color: AppColors.onSurface.withOpacity(0.1))
+            ? Border.all(color: AppColors.onSurface.withOpacity(0.08))
             : null,
         boxShadow: [
           isLight
-              ? AppShadows.md
+              ? AppShadows.sm
               : BoxShadow(
-                  color: backgroundColor.withOpacity(0.35),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
+                  color: backgroundColor.withOpacity(0.30),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
                 ),
         ],
       ),
@@ -369,7 +357,6 @@ class _ShadowButton extends StatelessWidget {
   }
 }
 
-/// Method selector: pill tabs, no heavy borders, pure ink underline feel.
 class _MethodSelector extends StatelessWidget {
   final int selected;
   final List<String> labels;
@@ -386,7 +373,7 @@ class _MethodSelector extends StatelessWidget {
     return Container(
       height: 44,
       decoration: BoxDecoration(
-        color: const Color(0xFFF4F4F4),
+        color: const Color(0xFFF1F3F5),
         borderRadius: BorderRadius.circular(24),
       ),
       padding: const EdgeInsets.all(4),
@@ -397,20 +384,12 @@ class _MethodSelector extends StatelessWidget {
             child: GestureDetector(
               onTap: () => onSelect(index),
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
+                duration: const Duration(milliseconds: 300),
+                curve: const Cubic(0.23, 1.0, 0.32, 1.0),
                 decoration: BoxDecoration(
                   color: isActive ? Colors.white : Colors.transparent,
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: isActive
-                      ? [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.07),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ]
-                      : null,
+                  boxShadow: isActive ? const [AppShadows.sm] : null,
                 ),
                 alignment: Alignment.center,
                 padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -422,7 +401,7 @@ class _MethodSelector extends StatelessWidget {
                     fontSize: 13,
                     fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
                     color: isActive
-                        ? AppColors.onSurface
+                        ? AppColors.primary
                         : AppColors.onSurfaceVariant,
                   ),
                 ),
@@ -435,7 +414,6 @@ class _MethodSelector extends StatelessWidget {
   }
 }
 
-/// Minimal divider with centered label.
 class _ZenDivider extends StatelessWidget {
   final String label;
 
@@ -447,7 +425,7 @@ class _ZenDivider extends StatelessWidget {
       children: [
         Expanded(
           child: Divider(
-            color: const Color(0xFFE8E8E8),
+            color: AppColors.onSurface.withOpacity(0.08),
             thickness: 1,
           ),
         ),
@@ -463,7 +441,7 @@ class _ZenDivider extends StatelessWidget {
         ),
         Expanded(
           child: Divider(
-            color: const Color(0xFFE8E8E8),
+            color: AppColors.onSurface.withOpacity(0.08),
             thickness: 1,
           ),
         ),

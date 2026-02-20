@@ -46,4 +46,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get login_apple => 'Mit Apple anmelden';
+
+  @override
+  String get login_no_account => 'Kein Konto? ';
+
+  @override
+  String get login_register => 'Registrieren';
 }

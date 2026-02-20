@@ -12,5 +12,7 @@
   "login_primary_button": "Los geht's",
   "login_divider_or": "oder",
   "login_google": "Mit Google anmelden",
-  "login_apple": "Mit Apple anmelden"
+  "login_apple": "Mit Apple anmelden",
+  "login_no_account": "Kein Konto? ",
+  "login_register": "Registrieren"
 }

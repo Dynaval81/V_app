@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 import 'package:vtalk_app/core/constants.dart';
 import 'package:vtalk_app/core/constants/app_constants.dart';
+import 'package:vtalk_app/core/controllers/auth_controller.dart';
 
-/// HAI3 Splash Screen — светлый фон, логотип BnB, плавный переход.
+/// HAI3 Zen Splash — бесшовный переход, дыхание логотипа, фирменный тэглайн.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -13,131 +14,134 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _fadeAnimation;
-  late final Animation<double> _scaleAnimation;
-  late final Animation<double> _exitAnimation;
+    with TickerProviderStateMixin {
+  late final AnimationController _entryController;
+  late final Animation<double> _fadeIn;
+  late final Animation<double> _slideUp;
+
+  late final AnimationController _breathController;
+  late final Animation<double> _breathScale;
 
   @override
   void initState() {
     super.initState();
 
-    _controller = AnimationController(
+    _entryController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2000), // совпадает с задержкой навигации
+      duration: const Duration(milliseconds: 900),
     );
 
-    // Логотип появляется за первые 40% времени
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    _fadeIn = CurvedAnimation(
+      parent: _entryController,
+      curve: const Interval(0.0, 0.7, curve: Curves.easeOut),
+    );
+
+    _slideUp = Tween<double>(begin: 24.0, end: 0.0).animate(
       CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 0.4, curve: Curves.easeOut),
+        parent: _entryController,
+        curve: const Interval(0.0, 0.7, curve: Curves.easeOut),
       ),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 0.4, curve: Curves.easeOut),
-      ),
+    _breathController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2800),
+    )..repeat(reverse: true);
+
+    _breathScale = Tween<double>(begin: 0.97, end: 1.03).animate(
+      CurvedAnimation(parent: _breathController, curve: Curves.easeInOut),
     );
 
-    // Логотип уходит в последние 20% — плавно перед переходом
-    _exitAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.8, 1.0, curve: Curves.easeIn),
-      ),
-    );
-
-    _controller.forward();
-    _navigateNext();
+    _entryController.forward();
+    _navigate();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _entryController.dispose();
+    _breathController.dispose();
     super.dispose();
   }
 
-  Future<void> _navigateNext() async {
-    await Future.delayed(const Duration(milliseconds: 2000));
+  Future<void> _navigate() async {
+    await Future.delayed(const Duration(milliseconds: 2600));
     if (!mounted) return;
-    final prefs = await SharedPreferences.getInstance();
-    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-    context.go(isLoggedIn ? AppRoutes.home : AppRoutes.auth);
+    final bool isAuthenticated =
+        context.read<AuthController>().isAuthenticated;
+    context.go(isAuthenticated ? AppRoutes.home : AppRoutes.auth);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Белый фон — нет резкого перехода с нативным сплешем
       backgroundColor: Colors.white,
-      body: Center(
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, child) {
-            return FadeTransition(
-              opacity: _exitAnimation,
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: child,
-                ),
-              ),
-            );
-          },
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // ── Логотип ───────────────────────────────────────────
-              Container(
-                width: 96,
-                height: 96,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: const [AppShadows.xl],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
-                  child: Image.asset(
-                    'assets/images/logo_bnb.png',
-                    fit: BoxFit.contain,
+      body: Stack(
+        children: [
+          Center(
+            child: AnimatedBuilder(
+              animation: _entryController,
+              builder: (context, child) {
+                return FadeTransition(
+                  opacity: _fadeIn,
+                  child: Transform.translate(
+                    offset: Offset(0, _slideUp.value),
+                    child: child,
                   ),
-                ),
+                );
+              },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ScaleTransition(
+                    scale: _breathScale,
+                    child: Image.asset(
+                      'assets/images/logo_bnb.png',
+                      width: 96,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    AppConstants.appName,
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w200,
+                      letterSpacing: 10,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
               ),
-
-              const SizedBox(height: 24),
-
-              // ── Название ──────────────────────────────────────────
-              Text(
-                AppConstants.appName,
-                style: AppTextStyles.h3.copyWith(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.5,
-                  color: AppColors.onSurface,
-                ),
-              ),
-
-              const SizedBox(height: 48),
-
-              // ── Индикатор загрузки ────────────────────────────────
-              SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                  backgroundColor: AppColors.onSurface.withOpacity(0.08),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+          Positioned(
+            bottom: 48,
+            left: 0,
+            right: 0,
+            child: FadeTransition(
+              opacity: _fadeIn,
+              child: Column(
+                children: [
+                  Image.asset(
+                    'assets/images/hai_3_light.png',
+                    width: 72,
+                    fit: BoxFit.contain,
+                    color: AppColors.primary.withOpacity(0.25),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Crafted by the canons of digital zen',
+                    style: TextStyle(
+                      fontSize: 11,
+                      letterSpacing: 0.4,
+                      color: AppColors.onSurfaceVariant.withOpacity(0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

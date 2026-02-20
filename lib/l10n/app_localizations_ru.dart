@@ -46,4 +46,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get login_apple => 'Войти через Apple';
+
+  @override
+  String get login_no_account => 'Нет аккаунта? ';
+
+  @override
+  String get login_register => 'Зарегистрироваться';
 }
