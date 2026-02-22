@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:vtalk_app/core/constants.dart';
 import 'package:vtalk_app/core/constants/app_constants.dart';
 import 'package:vtalk_app/core/controllers/auth_controller.dart';
 import 'package:vtalk_app/core/controllers/chat_controller.dart';
 import 'package:vtalk_app/core/controllers/tab_visibility_controller.dart';
+import 'package:vtalk_app/core/controllers/vpn_controller.dart';
 import 'package:vtalk_app/presentation/screens/auth/login_screen.dart';
 import 'package:vtalk_app/presentation/screens/chat/chat_room_screen.dart';
 import 'package:vtalk_app/presentation/screens/settings_screen.dart';
@@ -15,6 +15,7 @@ import 'package:vtalk_app/presentation/screens/splash_screen.dart';
 import 'package:vtalk_app/presentation/widgets/airy_button.dart';
 import 'package:vtalk_app/presentation/widgets/organisms/main_nav_shell.dart';
 import 'package:vtalk_app/data/models/chat_room.dart';
+import 'package:vtalk_app/providers/user_provider.dart';
 import 'package:vtalk_app/theme_provider.dart';
 import 'package:vtalk_app/theme/app_theme.dart';
 import 'l10n/app_localizations.dart';
@@ -22,17 +23,29 @@ import 'l10n/app_localizations.dart';
 /// 🚀 V-Talk Beta - HAI3 Architecture
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final prefs = await SharedPreferences.getInstance();
-  final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-  final initialLocation = isLoggedIn ? AppRoutes.home : AppRoutes.splash;
+
+  // Wire AuthController → UserProvider
+  final userProvider = UserProvider();
+  final authController = AuthController(
+    onUserLoaded: userProvider.setUser,
+  );
+
+  // Restore session from SecureStorage before first render
+  await authController.tryRestoreSession();
+
+  final initialLocation = authController.isAuthenticated
+      ? AppRoutes.home
+      : AppRoutes.splash;
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthController()),
+        ChangeNotifierProvider.value(value: authController),
+        ChangeNotifierProvider.value(value: userProvider),
         ChangeNotifierProvider(create: (_) => ChatController()),
         ChangeNotifierProvider(create: (_) => TabVisibilityController()..load()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()..initializeTheme()),
+        ChangeNotifierProvider(create: (_) => VpnController()),
       ],
       child: VTalkApp(initialLocation: initialLocation),
     ),
@@ -121,11 +134,7 @@ class _ErrorScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red,
-            ),
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
             const SizedBox(height: AppSpacing.buttonPadding),
             Text(
               'Something went wrong',

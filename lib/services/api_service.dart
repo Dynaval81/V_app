@@ -485,7 +485,68 @@ class ApiService {
       return {'success': false, 'error': 'Network error: ${e.toString()}'};
     }
   }
+  // ⭐ VPN: СПИСОК СЕРВЕРОВ
+  Future<Map<String, dynamic>> getVpnServers({String? purpose}) async {
+    try {
+      final token = await _secureStorage.read(key: _tokenKey);
+      if (token == null) return {'success': false, 'error': 'No token'};
 
+      final uri = Uri.parse('$_baseUrl/vpn/servers').replace(
+        queryParameters: purpose != null ? {'purpose': purpose} : null,
+      );
+
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(_timeout);
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        final servers = data['data']?['servers'] ?? data['servers'] ?? [];
+        return {'success': true, 'servers': servers};
+      } else {
+        return {
+          'success': false,
+          'error': data['message'] ?? 'Failed to load servers',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'error': 'Network error: ${e.toString()}'};
+    }
+  }
+
+  // ⭐ VPN: КОНФИГ ДЛЯ КОНКРЕТНОГО УЗЛА
+  Future<Map<String, dynamic>> getVpnConfig(String nodeId) async {
+    try {
+      final token = await _secureStorage.read(key: _tokenKey);
+      if (token == null) return {'success': false, 'error': 'No token'};
+
+      final response = await http.get(
+        Uri.parse('$_baseUrl/vpn/config/$nodeId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(_timeout);
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'data': data['data'] ?? data};
+      } else {
+        return {
+          'success': false,
+          'error': data['message'] ?? 'Failed to load config',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'error': 'Network error: ${e.toString()}'};
+    }
+  }
   // Выход
   Future<void> logout() async {
     await _secureStorage.delete(key: _tokenKey);
