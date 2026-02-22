@@ -52,4 +52,28 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get login_register => 'Зарегистрироваться';
+
+  @override
+  String get login_password_label => 'Пароль';
+
+  @override
+  String get login_password_hint => 'Введите пароль';
+
+  @override
+  String get login_button_submit => 'Войти';
+
+  @override
+  String get login_forgot_password => 'Забыли пароль?';
+
+  @override
+  String get login_change_identifier => 'Изменить';
+
+  @override
+  String get login_error_empty => 'Введите email, VT-ID или никнейм';
+
+  @override
+  String get login_error_empty_password => 'Введите пароль';
+
+  @override
+  String get login_error_network => 'Ошибка сети';
 }

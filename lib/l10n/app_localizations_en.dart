@@ -52,4 +52,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get login_register => 'Sign Up';
+
+  @override
+  String get login_password_label => 'Password';
+
+  @override
+  String get login_password_hint => 'Enter your password';
+
+  @override
+  String get login_button_submit => 'Sign in';
+
+  @override
+  String get login_forgot_password => 'Forgot password?';
+
+  @override
+  String get login_change_identifier => 'Change';
+
+  @override
+  String get login_error_empty => 'Please enter your email, VT-ID or nickname';
+
+  @override
+  String get login_error_empty_password => 'Please enter your password';
+
+  @override
+  String get login_error_network => 'Network error';
 }

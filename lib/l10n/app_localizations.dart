@@ -189,6 +189,54 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Зарегистрироваться'**
   String get login_register;
+
+  /// No description provided for @login_password_label.
+  ///
+  /// In ru, this message translates to:
+  /// **'Пароль'**
+  String get login_password_label;
+
+  /// No description provided for @login_password_hint.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите пароль'**
+  String get login_password_hint;
+
+  /// No description provided for @login_button_submit.
+  ///
+  /// In ru, this message translates to:
+  /// **'Войти'**
+  String get login_button_submit;
+
+  /// No description provided for @login_forgot_password.
+  ///
+  /// In ru, this message translates to:
+  /// **'Забыли пароль?'**
+  String get login_forgot_password;
+
+  /// No description provided for @login_change_identifier.
+  ///
+  /// In ru, this message translates to:
+  /// **'Изменить'**
+  String get login_change_identifier;
+
+  /// No description provided for @login_error_empty.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите email, VT-ID или никнейм'**
+  String get login_error_empty;
+
+  /// No description provided for @login_error_empty_password.
+  ///
+  /// In ru, this message translates to:
+  /// **'Введите пароль'**
+  String get login_error_empty_password;
+
+  /// No description provided for @login_error_network.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ошибка сети'**
+  String get login_error_network;
 }
 
 class _AppLocalizationsDelegate

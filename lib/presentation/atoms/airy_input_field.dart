@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/constants.dart';
+import 'package:vtalk_app/core/constants.dart';
 
 /// HAI3 Atom: Airy Input Field – single-purpose text input.
 class AiryInputField extends StatelessWidget {
@@ -9,6 +9,8 @@ class AiryInputField extends StatelessWidget {
   final IconData? prefixIcon;
   final Widget? suffixIcon;
   final bool obscureText;
+  final bool readOnly;
+  final FocusNode? focusNode;
   final TextInputType? keyboardType;
   final Function(String)? onChanged;
   final Function(String)? onSubmitted;
@@ -22,6 +24,8 @@ class AiryInputField extends StatelessWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.obscureText = false,
+    this.readOnly = false,
+    this.focusNode,
     this.keyboardType,
     this.onChanged,
     this.onSubmitted,
@@ -43,13 +47,22 @@ class AiryInputField extends StatelessWidget {
         const SizedBox(height: 8),
         TextField(
           controller: controller,
+          focusNode: focusNode,
           obscureText: obscureText,
+          readOnly: readOnly,
           keyboardType: keyboardType,
           onChanged: onChanged,
           onSubmitted: onSubmitted,
+          style: TextStyle(
+            color: readOnly
+                ? AppColors.onSurfaceVariant
+                : AppColors.onSurface,
+          ),
           decoration: InputDecoration(
             hintText: hint,
-            prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: AppColors.onSurfaceVariant) : null,
+            prefixIcon: prefixIcon != null
+                ? Icon(prefixIcon, color: AppColors.onSurfaceVariant)
+                : null,
             suffixIcon: suffixIcon,
             errorText: errorText,
             border: OutlineInputBorder(
@@ -64,8 +77,14 @@ class AiryInputField extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppBorderRadius.input),
               borderSide: const BorderSide(color: Color(0xFFBBDEFB), width: 1.5),
             ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppBorderRadius.input),
+              borderSide: const BorderSide(color: Colors.transparent),
+            ),
             filled: true,
-            fillColor: AppColors.surface,
+            fillColor: readOnly
+                ? AppColors.surface.withOpacity(0.5)
+                : AppColors.surface,
           ),
         ),
       ],

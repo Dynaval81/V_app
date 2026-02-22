@@ -52,4 +52,28 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get login_register => 'Registrieren';
+
+  @override
+  String get login_password_label => 'Passwort';
+
+  @override
+  String get login_password_hint => 'Passwort eingeben';
+
+  @override
+  String get login_button_submit => 'Anmelden';
+
+  @override
+  String get login_forgot_password => 'Passwort vergessen?';
+
+  @override
+  String get login_change_identifier => 'Ändern';
+
+  @override
+  String get login_error_empty => 'E-Mail, VT-ID oder Nutzername eingeben';
+
+  @override
+  String get login_error_empty_password => 'Bitte Passwort eingeben';
+
+  @override
+  String get login_error_network => 'Netzwerkfehler';
 }

@@ -14,5 +14,13 @@
   "login_google": "Sign in with Google",
   "login_apple": "Sign in with Apple",
   "login_no_account": "Don't have an account? ",
-  "login_register": "Sign Up"
+  "login_register": "Sign Up",
+  "login_password_label": "Password",
+  "login_password_hint": "Enter your password",
+  "login_button_submit": "Sign in",
+  "login_forgot_password": "Forgot password?",
+  "login_change_identifier": "Change",
+  "login_error_empty": "Please enter your email, VT-ID or nickname",
+  "login_error_empty_password": "Please enter your password",
+  "login_error_network": "Network error"
 }

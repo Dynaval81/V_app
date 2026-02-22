@@ -14,5 +14,13 @@
   "login_google": "Войти через Google",
   "login_apple": "Войти через Apple",
   "login_no_account": "Нет аккаунта? ",
-  "login_register": "Зарегистрироваться"
+  "login_register": "Зарегистрироваться",
+  "login_password_label": "Пароль",
+  "login_password_hint": "Введите пароль",
+  "login_button_submit": "Войти",
+  "login_forgot_password": "Забыли пароль?",
+  "login_change_identifier": "Изменить",
+  "login_error_empty": "Введите email, VT-ID или никнейм",
+  "login_error_empty_password": "Введите пароль",
+  "login_error_network": "Ошибка сети"
 }

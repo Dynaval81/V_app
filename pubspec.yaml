@@ -18,6 +18,9 @@ dependencies:
   http: ^1.2.0
   shared_preferences: ^2.2.2
   intl: ^0.20.2
+  flutter_secure_storage: ^9.0.0
+  cached_network_image: ^3.3.1
+  flutter_svg: ^2.0.9
 
 dev_dependencies:
   flutter_test:
@@ -25,7 +28,6 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   flutter_native_splash: ^2.4.0
 
-# Конфиг нативного сплеша — белый фон, логотип BnB
 flutter_native_splash:
   color: "#FFFFFF"
   image: assets/images/logo_bnb.png

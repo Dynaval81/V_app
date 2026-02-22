@@ -1,3 +1,7 @@
+/// Canonical User model. Single source of truth.
+/// Path: lib/data/models/user_model.dart
+///
+/// lib/models/user_model.dart — DELETED (duplicate with broken encoding)
 class User {
   final String id;
   final String username;
@@ -6,9 +10,9 @@ class User {
   final bool isPremium;
   final String? activationCode;
   final DateTime? createdAt;
-  final DateTime? premiumExpiresAt;  // ⭐ ДОБАВИТЬ
-  final String? avatar;  // 🚨 ДОБАВИТЬ АВАТАР
-  final String? status;  // 🚨 ДОБАВИТЬ СТАТУС
+  final DateTime? premiumExpiresAt;
+  final String? avatar;
+  final String? status;
 
   User({
     required this.id,
@@ -18,36 +22,38 @@ class User {
     this.isPremium = false,
     this.activationCode,
     this.createdAt,
-    this.premiumExpiresAt,  // ⭐ ДОБАВИТЬ
-    this.avatar,  // 🚨 ДОБАВИТЬ АВАТАР
-    this.status,  // 🚨 ДОБАВИТЬ СТАТУС
+    this.premiumExpiresAt,
+    this.avatar,
+    this.status,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
-    // Авто-генерация ника из email если username пустой
-    final username = json['username']?.toString() ?? 
-                  (json['email']?.toString().split('@')[0] ?? 'User');
-    
-    // Парсим premiumExpiresAt если есть
-    DateTime? premiumExpiresAt;
-    if (json['premiumExpiresAt'] != null) {
-      premiumExpiresAt = DateTime.parse(json['premiumExpiresAt']);
-    }
-    
+    // Auto-generate username from email if missing
+    final username = json['username']?.toString() ??
+        (json['email']?.toString().split('@')[0] ?? 'User');
+
     return User(
       id: json['id']?.toString() ?? '',
       username: username,
       email: json['email']?.toString() ?? '',
       vtNumber: json['vtNumber']?.toString() ?? '',
       isPremium: json['isPremium'] ?? false,
-      activationCode: json['activationCode'],
-      createdAt: json['createdAt'] != null 
-          ? DateTime.parse(json['createdAt']) 
-          : null,
-      premiumExpiresAt: premiumExpiresAt,  // ⭐ ДОБАВИТЬ
-      avatar: json['avatar'],  // 🚨 ДОБАВИТЬ АВАТАР
-      status: json['status'],  // 🚨 ДОБАВИТЬ СТАТУС
+      activationCode: json['activationCode']?.toString(),
+      createdAt: _parseDate(json['createdAt']),
+      premiumExpiresAt: _parseDate(json['premiumExpiresAt']),
+      avatar: json['avatar']?.toString(),
+      status: json['status']?.toString(),
     );
+  }
+
+  /// Safe date parser — returns null instead of crashing on malformed input.
+  static DateTime? _parseDate(dynamic value) {
+    if (value == null) return null;
+    try {
+      return DateTime.parse(value.toString());
+    } catch (_) {
+      return null;
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -59,40 +65,35 @@ class User {
       'isPremium': isPremium,
       'activationCode': activationCode,
       'createdAt': createdAt?.toIso8601String(),
-      'premiumExpiresAt': premiumExpiresAt?.toIso8601String(),  // ⭐ ДОБАВИТЬ
-      'avatar': avatar,  // 🚨 ДОБАВИТЬ АВАТАР
-      'status': status,  // 🚨 ДОБАВИТЬ СТАТУС
+      'premiumExpiresAt': premiumExpiresAt?.toIso8601String(),
+      'avatar': avatar,
+      'status': status,
     };
   }
 
-  // ⭐ GRACE PERIOD - ПРОВЕРКА ДОСТУПА
+  // ── Premium helpers ───────────────────────────────────────────────
+
+  /// True if premium active OR within 24h grace period after expiry.
   bool hasAccess() {
     if (isPremium) return true;
     if (premiumExpiresAt == null) return false;
-    
-    // Добавляем 24 часа к дате истечения
     final gracePeriodEnd = premiumExpiresAt!.add(const Duration(hours: 24));
     return DateTime.now().isBefore(gracePeriodEnd);
   }
 
-  // ⭐ ФОРМАТИРОВАННАЯ ДАТА ДЛЯ UI
   String get premiumExpiresFormatted {
     if (premiumExpiresAt == null) return 'Не указана';
-    
-    final date = premiumExpiresAt!;
-    return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+    final d = premiumExpiresAt!;
+    return '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
   }
 
-  // ⭐ СТАТУС PREMIUM ДЛЯ UI
   String get premiumStatus {
     if (isPremium) return 'Premium активен';
     if (premiumExpiresAt == null) return 'Premium не активен';
-    
     final gracePeriodEnd = premiumExpiresAt!.add(const Duration(hours: 24));
     if (DateTime.now().isBefore(gracePeriodEnd)) {
       return 'Grace Period (льготный период)';
     }
-    
     return 'Premium истек';
   }
 
@@ -104,9 +105,9 @@ class User {
     bool? isPremium,
     String? activationCode,
     DateTime? createdAt,
-    DateTime? premiumExpiresAt,  // ⭐ ДОБАВИТЬ
-    String? avatar,  // 🚨 ДОБАВИТЬ АВАТАР
-    String? status,  // 🚨 ДОБАВИТЬ СТАТУС
+    DateTime? premiumExpiresAt,
+    String? avatar,
+    String? status,
   }) {
     return User(
       id: id ?? this.id,
@@ -116,9 +117,9 @@ class User {
       isPremium: isPremium ?? this.isPremium,
       activationCode: activationCode ?? this.activationCode,
       createdAt: createdAt ?? this.createdAt,
-      premiumExpiresAt: premiumExpiresAt ?? this.premiumExpiresAt,  // ⭐ ДОБАВИТЬ
-      avatar: avatar ?? this.avatar,  // 🚨 ДОБАВИТЬ АВАТАР
-      status: status ?? this.status,  // 🚨 ДОБАВИТЬ СТАТУС
+      premiumExpiresAt: premiumExpiresAt ?? this.premiumExpiresAt,
+      avatar: avatar ?? this.avatar,
+      status: status ?? this.status,
     );
   }
 }

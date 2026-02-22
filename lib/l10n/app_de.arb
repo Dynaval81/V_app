@@ -14,5 +14,13 @@
   "login_google": "Mit Google anmelden",
   "login_apple": "Mit Apple anmelden",
   "login_no_account": "Kein Konto? ",
-  "login_register": "Registrieren"
+  "login_register": "Registrieren",
+  "login_password_label": "Passwort",
+  "login_password_hint": "Passwort eingeben",
+  "login_button_submit": "Anmelden",
+  "login_forgot_password": "Passwort vergessen?",
+  "login_change_identifier": "Ändern",
+  "login_error_empty": "E-Mail, VT-ID oder Nutzername eingeben",
+  "login_error_empty_password": "Bitte Passwort eingeben",
+  "login_error_network": "Netzwerkfehler"
 }
