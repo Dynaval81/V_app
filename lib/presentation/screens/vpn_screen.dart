@@ -1,13 +1,13 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:installed_apps/installed_apps.dart';
+import 'package:installed_apps/app_info.dart';
 import 'package:provider/provider.dart';
 import 'package:vtalk_app/core/constants.dart';
 import 'package:vtalk_app/core/controllers/vpn_controller.dart';
 import 'package:vtalk_app/data/models/server_model.dart';
-import 'package:vtalk_app/l10n/app_localizations.dart';
-import 'dart:ui';
 
-/// HAI3 Zen VPN Screen
-/// One button. Two menus. Nothing else.
+/// HAI3 Zen VPN Screen — one button, two menus.
 class VpnScreen extends StatefulWidget {
   const VpnScreen({super.key});
 
@@ -17,8 +17,8 @@ class VpnScreen extends StatefulWidget {
 
 class _VpnScreenState extends State<VpnScreen>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _pulseController;
-  late final Animation<double> _pulseAnimation;
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
@@ -27,12 +27,9 @@ class _VpnScreenState extends State<VpnScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1800),
     )..repeat(reverse: true);
-
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
-
-    // Initialize controller
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<VpnController>().initialize();
     });
@@ -46,30 +43,32 @@ class _VpnScreenState extends State<VpnScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Consumer<VpnController>(
-          builder: (context, controller, _) {
-            return Column(
-              children: [
-                _buildHeader(context, controller),
-                Expanded(child: _buildCenter(context, controller)),
-                _buildFooter(context, controller),
-                const SizedBox(height: 32),
-              ],
-            );
-          },
-        ),
-      ),
+    return Consumer<VpnController>(
+      builder: (context, controller, _) {
+        return Scaffold(
+          backgroundColor: Colors.white,
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  _buildHeader(context, controller),
+                  Expanded(child: _buildCenter(context, controller)),
+                  _buildFooter(context, controller),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
   // ── Header ────────────────────────────────────────────────────────
-
   Widget _buildHeader(BuildContext context, VpnController controller) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(28, 20, 28, 0),
+      padding: const EdgeInsets.only(top: 16, bottom: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -77,9 +76,9 @@ class _VpnScreenState extends State<VpnScreen>
             'VPN',
             style: TextStyle(
               fontSize: 28,
-              fontWeight: FontWeight.w300,
-              letterSpacing: 2,
+              fontWeight: FontWeight.w600,
               color: AppColors.onSurface,
+              letterSpacing: -0.5,
             ),
           ),
           _StatusChip(controller: controller),
@@ -89,7 +88,6 @@ class _VpnScreenState extends State<VpnScreen>
   }
 
   // ── Center (Zen Button) ───────────────────────────────────────────
-
   Widget _buildCenter(BuildContext context, VpnController controller) {
     final isConnected = controller.isConnected;
     final isConnecting = controller.isConnecting ||
@@ -101,43 +99,44 @@ class _VpnScreenState extends State<VpnScreen>
             ? const Color(0xFFFF9500)
             : AppColors.primary;
 
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    final btnSize = isLandscape ? 100.0 : 180.0;
+    final iconSize = isLandscape ? 38.0 : 64.0;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Server info above button
-        AnimatedOpacity(
-          opacity: controller.selectedServer != null ? 1.0 : 0.0,
-          duration: const Duration(milliseconds: 300),
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 32),
-            child: Text(
-              controller.autoMode
-                  ? 'AI — авто-выбор'
-                  : controller.selectedServer?.location ?? '',
-              style: TextStyle(
-                fontSize: 15,
-                color: AppColors.onSurface.withOpacity(0.5),
-                letterSpacing: 0.5,
+        if (!isLandscape)
+          AnimatedOpacity(
+            opacity: controller.selectedServer != null ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 300),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 32),
+              child: Text(
+                controller.autoMode
+                    ? 'AI — авто-выбор'
+                    : controller.selectedServer?.location ?? '',
+                style: TextStyle(
+                  fontSize: 15,
+                  color: AppColors.onSurface.withOpacity(0.5),
+                  letterSpacing: 0.5,
+                ),
               ),
             ),
           ),
-        ),
 
-        // Zen Button
         GestureDetector(
           onTap: isConnecting ? null : controller.toggleConnection,
           child: AnimatedBuilder(
             animation: _pulseAnimation,
             builder: (context, child) {
               final scale = isConnected ? _pulseAnimation.value : 1.0;
-              return Transform.scale(
-                scale: scale,
-                child: child,
-              );
+              return Transform.scale(scale: scale, child: child);
             },
             child: Container(
-              width: 180,
-              height: 180,
+              width: btnSize,
+              height: btnSize,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.white,
@@ -153,41 +152,32 @@ class _VpnScreenState extends State<VpnScreen>
                     offset: const Offset(0, 8),
                   ),
                 ],
-                border: Border.all(
-                  color: color.withOpacity(0.3),
-                  width: 1.5,
-                ),
+                border: Border.all(color: color.withOpacity(0.3), width: 1.5),
               ),
               child: isConnecting
                   ? Center(
                       child: SizedBox(
-                        width: 40,
-                        height: 40,
+                        width: 36,
+                        height: 36,
                         child: CircularProgressIndicator(
-                          color: color,
-                          strokeWidth: 2,
-                        ),
+                            color: color, strokeWidth: 2),
                       ),
                     )
-                  : Icon(
-                      Icons.power_settings_new_rounded,
-                      size: 64,
-                      color: color,
-                    ),
+                  : Icon(Icons.power_settings_new_rounded,
+                      size: iconSize, color: color),
             ),
           ),
         ),
 
-        const SizedBox(height: 28),
+        SizedBox(height: isLandscape ? 8 : 28),
 
-        // Status label
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
           child: Text(
             _statusLabel(controller),
             key: ValueKey(controller.connectionState),
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 14,
               fontWeight: FontWeight.w400,
               color: AppColors.onSurface.withOpacity(0.45),
               letterSpacing: 0.3,
@@ -211,101 +201,84 @@ class _VpnScreenState extends State<VpnScreen>
     }
   }
 
-  // ── Footer (two icon buttons) ─────────────────────────────────────
-
+  // ── Footer ────────────────────────────────────────────────────────
   Widget _buildFooter(BuildContext context, VpnController controller) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 48),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _FooterAction(
+    return Row(
+      children: [
+        Expanded(
+          child: _FooterButton(
             icon: Icons.language_rounded,
             label: 'Серверы',
-            onTap: () => _showNodesSheet(context, controller),
+            onTap: () => _showServersSheet(context, controller),
           ),
-          _FooterAction(
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _FooterButton(
             icon: Icons.tune_rounded,
             label: 'Туннель',
-            onTap: () => _showRoutingSheet(context, controller),
+            onTap: () => _showRoutingSheet(context),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  // ── Nodes Bottom Sheet ────────────────────────────────────────────
-
-  void _showNodesSheet(BuildContext context, VpnController controller) {
+  void _showServersSheet(BuildContext context, VpnController controller) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => ChangeNotifierProvider.value(
         value: controller,
-        child: const _NodesSheet(),
+        child: const _ServersSheet(),
       ),
     );
   }
 
-  // ── Routing Bottom Sheet ──────────────────────────────────────────
-
-  void _showRoutingSheet(BuildContext context, VpnController controller) {
+  void _showRoutingSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => ChangeNotifierProvider.value(
-        value: controller,
+        value: context.read<VpnController>(),
         child: const _RoutingSheet(),
       ),
     );
   }
 }
 
-// ── Status Chip ───────────────────────────────────────────────────────────────
-
+// ── Status Chip ──────────────────────────────────────────────────────────────
 class _StatusChip extends StatelessWidget {
   final VpnController controller;
   const _StatusChip({required this.controller});
 
   @override
   Widget build(BuildContext context) {
-    final isConnected = controller.isConnected;
-    final color = isConnected
-        ? const Color(0xFF34C759)
-        : AppColors.onSurface.withOpacity(0.25);
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 400),
+    final isOn = controller.isConnected;
+    final color = isOn ? const Color(0xFF34C759) : AppColors.onSurfaceVariant;
+    return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 400),
+          Container(
             width: 7,
             height: 7,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: color,
-            ),
+            decoration: BoxDecoration(shape: BoxShape.circle, color: color),
           ),
           const SizedBox(width: 6),
           Text(
-            isConnected ? 'ON' : 'OFF',
+            isOn ? 'ON' : 'OFF',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: isConnected
-                  ? const Color(0xFF34C759)
-                  : AppColors.onSurface.withOpacity(0.4),
-              letterSpacing: 1,
+              color: color,
             ),
           ),
         ],
@@ -314,58 +287,58 @@ class _StatusChip extends StatelessWidget {
   }
 }
 
-// ── Footer Action Button ──────────────────────────────────────────────────────
-
-class _FooterAction extends StatelessWidget {
+// ── Footer Button ─────────────────────────────────────────────────────────────
+class _FooterButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
-
-  const _FooterAction({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
+  const _FooterButton(
+      {required this.icon, required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F3F5),
-              borderRadius: BorderRadius.circular(18),
+      child: Container(
+        height: 56,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF1F3F5),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 20, color: AppColors.onSurface),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: AppColors.onSurface,
+              ),
             ),
-            child: Icon(icon, color: AppColors.onSurface.withOpacity(0.6), size: 24),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: AppColors.onSurface.withOpacity(0.45),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-// ── Nodes Bottom Sheet ────────────────────────────────────────────────────────
-
-class _NodesSheet extends StatelessWidget {
-  const _NodesSheet();
+// ── Servers Bottom Sheet ──────────────────────────────────────────────────────
+class _ServersSheet extends StatelessWidget {
+  const _ServersSheet();
 
   @override
   Widget build(BuildContext context) {
     final controller = context.watch<VpnController>();
+
+    // Split servers by purpose
+    final general = controller.servers
+        .where((s) => s.purpose == 'general' || s.purpose == null)
+        .toList();
+    final reverse =
+        controller.servers.where((s) => s.purpose == 'reverse').toList();
 
     return _GlassSheet(
       child: Column(
@@ -385,20 +358,21 @@ class _NodesSheet extends StatelessWidget {
             ),
           ),
 
-          // AI Auto mode
+          // AI auto
           _NodeTile(
             leading: Container(
-              width: 40,
-              height: 40,
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
                 color: AppColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(Icons.auto_awesome_rounded,
                   color: AppColors.primary, size: 20),
             ),
             title: 'AI — авто-выбор',
             subtitle: 'Минимальный пинг',
+            pingMs: null,
             trailing: controller.autoMode
                 ? const Icon(Icons.check_circle_rounded,
                     color: AppColors.primary, size: 22)
@@ -409,52 +383,68 @@ class _NodesSheet extends StatelessWidget {
             },
           ),
 
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            child: Divider(height: 1),
-          ),
+          if (general.isNotEmpty) ...[
+            const _SectionLabel('Глобальные'),
+            ...general.map((server) =>
+                _serverTile(context, controller, server)),
+          ],
 
-          // Server list
-          if (controller.isLoadingServers)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
-              child: Center(
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            )
-          else
-            ...controller.servers.map((server) {
-              final ping = controller.pingFor(server.nodeId);
-              final isSelected = !controller.autoMode &&
-                  controller.selectedServer?.nodeId == server.nodeId;
-              return _NodeTile(
-                leading: Text(
-                  server.flagEmoji,
-                  style: const TextStyle(fontSize: 28),
-                ),
-                title: server.location,
-                subtitle: ping != null ? '$ping ms' : '— ms',
-                pingMs: ping,
-                trailing: isSelected
-                    ? const Icon(Icons.check_circle_rounded,
-                        color: AppColors.primary, size: 22)
-                    : null,
-                onTap: () {
-                  controller.selectServer(server);
-                  Navigator.pop(context);
-                },
-              );
-            }),
+          if (reverse.isNotEmpty) ...[
+            const _SectionLabel('Для России 🇷🇺'),
+            ...reverse.map((server) =>
+                _serverTile(context, controller, server)),
+          ],
 
           SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
         ],
       ),
     );
   }
+
+  Widget _serverTile(
+      BuildContext context, VpnController controller, ServerModel server) {
+    final ping = controller.pingFor(server.nodeId);
+    final isSelected = !controller.autoMode &&
+        controller.selectedServer?.nodeId == server.nodeId;
+    return _NodeTile(
+      leading: Text(server.flagEmoji, style: const TextStyle(fontSize: 28)),
+      title: server.location,
+      subtitle: server.loadLabel,
+      pingMs: ping,
+      trailing: isSelected
+          ? const Icon(Icons.check_circle_rounded,
+              color: AppColors.primary, size: 22)
+          : null,
+      onTap: () {
+        controller.selectServer(server);
+        Navigator.pop(context);
+      },
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  final String text;
+  const _SectionLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 4),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: AppColors.onSurface.withOpacity(0.4),
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
 }
 
 // ── Routing Bottom Sheet ──────────────────────────────────────────────────────
-
 class _RoutingSheet extends StatefulWidget {
   const _RoutingSheet();
 
@@ -464,18 +454,36 @@ class _RoutingSheet extends StatefulWidget {
 
 class _RoutingSheetState extends State<_RoutingSheet> {
   final TextEditingController _domainsController = TextEditingController();
+  List<AppInfo> _installedApps = [];
+  Set<String> _selectedApps = {};
+  bool _loadingApps = false;
 
   @override
   void initState() {
     super.initState();
     final controller = context.read<VpnController>();
     _domainsController.text = controller.customDomains.join('\n');
+    _selectedApps = Set.from(controller.selectedApps);
   }
 
   @override
   void dispose() {
     _domainsController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadApps() async {
+    if (_installedApps.isNotEmpty || _loadingApps) return;
+    setState(() => _loadingApps = true);
+    try {
+      final apps = await InstalledApps.getInstalledApps(true, true);
+      setState(() {
+        _installedApps = apps;
+        _loadingApps = false;
+      });
+    } catch (_) {
+      setState(() => _loadingApps = false);
+    }
   }
 
   @override
@@ -493,14 +501,12 @@ class _RoutingSheetState extends State<_RoutingSheet> {
             child: Text(
               'Туннелирование',
               style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: AppColors.onSurface,
-              ),
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.onSurface),
             ),
           ),
 
-          // Full tunnel
           _RoutingTile(
             icon: Icons.public_rounded,
             title: 'Весь трафик',
@@ -509,16 +515,36 @@ class _RoutingSheetState extends State<_RoutingSheet> {
             onTap: () => controller.setRoutingMode(VpnRoutingMode.full),
           ),
 
-          // VTalk only
           _RoutingTile(
             icon: Icons.chat_bubble_outline_rounded,
             title: 'Только VTalk',
             subtitle: 'Мессенджер через VPN, остальное напрямую',
             selected: controller.routingMode == VpnRoutingMode.vtalkOnly,
-            onTap: () => controller.setRoutingMode(VpnRoutingMode.vtalkOnly),
+            onTap: () =>
+                controller.setRoutingMode(VpnRoutingMode.vtalkOnly),
           ),
 
-          // Custom domains
+          _RoutingTile(
+            icon: Icons.apps_rounded,
+            title: 'Выбрать приложения',
+            subtitle: _selectedApps.isEmpty
+                ? 'Указать какие приложения через VPN'
+                : 'Выбрано: ${_selectedApps.length} прил.',
+            selected: controller.routingMode == VpnRoutingMode.apps,
+            onTap: () {
+              controller.setRoutingMode(VpnRoutingMode.apps);
+              _loadApps();
+            },
+          ),
+
+          AnimatedSize(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOutCubic,
+            child: controller.routingMode == VpnRoutingMode.apps
+                ? _buildAppsSection(controller)
+                : const SizedBox.shrink(),
+          ),
+
           _RoutingTile(
             icon: Icons.edit_note_rounded,
             title: 'Свои адреса',
@@ -527,66 +553,11 @@ class _RoutingSheetState extends State<_RoutingSheet> {
             onTap: () => controller.setRoutingMode(VpnRoutingMode.custom),
           ),
 
-          // Custom domains input — shows when custom mode selected
           AnimatedSize(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOutCubic,
             child: controller.routingMode == VpnRoutingMode.custom
-                ? Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 4, 24, 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextField(
-                          controller: _domainsController,
-                          maxLines: 4,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: AppColors.onSurface,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: 'example.com\nsite.org',
-                            hintStyle: TextStyle(
-                              color: AppColors.onSurface.withOpacity(0.35),
-                              fontSize: 14,
-                            ),
-                            filled: true,
-                            fillColor: const Color(0xFFF1F3F5),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide.none,
-                            ),
-                            contentPadding: const EdgeInsets.all(16),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: TextButton(
-                            onPressed: () {
-                              final domains = _domainsController.text
-                                  .split('\n')
-                                  .map((e) => e.trim())
-                                  .where((e) => e.isNotEmpty)
-                                  .toList();
-                              controller.setCustomDomains(domains);
-                              Navigator.pop(context);
-                            },
-                            style: TextButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            child: const Text('Сохранить'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
+                ? _buildDomainsSection(controller)
                 : const SizedBox.shrink(),
           ),
 
@@ -595,10 +566,138 @@ class _RoutingSheetState extends State<_RoutingSheet> {
       ),
     );
   }
+
+  Widget _buildAppsSection(VpnController controller) {
+    if (_loadingApps) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      );
+    }
+    if (_installedApps.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 260),
+          child: ListView.builder(
+            shrinkWrap: true,
+            padding: EdgeInsets.zero,
+            itemCount: _installedApps.length,
+            itemBuilder: (context, i) {
+              final app = _installedApps[i];
+              final pkg = app.packageName ?? '';
+              final selected = _selectedApps.contains(pkg);
+              return CheckboxListTile(
+                value: selected,
+                onChanged: (v) => setState(() {
+                  if (v == true) {
+                    _selectedApps.add(pkg);
+                  } else {
+                    _selectedApps.remove(pkg);
+                  }
+                }),
+                title: Text(
+                  app.name ?? pkg,
+                  style: const TextStyle(
+                      fontSize: 14, color: AppColors.onSurface),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                secondary: app.icon != null
+                    ? Image.memory(app.icon!, width: 32, height: 32)
+                    : const Icon(Icons.android_rounded, size: 32),
+                activeColor: AppColors.primary,
+                checkColor: Colors.white,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 24),
+                dense: true,
+              );
+            },
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+          child: SizedBox(
+            width: double.infinity,
+            child: TextButton(
+              onPressed: () {
+                controller.setSelectedApps(_selectedApps.toList());
+                Navigator.pop(context);
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+              ),
+              child: Text(_selectedApps.isEmpty
+                  ? 'Сохранить'
+                  : 'Применить (${_selectedApps.length})'),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDomainsSection(VpnController controller) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 4, 24, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _domainsController,
+            maxLines: 4,
+            style:
+                const TextStyle(fontSize: 14, color: AppColors.onSurface),
+            decoration: InputDecoration(
+              hintText: 'example.com\nsite.org',
+              hintStyle: TextStyle(
+                  color: AppColors.onSurface.withOpacity(0.35),
+                  fontSize: 14),
+              filled: true,
+              fillColor: const Color(0xFFF1F3F5),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.all(16),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: TextButton(
+              onPressed: () {
+                final domains = _domainsController.text
+                    .split('\n')
+                    .map((e) => e.trim())
+                    .where((e) => e.isNotEmpty)
+                    .toList();
+                controller.setCustomDomains(domains);
+                Navigator.pop(context);
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+              ),
+              child: const Text('Сохранить'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // ── Shared Sheet Widgets ──────────────────────────────────────────────────────
-
 class _GlassSheet extends StatelessWidget {
   final Widget child;
   const _GlassSheet({required this.child});
@@ -612,7 +711,8 @@ class _GlassSheet extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.95),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(28)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.08),
@@ -634,15 +734,13 @@ class _SheetHandle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.only(top: 12),
-        child: Container(
-          width: 36,
-          height: 4,
-          decoration: BoxDecoration(
-            color: AppColors.onSurface.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(2),
-          ),
+      child: Container(
+        margin: const EdgeInsets.only(top: 12),
+        width: 36,
+        height: 4,
+        decoration: BoxDecoration(
+          color: AppColors.onSurface.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(2),
         ),
       ),
     );
@@ -661,7 +759,7 @@ class _NodeTile extends StatelessWidget {
     required this.leading,
     required this.title,
     required this.subtitle,
-    this.pingMs,
+    required this.pingMs,
     this.trailing,
     required this.onTap,
   });
@@ -674,42 +772,43 @@ class _NodeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        child: Row(
-          children: [
-            SizedBox(width: 40, child: leading),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.onSurface,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: pingMs != null
-                          ? _pingColor(pingMs!)
-                          : AppColors.onSurface.withOpacity(0.45),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (trailing != null) trailing!,
-          ],
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+      leading: leading,
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+          color: AppColors.onSurface,
         ),
       ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(
+          fontSize: 13,
+          color: AppColors.onSurface.withOpacity(0.45),
+        ),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (pingMs != null && pingMs! < 9000)
+            Text(
+              '$pingMs ms',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: _pingColor(pingMs!),
+              ),
+            ),
+          if (trailing != null) ...[
+            const SizedBox(width: 8),
+            trailing!,
+          ],
+        ],
+      ),
+      onTap: onTap,
     );
   }
 }
@@ -731,61 +830,41 @@ class _RoutingTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: selected
-                    ? AppColors.primary.withOpacity(0.1)
-                    : const Color(0xFFF1F3F5),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                icon,
-                size: 20,
-                color: selected
-                    ? AppColors.primary
-                    : AppColors.onSurface.withOpacity(0.5),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight:
-                          selected ? FontWeight.w600 : FontWeight.w500,
-                      color: AppColors.onSurface,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.onSurface.withOpacity(0.45),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            if (selected)
-              const Icon(Icons.check_circle_rounded,
-                  color: AppColors.primary, size: 22),
-          ],
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 2),
+      leading: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.primary.withOpacity(0.1)
+              : const Color(0xFFF1F3F5),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(
+          icon,
+          size: 20,
+          color: selected ? AppColors.primary : AppColors.onSurfaceVariant,
         ),
       ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: 15,
+          fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+          color: AppColors.onSurface,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(
+            fontSize: 13, color: AppColors.onSurface.withOpacity(0.45)),
+      ),
+      trailing: selected
+          ? const Icon(Icons.check_circle_rounded,
+              color: AppColors.primary, size: 22)
+          : null,
+      onTap: onTap,
     );
   }
 }

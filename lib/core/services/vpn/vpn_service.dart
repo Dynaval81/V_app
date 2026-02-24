@@ -1,41 +1,40 @@
-import 'dart:io';
-import 'package:flutter_v2ray/flutter_v2ray.dart';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_singbox_vpn/flutter_singbox.dart';
+import 'package:http/http.dart' as http;
 import 'package:vtalk_app/data/models/server_model.dart';
 import 'package:vtalk_app/services/api_service.dart';
 
-/// VPN engine — flutter_v2ray integration with VLESS+Reality.
-/// Path: lib/core/services/vpn/vpn_service.dart
-class VpnService {
+/// VPN engine — sing-box based, TUN mode, works without root.
+class VPNService {
   final ApiService _api = ApiService();
-
-  // flutter_v2ray instance
-  late final FlutterV2ray _v2ray;
-  bool _initialized = false;
+  final FlutterSingbox _singbox = FlutterSingbox();
 
   bool _isConnected = false;
   ServerModel? _currentServer;
+  bool _splitTunnelingEnabled = false;
+  List<String> _splitApps = [];
   List<String> _splitDomains = [];
-  bool _vtalkOnlyMode = false;
 
   bool get isConnected => _isConnected;
   ServerModel? get currentServer => _currentServer;
+  bool get isSplitTunnelingEnabled => _splitTunnelingEnabled;
+  List<String> get splitApps => List.unmodifiable(_splitApps);
   List<String> get splitDomains => List.unmodifiable(_splitDomains);
-  bool get vtalkOnlyMode => _vtalkOnlyMode;
 
-  // ── Init ──────────────────────────────────────────────────────────
+  Future<void> initialize(void Function(bool connected) onStatusChanged) async {
+    _singbox.setNotificationTitle('VTalk VPN');
+    _singbox.setNotificationDescription('Защищённое соединение активно');
 
-  Future<void> _ensureInitialized() async {
-    if (_initialized) return;
-    _v2ray = FlutterV2ray(
-      onStatusChanged: (status) {
-        _isConnected = status.state == 'CONNECTED';
-      },
-    );
-    await _v2ray.initializeV2Ray();
-    _initialized = true;
+    _singbox.onStatusChanged.listen((event) {
+      final status = event['status'] as String?;
+      debugPrint('[VPN] sing-box status: $status');
+      final connected = status == VPNStatus.STARTED;
+      _isConnected = connected;
+      onStatusChanged(connected);
+    });
   }
-
-  // ── Server list ───────────────────────────────────────────────────
 
   Future<List<ServerModel>> loadServers({String? purpose}) async {
     try {
@@ -44,64 +43,87 @@ class VpnService {
         final list = result['servers'] as List<dynamic>;
         return list
             .map((e) => ServerModel.fromJson(e as Map<String, dynamic>))
-            .where((s) => s.available)
+            .where((s) => s.available && !_isFakeServer(s))
             .toList();
       }
-    } catch (_) {}
-    return _fallbackServers();
+    } catch (e) {
+      debugPrint('[VPN] loadServers error: $e');
+    }
+    return [];
+  }
+
+  bool _isFakeServer(ServerModel s) {
+    final loc = s.location.toUpperCase();
+    final id = s.nodeId.toUpperCase();
+    return loc.contains('FAKE') || loc.contains('TEST ONLY') ||
+        id == 'FI-01' || id == 'RU-REVERSE';
   }
 
   Future<ServerModel?> loadConfig(String nodeId) async {
     try {
-      final result = await _api.getVpnConfig(nodeId);
-      if (result['success'] == true) {
-        final data = result['data'] as Map<String, dynamic>;
-        return ServerModel.fromJson({
-          'id': data['nodeId'] ?? nodeId,
-          'nodeId': data['nodeId'] ?? nodeId,
-          'location': data['location'] ?? '',
-          'countryCode': _countryFromNodeId(nodeId),
-          'endpoint': data['endpoint'] ?? '',
-          'purpose': 'general',
-          'capacity': 1000,
-          'currentLoad': 0,
-          'loadPercentage': 0,
-          'configType': data['configType'] ?? 'vless',
-          'isAI': false,
-          'available': true,
-          'vlessUri': data['vlessUri'],
-        });
+      const storage = FlutterSecureStorage();
+      final token = await storage.read(key: 'auth_token');
+      if (token == null) {
+        debugPrint('[VPN] loadConfig: no token');
+        return null;
       }
-    } catch (_) {}
+
+      const base = 'https://hypermax.duckdns.org/api/v1';
+      final headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      };
+
+      final resp = await http.get(
+        Uri.parse('$base/vpn/config/$nodeId'),
+        headers: headers,
+      );
+
+      debugPrint('[VPN] loadConfig status: ${resp.statusCode}');
+      final data = jsonDecode(resp.body) as Map<String, dynamic>;
+      final nodeData = (data['data'] ?? data) as Map<String, dynamic>;
+      final vlessUri = nodeData['vlessUri'] as String?;
+      debugPrint('[VPN] vlessUri: ${vlessUri != null ? "OK" : "null"}');
+
+      return ServerModel.fromJson({
+        'id': nodeData['nodeId'] ?? nodeId,
+        'nodeId': nodeData['nodeId'] ?? nodeId,
+        'location': nodeData['location'] ?? '',
+        'countryCode': _countryFromNodeId(nodeId),
+        'endpoint': nodeData['endpoint'] ?? '',
+        'purpose': 'general',
+        'capacity': 1000,
+        'currentLoad': 0,
+        'loadPercentage': 0,
+        'configType': nodeData['configType'] ?? 'vless',
+        'isAI': false,
+        'available': true,
+        'vlessUri': vlessUri,
+        'xrayConfig': null,
+      });
+    } catch (e) {
+      debugPrint('[VPN] loadConfig error: $e');
+    }
     return null;
   }
 
-  // ── Ping ──────────────────────────────────────────────────────────
-
   Future<int?> pingServer(ServerModel server) async {
     try {
-      final stopwatch = Stopwatch()..start();
-      final socket = await Socket.connect(
-        server.host,
-        server.port,
-        timeout: const Duration(seconds: 3),
-      );
-      stopwatch.stop();
-      socket.destroy();
-      return stopwatch.elapsedMilliseconds;
+      final sw = Stopwatch()..start();
+      final resp = await http
+          .get(Uri.parse('https://www.gstatic.com/generate_204'))
+          .timeout(const Duration(seconds: 3));
+      sw.stop();
+      return resp.statusCode == 204 ? sw.elapsedMilliseconds : null;
     } catch (_) {
       return null;
     }
   }
 
-  Future<Map<String, int>> pingAll(List<ServerModel> servers) async {
-    final results = await Future.wait(
-      servers.map((s) async {
-        final ms = await pingServer(s);
-        return MapEntry(s.nodeId, ms ?? 9999);
-      }),
-    );
-    return Map.fromEntries(results);
+  Future<Map<String, int?>> pingAll(List<ServerModel> servers) async {
+    if (servers.isEmpty) return {};
+    final ms = await pingServer(servers.first);
+    return {for (final s in servers) s.nodeId: ms};
   }
 
   Future<ServerModel?> pickFastest(List<ServerModel> servers) async {
@@ -112,97 +134,168 @@ class VpnService {
     return servers.first;
   }
 
-  // ── Connect ───────────────────────────────────────────────────────
-
   Future<void> connect(ServerModel server) async {
-    await _ensureInitialized();
-
     final uri = server.vlessUri;
+    debugPrint('[VPN] Connecting to ${server.nodeId}');
+    debugPrint('[VPN] vlessUri: ${uri != null ? "present" : "NULL"}');
+
     if (uri == null || uri.isEmpty) {
       throw Exception('No VLESS URI for node ${server.nodeId}');
     }
 
-    // Parse VLESS URI into V2Ray config
-    final v2rayUrl = FlutterV2ray.parseFromURL(uri);
+    final singboxConfig = _buildSingboxConfig(uri);
+    debugPrint('[VPN] sing-box config built');
 
-    // Request VPN permission (Android shows system dialog)
-    final hasPermission = await _v2ray.requestPermission();
-    if (!hasPermission) {
-      throw Exception('VPN permission denied');
-    }
+    final saved = await _singbox.saveConfig(jsonEncode(singboxConfig));
+    if (!saved) throw Exception('Failed to save sing-box config');
 
-    // Build bypass list for split tunneling
-    final bypassSubnets = _buildBypassList();
-
-    await _v2ray.startV2Ray(
-      remark: server.location,
-      config: v2rayUrl.getFullConfiguration(),
-      blockedApps: null,
-      bypassSubnets: bypassSubnets.isNotEmpty ? bypassSubnets : null,
-      proxyOnly: false,
-    );
+    final started = await _singbox.startVPN();
+    if (!started) throw Exception('Failed to start VPN');
 
     _currentServer = server;
-    _isConnected = true;
+    debugPrint('[VPN] startVPN called successfully');
   }
 
-  // ── Disconnect ────────────────────────────────────────────────────
-
   Future<void> disconnect() async {
-    await _ensureInitialized();
-    await _v2ray.stopV2Ray();
+    await _singbox.stopVPN();
     _isConnected = false;
     _currentServer = null;
   }
 
-  // ── Routing ───────────────────────────────────────────────────────
-
-  void setVtalkOnly(bool enabled) {
-    _vtalkOnlyMode = enabled;
-    _splitDomains = enabled
-        ? ['hypermax.duckdns.org', 'vtalk.io', 'matrix.vtalk.io']
-        : [];
-  }
-
-  void setCustomDomains(List<String> domains) {
-    _vtalkOnlyMode = false;
+  Future<void> setSplitTunneling({
+    required List<String> apps,
+    required List<String> domains,
+    required bool enabled,
+  }) async {
+    _splitApps = List.from(apps);
     _splitDomains = List.from(domains);
+    _splitTunnelingEnabled = enabled;
   }
 
-  /// Build subnet bypass list from split domains.
-  /// flutter_v2ray uses IP ranges — domains resolved at runtime by Xray.
-  List<String> _buildBypassList() {
-    if (_splitDomains.isEmpty) return [];
-    // Pass domains as-is; Xray engine resolves them
-    return _splitDomains;
+  Future<void> selectServer(ServerModel server) async {
+    _currentServer = server;
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────
+  Map<String, dynamic> _buildSingboxConfig(String vlessUri) {
+    // Parse: vless://UUID@HOST:PORT?params#name
+    final uri = Uri.parse(vlessUri);
+    final uuid = uri.userInfo;
+    final host = uri.host;
+    final port = uri.port;
+    final params = uri.queryParameters;
+
+    final pbk  = params['pbk'] ?? '';
+    final sni  = params['sni'] ?? host;
+    final sid  = params['sid'] ?? '';
+    final fp   = params['fp'] ?? 'chrome';
+    final flow = params['flow'] ?? '';
+
+    // Private IP ranges — replaces deprecated geoip:private
+    const privateRanges = [
+      '0.0.0.0/8',
+      '10.0.0.0/8',
+      '100.64.0.0/10',
+      '127.0.0.0/8',
+      '169.254.0.0/16',
+      '172.16.0.0/12',
+      '192.0.0.0/24',
+      '192.168.0.0/16',
+      '198.18.0.0/15',
+      '198.51.100.0/24',
+      '203.0.113.0/24',
+      '240.0.0.0/4',
+      '255.255.255.255/32',
+      '::1/128',
+      'fc00::/7',
+      'fe80::/10',
+    ];
+
+    final routeRules = <Map<String, dynamic>>[
+      {'protocol': 'dns', 'outbound': 'dns-out'},
+      {'ip_cidr': privateRanges, 'outbound': 'direct'},
+      if (_splitTunnelingEnabled && _splitDomains.isNotEmpty)
+        {'domain': _splitDomains, 'outbound': 'direct'},
+    ];
+
+    return {
+      'log': {'level': 'info', 'disabled': false, 'timestamp': true},
+      'dns': {
+        'servers': [
+          {
+            'tag': 'remote-dns',
+            'address': 'tls://1.1.1.1',
+            'detour': 'proxy',
+          },
+          {
+            'tag': 'local-dns',
+            'address': 'local',
+            'detour': 'direct',
+          },
+        ],
+        'rules': [
+          {'outbound': 'any', 'server': 'local-dns'},
+        ],
+        'final': 'remote-dns',
+        'strategy': 'prefer_ipv4',
+      },
+      'inbounds': [
+        {
+          'type': 'tun',
+          'tag': 'tun-in',
+          'interface_name': 'tun0',
+          'inet4_address': '172.19.0.1/30',
+          'mtu': 1400,
+          'auto_route': true,
+          'strict_route': false,
+          'stack': 'mixed',
+          'sniff': true,
+          'sniff_override_destination': false,
+          'domain_strategy': 'ipv4_only',
+        }
+      ],
+      'outbounds': [
+        {
+          'tag': 'proxy',
+          'type': 'vless',
+          'server': host,
+          'server_port': port,
+          'uuid': uuid,
+          if (flow.isNotEmpty) 'flow': flow,
+          'tls': {
+            'enabled': true,
+            'server_name': sni,
+            'reality': {
+              'enabled': true,
+              'public_key': pbk,
+              'short_id': sid,
+            },
+            'utls': {
+              'enabled': true,
+              'fingerprint': fp,
+            },
+          },
+          'packet_encoding': 'xudp',
+        },
+        {'tag': 'direct', 'type': 'direct'},
+        {'tag': 'dns-out', 'type': 'dns'},
+      ],
+      'route': {
+        'auto_detect_interface': true,
+        'final': 'proxy',
+        'rules': routeRules,
+      },
+    };
+  }
 
   String _countryFromNodeId(String nodeId) {
-    if (nodeId.startsWith('pl')) return 'PL';
-    if (nodeId.startsWith('fi')) return 'FI';
-    if (nodeId.startsWith('ru')) return 'RU';
-    if (nodeId.startsWith('de')) return 'DE';
-    return '';
-  }
-
-  List<ServerModel> _fallbackServers() {
-    return [
-      ServerModel.fromJson({
-        'id': 'fallback-pl-01',
-        'nodeId': 'pl-01',
-        'location': 'Poland, Warsaw',
-        'countryCode': 'PL',
-        'endpoint': 'vpn-pl.vtalk.io:2053',
-        'purpose': 'general',
-        'capacity': 1000,
-        'currentLoad': 0,
-        'loadPercentage': 0,
-        'configType': 'vless',
-        'isAI': false,
-        'available': true,
-      }),
-    ];
+    final id = nodeId.toUpperCase();
+    if (id.startsWith('PL')) return 'PL';
+    if (id.startsWith('FI')) return 'FI';
+    if (id.startsWith('DE')) return 'DE';
+    if (id.startsWith('US')) return 'US';
+    if (id.startsWith('RU')) return 'RU';
+    if (id.startsWith('NL')) return 'NL';
+    if (id.startsWith('GB') || id.startsWith('UK')) return 'GB';
+    return 'XX';
   }
 }

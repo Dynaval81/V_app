@@ -9,6 +9,8 @@ import 'package:vtalk_app/core/controllers/chat_controller.dart';
 import 'package:vtalk_app/core/controllers/tab_visibility_controller.dart';
 import 'package:vtalk_app/core/controllers/vpn_controller.dart';
 import 'package:vtalk_app/presentation/screens/auth/login_screen.dart';
+import 'package:vtalk_app/presentation/screens/auth/register_screen.dart';
+import 'package:vtalk_app/presentation/screens/auth/registration_success_screen.dart';
 import 'package:vtalk_app/presentation/screens/chat/chat_room_screen.dart';
 import 'package:vtalk_app/presentation/screens/settings_screen.dart';
 import 'package:vtalk_app/presentation/screens/splash_screen.dart';
@@ -86,6 +88,20 @@ class VTalkApp extends StatelessWidget {
         GoRoute(
           path: AppRoutes.auth,
           builder: (context, state) => const LoginScreen(),
+        ),
+        GoRoute(
+          path: '/register',
+          builder: (context, state) => const RegisterScreen(),
+        ),
+        GoRoute(
+          path: '/register-success',
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>? ?? {};
+            return RegistrationSuccessScreen(
+              nickname: extra['nickname']?.toString() ?? '',
+              vtalkNumber: extra['vtalkNumber']?.toString() ?? '',
+            );
+          },
         ),
         GoRoute(
           path: AppRoutes.home,

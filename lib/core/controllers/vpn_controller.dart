@@ -5,63 +5,72 @@ import 'package:vtalk_app/data/models/server_model.dart';
 
 enum VpnConnectionState { disconnected, connecting, connected, disconnecting }
 
-enum VpnRoutingMode { full, vtalkOnly, custom }
+enum VpnRoutingMode { full, vtalkOnly, apps, custom }
 
-/// HAI3 VPN Controller — single source of truth for VPN UI state.
-/// Wired to VpnService; ready for flutter_v2ray integration.
 class VpnController extends ChangeNotifier {
-  VpnController({VpnService? service}) : _service = service ?? VpnService();
+  final VPNService _service = VPNService();
 
-  final VpnService _service;
+  VpnController() {
+    _service.initialize(_onServiceStatusChanged);
+  }
 
-  // ── Connection state ──────────────────────────────────────────────
+  void _onServiceStatusChanged(bool connected) {
+    debugPrint('[VPN Controller] Status callback: $connected');
+    if (connected) {
+      _connectionState = VpnConnectionState.connected;
+    } else {
+      if (_connectionState != VpnConnectionState.disconnecting) {
+        _connectionState = VpnConnectionState.disconnected;
+      }
+    }
+    notifyListeners();
+  }
+
+  // ── Connection ────────────────────────────────────────────────────
   VpnConnectionState _connectionState = VpnConnectionState.disconnected;
   VpnConnectionState get connectionState => _connectionState;
   bool get isConnected => _connectionState == VpnConnectionState.connected;
   bool get isConnecting => _connectionState == VpnConnectionState.connecting;
 
-  // ── Server state ──────────────────────────────────────────────────
+  // ── Servers ───────────────────────────────────────────────────────
   List<ServerModel> _servers = [];
   List<ServerModel> get servers => _servers;
-
   ServerModel? _selectedServer;
   ServerModel? get selectedServer => _selectedServer;
-
   bool _autoMode = true;
   bool get autoMode => _autoMode;
-
   bool _isLoadingServers = false;
   bool get isLoadingServers => _isLoadingServers;
-
-  // Ping map: nodeId → ms
-  Map<String, int> _pings = {};
+  Map<String, int?> _pings = {};
   int? pingFor(String nodeId) => _pings[nodeId];
 
-  // ── Routing state ─────────────────────────────────────────────────
+  // ── Routing ───────────────────────────────────────────────────────
   VpnRoutingMode _routingMode = VpnRoutingMode.full;
   VpnRoutingMode get routingMode => _routingMode;
-
   List<String> _customDomains = [];
   List<String> get customDomains => List.unmodifiable(_customDomains);
+  List<String> _selectedApps = [];
+  List<String> get selectedApps => List.unmodifiable(_selectedApps);
 
   // ── Lifecycle ─────────────────────────────────────────────────────
-
-  /// Call once on screen init.
   Future<void> initialize() async {
     await _loadPreferences();
     await loadServers();
   }
 
-  // ── Servers ───────────────────────────────────────────────────────
-
   Future<void> loadServers() async {
     _isLoadingServers = true;
     notifyListeners();
-
     try {
-      _servers = await _service.loadServers(purpose: 'general');
-      // Ping concurrently in background
+      final results = await Future.wait([
+        _service.loadServers(purpose: 'general'),
+        _service.loadServers(purpose: 'reverse'),
+      ]);
+      _servers = [...results[0], ...results[1]];
+      debugPrint('[VPN Controller] Loaded ${_servers.length} servers');
       _pingServersInBackground();
+    } catch (e) {
+      debugPrint('[VPN Controller] loadServers error: $e');
     } finally {
       _isLoadingServers = false;
       notifyListeners();
@@ -72,6 +81,8 @@ class VpnController extends ChangeNotifier {
     _service.pingAll(_servers).then((pings) {
       _pings = pings;
       notifyListeners();
+    }).catchError((Object e) {
+      debugPrint('[VPN Controller] ping error: $e');
     });
   }
 
@@ -90,11 +101,9 @@ class VpnController extends ChangeNotifier {
   }
 
   // ── Connect / Disconnect ──────────────────────────────────────────
-
   Future<void> toggleConnection() async {
     if (_connectionState == VpnConnectionState.connecting ||
         _connectionState == VpnConnectionState.disconnecting) return;
-
     if (isConnected) {
       await _disconnect();
     } else {
@@ -105,40 +114,39 @@ class VpnController extends ChangeNotifier {
   Future<void> _connect() async {
     _connectionState = VpnConnectionState.connecting;
     notifyListeners();
-
     try {
-      // Auto-mode: pick fastest server
       ServerModel? target = _selectedServer;
       if (_autoMode || target == null) {
+        debugPrint('[VPN Controller] Auto: picking fastest...');
         target = await _service.pickFastest(_servers);
       }
-
       if (target == null) {
+        debugPrint('[VPN Controller] No server available');
         _connectionState = VpnConnectionState.disconnected;
         notifyListeners();
         return;
       }
-
-      // Load VLESS config
+      debugPrint('[VPN Controller] Loading config for ${target.nodeId}...');
       final configured = await _service.loadConfig(target.nodeId);
       final serverWithConfig = configured ?? target;
-
+      debugPrint('[VPN Controller] vlessUri: ${serverWithConfig.vlessUri != null ? "OK" : "MISSING"}');
       await _service.connect(serverWithConfig);
       _selectedServer = serverWithConfig;
-      _connectionState = VpnConnectionState.connected;
-    } catch (_) {
+      // State set via _onServiceStatusChanged callback
+    } catch (e) {
+      debugPrint('[VPN Controller] connect error: $e');
       _connectionState = VpnConnectionState.disconnected;
+      notifyListeners();
     }
-
-    notifyListeners();
   }
 
   Future<void> _disconnect() async {
     _connectionState = VpnConnectionState.disconnecting;
     notifyListeners();
-
     try {
       await _service.disconnect();
+    } catch (e) {
+      debugPrint('[VPN Controller] disconnect error: $e');
     } finally {
       _connectionState = VpnConnectionState.disconnected;
       notifyListeners();
@@ -146,50 +154,92 @@ class VpnController extends ChangeNotifier {
   }
 
   // ── Routing ───────────────────────────────────────────────────────
-
   void setRoutingMode(VpnRoutingMode mode) {
     _routingMode = mode;
-    switch (mode) {
-      case VpnRoutingMode.vtalkOnly:
-        _service.setVtalkOnly(true);
-        break;
-      case VpnRoutingMode.custom:
-        _service.setCustomDomains(_customDomains);
-        break;
-      case VpnRoutingMode.full:
-        _service.setVtalkOnly(false);
-        break;
-    }
+    _applyRoutingToService();
     _savePreferences();
     notifyListeners();
   }
 
   void setCustomDomains(List<String> domains) {
     _customDomains = List.from(domains);
-    if (_routingMode == VpnRoutingMode.custom) {
-      _service.setCustomDomains(_customDomains);
-    }
+    _applyRoutingToService();
     _savePreferences();
     notifyListeners();
   }
 
-  // ── Persistence ───────────────────────────────────────────────────
+  void setSelectedApps(List<String> packageNames) {
+    _selectedApps = List.from(packageNames);
+    _applyRoutingToService();
+    _savePreferences();
+    notifyListeners();
+  }
 
+  void _applyRoutingToService() {
+    final domains = <String>[];
+
+    switch (_routingMode) {
+      case VpnRoutingMode.vtalkOnly:
+        // Only VTalk domains go through VPN — everything else direct
+        domains.addAll(['vtalk.app', 'hypermax.duckdns.org']);
+        _service.setSplitTunneling(
+          apps: [],
+          domains: domains,
+          enabled: true,
+        );
+        break;
+      case VpnRoutingMode.custom:
+        _service.setSplitTunneling(
+          apps: _selectedApps,
+          domains: _customDomains,
+          enabled: true,
+        );
+        break;
+      case VpnRoutingMode.apps:
+        _service.setSplitTunneling(
+          apps: _selectedApps,
+          domains: [],
+          enabled: _selectedApps.isNotEmpty,
+        );
+        break;
+      case VpnRoutingMode.full:
+        _service.setSplitTunneling(
+          apps: [],
+          domains: [],
+          enabled: false,
+        );
+        break;
+    }
+  }
+
+  // ── Persistence ───────────────────────────────────────────────────
   Future<void> _savePreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('vpn_auto_mode', _autoMode);
-    await prefs.setInt('vpn_routing_mode', _routingMode.index);
-    await prefs.setStringList('vpn_custom_domains', _customDomains);
-    if (_selectedServer != null) {
-      await prefs.setString('vpn_selected_node', _selectedServer!.nodeId);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('vpn_auto_mode', _autoMode);
+      await prefs.setInt('vpn_routing_mode', _routingMode.index);
+      await prefs.setStringList('vpn_custom_domains', _customDomains);
+      await prefs.setStringList('vpn_selected_apps', _selectedApps);
+      if (_selectedServer != null) {
+        await prefs.setString('vpn_selected_node', _selectedServer!.nodeId);
+      }
+    } catch (e) {
+      debugPrint('[VPN Controller] savePreferences error: $e');
     }
   }
 
   Future<void> _loadPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    _autoMode = prefs.getBool('vpn_auto_mode') ?? true;
-    final routingIndex = prefs.getInt('vpn_routing_mode') ?? 0;
-    _routingMode = VpnRoutingMode.values[routingIndex];
-    _customDomains = prefs.getStringList('vpn_custom_domains') ?? [];
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _autoMode = prefs.getBool('vpn_auto_mode') ?? true;
+      final routingIndex = prefs.getInt('vpn_routing_mode') ?? 0;
+      if (routingIndex < VpnRoutingMode.values.length) {
+        _routingMode = VpnRoutingMode.values[routingIndex];
+      }
+      _customDomains = prefs.getStringList('vpn_custom_domains') ?? [];
+      _selectedApps = prefs.getStringList('vpn_selected_apps') ?? [];
+    } catch (e) {
+      debugPrint('[VPN Controller] loadPreferences error: $e');
+    }
   }
 }

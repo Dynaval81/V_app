@@ -1,21 +1,19 @@
-/// VPN Server model — matches GET /api/v1/vpn/servers response.
-/// Path: lib/data/models/server_model.dart
+/// Server/location model for VPN selection.
 class ServerModel {
   final String id;
   final String nodeId;
   final String location;
   final String countryCode;
   final String endpoint;
-  final String purpose; // "general" | "reverse"
+  final String purpose;
   final int capacity;
   final int currentLoad;
   final int loadPercentage;
-  final String configType; // "vless" | "singbox"
+  final String configType;
   final bool isAI;
   final bool available;
-
-  // Populated after GET /vpn/config/:nodeId
   final String? vlessUri;
+  final String? xrayConfig; // Full Xray JSON config string
 
   const ServerModel({
     required this.id,
@@ -23,20 +21,21 @@ class ServerModel {
     required this.location,
     required this.countryCode,
     required this.endpoint,
-    required this.purpose,
-    required this.capacity,
-    required this.currentLoad,
-    required this.loadPercentage,
-    required this.configType,
-    required this.isAI,
-    required this.available,
+    this.purpose = 'general',
+    this.capacity = 1000,
+    this.currentLoad = 0,
+    this.loadPercentage = 0,
+    this.configType = 'vless',
+    this.isAI = false,
+    this.available = true,
     this.vlessUri,
+    this.xrayConfig,
   });
 
   factory ServerModel.fromJson(Map<String, dynamic> json) {
     return ServerModel(
-      id: json['id']?.toString() ?? '',
-      nodeId: json['nodeId']?.toString() ?? '',
+      id: json['id']?.toString() ?? json['nodeId']?.toString() ?? '',
+      nodeId: json['nodeId']?.toString() ?? json['id']?.toString() ?? '',
       location: json['location']?.toString() ?? '',
       countryCode: json['countryCode']?.toString() ?? '',
       endpoint: json['endpoint']?.toString() ?? '',
@@ -45,55 +44,27 @@ class ServerModel {
       currentLoad: (json['currentLoad'] as num?)?.toInt() ?? 0,
       loadPercentage: (json['loadPercentage'] as num?)?.toInt() ?? 0,
       configType: json['configType']?.toString() ?? 'vless',
-      isAI: json['isAI'] ?? false,
-      available: json['available'] ?? true,
+      isAI: json['isAI'] as bool? ?? false,
+      available: json['available'] as bool? ?? true,
       vlessUri: json['vlessUri']?.toString(),
+      xrayConfig: json['xrayConfig']?.toString(),
     );
   }
 
-  ServerModel copyWith({String? vlessUri}) {
-    return ServerModel(
-      id: id,
-      nodeId: nodeId,
-      location: location,
-      countryCode: countryCode,
-      endpoint: endpoint,
-      purpose: purpose,
-      capacity: capacity,
-      currentLoad: currentLoad,
-      loadPercentage: loadPercentage,
-      configType: configType,
-      isAI: isAI,
-      available: available,
-      vlessUri: vlessUri ?? this.vlessUri,
-    );
-  }
-
-  /// Flag emoji from countryCode
+  /// Flag emoji from country code
   String get flagEmoji {
-    if (countryCode.isEmpty) return '🌐';
-    return countryCode.toUpperCase().split('').map((c) {
-      return String.fromCharCode(c.codeUnitAt(0) + 127397);
-    }).join();
+    if (countryCode.length != 2) return '🌐';
+    final base = 0x1F1E6 - 0x41;
+    final first = countryCode.codeUnitAt(0);
+    final second = countryCode.codeUnitAt(1);
+    return String.fromCharCode(base + first) + String.fromCharCode(base + second);
   }
 
-  /// Host extracted from endpoint (e.g. "vpn-pl.vtalk.io:2053" → "vpn-pl.vtalk.io")
-  String get host {
-    final parts = endpoint.split(':');
-    return parts.isNotEmpty ? parts[0] : endpoint;
-  }
-
-  /// Port extracted from endpoint
-  int get port {
-    final parts = endpoint.split(':');
-    return parts.length > 1 ? int.tryParse(parts[1]) ?? 2053 : 2053;
-  }
-
-  String get displayName => '$flagEmoji $location';
-
+  /// Load label for UI
   String get loadLabel {
-    if (loadPercentage < 30) return 'Low';
-    if (loadPercentage < 70) return 'Medium';
-    return 'High';
+    if (loadPercentage == 0) return 'Свободен';
+    if (loadPercentage < 50) return 'Нагрузка: низкая';
+    if (loadPercentage < 80) return 'Нагрузка: средняя';
+    return 'Нагрузка: высокая';
   }
 }
