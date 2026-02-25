@@ -4,7 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_singbox_vpn/flutter_singbox.dart';
 import 'package:http/http.dart' as http;
 import 'package:vtalk_app/data/models/server_model.dart';
-import 'package:vtalk_app/services/api_service.dart';
+import 'package:vtalk_app/core/api_service.dart';
 
 /// VPN engine — sing-box based, TUN mode, works without root.
 class VPNService {

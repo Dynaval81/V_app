@@ -158,13 +158,13 @@ class _RegistrationSuccessScreenState extends State<RegistrationSuccessScreen>
                                   ),
                                 ),
                                 Text(
-                                  widget.vtalkNumber,
-                                  style: TextStyle(
+                                  widget.vtalkNumber.replaceFirst('VT-', '').replaceFirst('vt-', ''),
+                                    style: TextStyle(
                                     fontSize: 28,
                                     fontWeight: FontWeight.w700,
                                     color: _copied
                                         ? Colors.green
-                                        : AppColors.primary,
+                                        : AppColors.onSurface,
                                     letterSpacing: 2,
                                   ),
                                 ),

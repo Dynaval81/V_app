@@ -135,19 +135,19 @@ class _LoginScreenState extends State<LoginScreen>
 
   String _getLoginHint(AppLocalizations l10n) {
     switch (_loginMethodIndex) {
-      case 0: return l10n.login_hint_email;
+      case 0: return l10n.login_hint_nickname;
       case 1: return l10n.login_hint_vtalk_id;
-      case 2: return l10n.login_hint_nickname;
-      default: return l10n.login_hint_email;
+      case 2: return l10n.login_hint_email;
+      default: return l10n.login_hint_nickname;
     }
   }
 
   TextInputType _getKeyboardType() {
     switch (_loginMethodIndex) {
-      case 0: return TextInputType.emailAddress;
+      case 0: return TextInputType.name;
       case 1: return TextInputType.visiblePassword;
-      case 2: return TextInputType.name;
-      default: return TextInputType.text;
+      case 2: return TextInputType.emailAddress;
+      default: return TextInputType.name;
     }
   }
 
@@ -311,7 +311,7 @@ class _LoginScreenState extends State<LoginScreen>
                       top: false,
                       child: GestureDetector(
                         onTap: () =>
-                            context.go('/register'),
+                            _showError('Регистрация — скоро'),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 24),
                           child: Center(
@@ -363,9 +363,9 @@ class _LoginScreenState extends State<LoginScreen>
         _MethodSelector(
           selected: _loginMethodIndex,
           labels: [
-            l10n.login_method_email,
-            l10n.login_method_vtalk_id,
             l10n.login_method_nickname,
+            l10n.login_method_vtalk_id,
+            l10n.login_method_email,
           ],
           onSelect: _selectMethod,
         ),

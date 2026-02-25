@@ -3,7 +3,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:vtalk_app/services/api_service.dart';
 import 'package:vtalk_app/data/models/user_model.dart';
 
-/// Результат попытки логина
 class AuthResult {
   final bool success;
   final String? error;
@@ -21,19 +20,9 @@ class AuthResult {
       AuthResult(success: false, error: error, isEmailNotVerified: isEmailNotVerified);
 }
 
-/// HAI3 Core: Auth controller — единственный источник правды об авторизации.
-///
-/// Жизненный цикл:
-/// 1. [tryRestoreSession] — вызывается при старте приложения.
-/// 2. [loginWithCredentials] — реальный логин через POST /auth/login.
-/// 3. [logout] — удаляем токен, сбрасываем состояние.
 class AuthController extends ChangeNotifier {
-  // ── Dependencies ──────────────────────────────────────────────────
   final ApiService _api;
   final FlutterSecureStorage _storage;
-
-  /// Callback: вызывается с объектом User после успешной авторизации.
-  /// Используйте для записи в UserProvider.
   final void Function(User user)? onUserLoaded;
 
   AuthController({
@@ -43,7 +32,6 @@ class AuthController extends ChangeNotifier {
   })  : _api = api ?? ApiService(),
         _storage = storage ?? const FlutterSecureStorage();
 
-  // ── State ─────────────────────────────────────────────────────────
   bool _isAuthenticated = false;
   bool _isRestoringSession = true;
   User? _currentUser;
@@ -52,28 +40,34 @@ class AuthController extends ChangeNotifier {
   bool get isRestoringSession => _isRestoringSession;
   User? get currentUser => _currentUser;
 
-  // ── Session restore ───────────────────────────────────────────────
-
-  /// Вызвать один раз при старте приложения в main().
   Future<void> tryRestoreSession() async {
     _isRestoringSession = true;
     notifyListeners();
 
     try {
       final hasToken = await _api.hasToken();
+      debugPrint('[AUTH] hasToken: $hasToken');
       if (!hasToken) {
         _setUnauthenticated();
         return;
       }
 
       final result = await _api.getUser();
+      debugPrint('[AUTH] getUser result: $result');
+
       if (result['success'] == true && result['user'] != null) {
-        final user = User.fromJson(result['user'] as Map<String, dynamic>);
+        final userJson = result['user'] as Map<String, dynamic>;
+        debugPrint('[AUTH] userJson: $userJson');
+        final user = User.fromJson(userJson);
+        debugPrint('[AUTH] parsed user: ${user.username}, vpn=${user.hasVpnAccess}, premium=${user.isPremium}');
         _setAuthenticated(user);
       } else {
+        debugPrint('[AUTH] getUser failed or user null: ${result['error']}');
         _setUnauthenticated();
       }
-    } catch (_) {
+    } catch (e, stack) {
+      debugPrint('[AUTH] tryRestoreSession ERROR: $e');
+      debugPrint('[AUTH] stack: $stack');
       _setUnauthenticated();
     } finally {
       _isRestoringSession = false;
@@ -81,20 +75,19 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  // ── Login ─────────────────────────────────────────────────────────
-
-  /// Принимает email / VT-ID / никнейм — бэкенд различает сам.
   Future<AuthResult> loginWithCredentials({
     required String identifier,
     required String password,
   }) async {
     try {
       final response = await _api.login(email: identifier, password: password);
+      debugPrint('[AUTH] login response: $response');
 
       if (response['success'] == true) {
         final userJson = response['user'];
         if (userJson != null) {
           final user = User.fromJson(userJson as Map<String, dynamic>);
+          debugPrint('[AUTH] login user: ${user.username}, vpn=${user.hasVpnAccess}');
           _setAuthenticated(user);
         }
         return AuthResult.ok();
@@ -108,19 +101,13 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  // ── Logout ────────────────────────────────────────────────────────
-
   Future<void> logout() async {
     await _api.logout();
     _setUnauthenticated();
   }
 
-  // ── Legacy shim ───────────────────────────────────────────────────
-
-  /// @deprecated Используй [loginWithCredentials].
+  /// @deprecated
   void login() => _setAuthenticated(_currentUser ?? _placeholderUser());
-
-  // ── Private ───────────────────────────────────────────────────────
 
   void _setAuthenticated(User user) {
     _isAuthenticated = true;

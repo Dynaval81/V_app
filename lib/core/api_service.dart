@@ -417,7 +417,7 @@ class ApiService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: jsonEncode({'code': code}),
+        body: jsonEncode({'password': code}),
       ).timeout(_timeout);
 
       final data = jsonDecode(response.body);

@@ -11,6 +11,7 @@ import 'package:vtalk_app/core/controllers/vpn_controller.dart';
 import 'package:vtalk_app/presentation/screens/auth/login_screen.dart';
 import 'package:vtalk_app/presentation/screens/auth/register_screen.dart';
 import 'package:vtalk_app/presentation/screens/auth/registration_success_screen.dart';
+import 'package:vtalk_app/presentation/screens/auth/email_verification_screen.dart';
 import 'package:vtalk_app/presentation/screens/chat/chat_room_screen.dart';
 import 'package:vtalk_app/presentation/screens/settings_screen.dart';
 import 'package:vtalk_app/presentation/screens/splash_screen.dart';
@@ -22,31 +23,31 @@ import 'package:vtalk_app/theme_provider.dart';
 import 'package:vtalk_app/theme/app_theme.dart';
 import 'l10n/app_localizations.dart';
 
-/// 🚀 V-Talk Beta - HAI3 Architecture
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Wire AuthController → UserProvider
   final userProvider = UserProvider();
   final authController = AuthController(
     onUserLoaded: userProvider.setUser,
   );
 
-  // Restore session from SecureStorage before first render
   await authController.tryRestoreSession();
 
   final initialLocation = authController.isAuthenticated
       ? AppRoutes.home
       : AppRoutes.splash;
 
+  final themeProvider = ThemeProvider();
+  await themeProvider.initializeTheme();
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: authController),
         ChangeNotifierProvider.value(value: userProvider),
+        ChangeNotifierProvider.value(value: themeProvider),
         ChangeNotifierProvider(create: (_) => ChatController()),
         ChangeNotifierProvider(create: (_) => TabVisibilityController()..load()),
-        ChangeNotifierProvider(create: (_) => ThemeProvider()..initializeTheme()),
         ChangeNotifierProvider(create: (_) => VpnController()),
       ],
       child: VTalkApp(initialLocation: initialLocation),
@@ -61,11 +62,14 @@ class VTalkApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ⭐ Слушаем ThemeProvider для переключения темы
+    final themeProvider = context.watch<ThemeProvider>();
+
     return MaterialApp.router(
       routerConfig: _goRouter(initialLocation),
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
       debugShowCheckedModeBanner: false,
       localizationsDelegates: const [
         AppLocalizations.delegate,
@@ -92,6 +96,17 @@ class VTalkApp extends StatelessWidget {
         GoRoute(
           path: '/register',
           builder: (context, state) => const RegisterScreen(),
+        ),
+        GoRoute(
+          path: '/verify-email',
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>? ?? {};
+            return EmailVerificationScreen(
+              email: extra['email']?.toString() ?? '',
+              nickname: extra['nickname']?.toString() ?? '',
+              vtalkNumber: extra['vtalkNumber']?.toString() ?? '',
+            );
+          },
         ),
         GoRoute(
           path: '/register-success',

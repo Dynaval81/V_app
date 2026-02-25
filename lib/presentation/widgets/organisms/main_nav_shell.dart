@@ -1,16 +1,17 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vtalk_app/constants/app_colors.dart';
+import 'package:vtalk_app/core/controllers/auth_controller.dart';
 import 'package:vtalk_app/core/controllers/tab_visibility_controller.dart';
 import 'package:vtalk_app/presentation/screens/ai/ai_assistant_screen.dart';
 import 'package:vtalk_app/presentation/screens/chats_screen.dart';
 import 'package:vtalk_app/presentation/screens/dashboard/dashboard_screen.dart';
 import 'package:vtalk_app/presentation/screens/vpn_screen.dart';
+import 'package:vtalk_app/presentation/widgets/organisms/vpn_access_overlay.dart';
 
-/// HAI3 Organism: Main app shell – Dashboard, Chats, optional AI, optional VPN; flicker-free navigation.
 class MainNavShell extends StatefulWidget {
   final int initialIndex;
-
   const MainNavShell({super.key, this.initialIndex = 0});
 
   @override
@@ -18,11 +19,10 @@ class MainNavShell extends StatefulWidget {
 }
 
 class _MainNavShellState extends State<MainNavShell> {
-  String _activeTabId = 'chats';
-  int _currentIndex = 0;
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  String _activeTabId = 'vpn';
+  int _currentIndex = 2;
+  bool _vpnAccessGranted = false;
 
-  // Fixed order of all possible screens
   static const List<String> _allTabIds = ['chats', 'ai', 'vpn', 'dashboard'];
   static const List<Widget> _allScreens = [
     ChatsScreen(key: PageStorageKey<String>('chats')),
@@ -31,39 +31,43 @@ class _MainNavShellState extends State<MainNavShell> {
     DashboardScreen(key: PageStorageKey<String>('dashboard')),
   ];
 
+  static const Set<String> _comingSoonTabs = {'chats', 'ai'};
+
   @override
   void initState() {
     super.initState();
-    _currentIndex = 0;
+    _currentIndex = _getFixedIndex('vpn');
+    // Проверяем доступ к VPN после первого frame
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkVpnAccess());
   }
 
-  int _getFixedIndex(String tabId) {
-    return _allTabIds.indexOf(tabId);
+  void _checkVpnAccess() {
+    final user = context.read<AuthController>().currentUser;
+    if (user != null && user.canUseVpn) {
+      setState(() => _vpnAccessGranted = true);
+    }
   }
+
+  int _getFixedIndex(String tabId) => _allTabIds.indexOf(tabId);
 
   void _onTabTapped(String tabId) {
     if (_activeTabId == tabId) return;
-    
-    final fixedIndex = _getFixedIndex(tabId);
-    
+    // При переходе на VPN — перепроверяем доступ (вдруг юзер только что активировал)
+    if (tabId == 'vpn') {
+      final user = context.read<AuthController>().currentUser;
+      if (user != null && user.canUseVpn) {
+        setState(() => _vpnAccessGranted = true);
+      }
+    }
     setState(() {
       _activeTabId = tabId;
-      _currentIndex = fixedIndex;
+      _currentIndex = _getFixedIndex(tabId);
     });
   }
 
   void _handleTabVisibilityChange() {
     final tabVisibility = context.read<TabVisibilityController>();
-    
-    // Calculate NEW index for current _activeTabId in fixed order
-    final newIndex = _getFixedIndex(_activeTabId);
-    
-    // Update state
-    setState(() {
-      _currentIndex = newIndex;
-    });
-    
-    // Reset changed flag after processing
+    setState(() => _currentIndex = _getFixedIndex(_activeTabId));
     tabVisibility.resetChangedFlag();
   }
 
@@ -72,46 +76,62 @@ class _MainNavShellState extends State<MainNavShell> {
     final tabVisibility = context.watch<TabVisibilityController>();
     final showAi = tabVisibility.showAiTab;
     final showVpn = tabVisibility.showVpnTab;
-    
-    // BottomNavigationBar shows only active tabs
+    final showChats = tabVisibility.showChatsTab;
+
     final activeTabs = <_TabItem>[
-      const _TabItem(icon: Icons.chat_bubble_outline_rounded, label: 'Chats', id: 'chats'),
-      if (showAi) const _TabItem(icon: Icons.psychology_rounded, label: 'AI', id: 'ai'),
-      if (showVpn) const _TabItem(icon: Icons.vpn_lock_rounded, label: 'VPN', id: 'vpn'),
+      if (showChats)
+        const _TabItem(icon: Icons.chat_bubble_outline_rounded, label: 'Chats', id: 'chats'),
+      if (showAi)
+        const _TabItem(icon: Icons.psychology_rounded, label: 'AI', id: 'ai'),
+      if (showVpn)
+        const _TabItem(icon: Icons.vpn_lock_rounded, label: 'VPN', id: 'vpn'),
       const _TabItem(icon: Icons.dashboard_rounded, label: 'Dashboard', id: 'dashboard'),
     ];
 
-    // Crash protection: safety check
-    if (_currentIndex >= _allScreens.length) {
-      _currentIndex = 0;
-    }
+    if (_currentIndex >= _allScreens.length) _currentIndex = 0;
 
-    // Handle tab visibility changes
     if (tabVisibility.hasChanged) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _handleTabVisibilityChange();
+      });
+    }
+
+    final activeTabVisible = activeTabs.any((t) => t.id == _activeTabId);
+    if (!activeTabVisible) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          _handleTabVisibilityChange();
+          setState(() {
+            _activeTabId = 'dashboard';
+            _currentIndex = _getFixedIndex('dashboard');
+          });
         }
       });
     }
 
     return Scaffold(
-      key: _scaffoldKey,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _allScreens,
+      body: Stack(
+        children: [
+          IndexedStack(
+            index: _currentIndex,
+            children: _allScreens,
+          ),
+          if (_comingSoonTabs.contains(_activeTabId))
+            _ComingSoonOverlay(tabId: _activeTabId),
+          if (_activeTabId == 'vpn' && !_vpnAccessGranted)
+            VpnAccessOverlay(
+              onAccessGranted: () => setState(() => _vpnAccessGranted = true),
+            ),
+        ],
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border(
-            top: BorderSide(
-              color: Colors.grey.withValues(alpha: 0.12),
-            ),
-          ),
+          border: Border(top: BorderSide(color: Colors.grey.withOpacity(0.12))),
         ),
         child: BottomNavigationBar(
-          currentIndex: activeTabs.indexWhere((tab) => tab.id == _activeTabId),
+          currentIndex: activeTabs
+              .indexWhere((tab) => tab.id == _activeTabId)
+              .clamp(0, activeTabs.length - 1),
           onTap: (index) => _onTabTapped(activeTabs[index].id),
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.white,
@@ -126,6 +146,66 @@ class _MainNavShellState extends State<MainNavShell> {
                     label: t.label,
                   ))
               .toList(),
+        ),
+      ),
+    );
+  }
+}
+
+class _ComingSoonOverlay extends StatelessWidget {
+  final String tabId;
+  const _ComingSoonOverlay({required this.tabId});
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+          child: Container(
+            color: Colors.white.withOpacity(0.7),
+            child: SafeArea(
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F3F5),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Icon(
+                        tabId == 'ai'
+                            ? Icons.psychology_rounded
+                            : Icons.chat_bubble_outline_rounded,
+                        size: 40,
+                        color: Colors.black38,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Coming soon',
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      tabId == 'ai'
+                          ? 'AI Assistant находится в разработке'
+                          : 'Чаты скоро будут доступны',
+                      style: const TextStyle(fontSize: 15, color: Colors.black45),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );

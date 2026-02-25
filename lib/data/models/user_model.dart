@@ -1,18 +1,19 @@
-/// Canonical User model. Single source of truth.
-/// Path: lib/data/models/user_model.dart
-///
-/// lib/models/user_model.dart — DELETED (duplicate with broken encoding)
 class User {
   final String id;
   final String username;
   final String email;
   final String vtNumber;
   final bool isPremium;
-  final String? activationCode;
-  final DateTime? createdAt;
+  final String? premiumPlan;
   final DateTime? premiumExpiresAt;
+  final bool hasVpnAccess;
+  final DateTime? vpnExpiresAt;
+  final bool hasAiAccess;
+  final DateTime? aiExpiresAt;
   final String? avatar;
   final String? status;
+  final String? matrixUserId;
+  final DateTime? createdAt;
 
   User({
     required this.id,
@@ -20,82 +21,98 @@ class User {
     required this.email,
     required this.vtNumber,
     this.isPremium = false,
-    this.activationCode,
-    this.createdAt,
+    this.premiumPlan,
     this.premiumExpiresAt,
+    this.hasVpnAccess = false,
+    this.vpnExpiresAt,
+    this.hasAiAccess = false,
+    this.aiExpiresAt,
     this.avatar,
     this.status,
+    this.matrixUserId,
+    this.createdAt,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
-    // Auto-generate username from email if missing
-    final username = json['username']?.toString() ??
-        (json['email']?.toString().split('@')[0] ?? 'User');
+    final username = json['username']?.toString().isNotEmpty == true
+        ? json['username'].toString()
+        : (json['email']?.toString().split('@')[0] ?? 'User');
+
+    DateTime? _parseDate(dynamic val) {
+      if (val == null) return null;
+      try { return DateTime.parse(val.toString()); } catch (_) { return null; }
+    }
 
     return User(
       id: json['id']?.toString() ?? '',
       username: username,
       email: json['email']?.toString() ?? '',
       vtNumber: json['vtNumber']?.toString() ?? '',
-      isPremium: json['isPremium'] ?? false,
-      activationCode: json['activationCode']?.toString(),
-      createdAt: _parseDate(json['createdAt']),
+      isPremium: json['isPremium'] == true,
+      premiumPlan: json['premiumPlan']?.toString(),
       premiumExpiresAt: _parseDate(json['premiumExpiresAt']),
+      hasVpnAccess: json['hasVpnAccess'] == true,
+      vpnExpiresAt: _parseDate(json['vpnExpiresAt']),
+      hasAiAccess: json['hasAiAccess'] == true,
+      aiExpiresAt: _parseDate(json['aiExpiresAt']),
       avatar: json['avatar']?.toString(),
       status: json['status']?.toString(),
+      matrixUserId: json['matrixUserId']?.toString(),
+      createdAt: _parseDate(json['createdAt']),
     );
   }
 
-  /// Safe date parser — returns null instead of crashing on malformed input.
-  static DateTime? _parseDate(dynamic value) {
-    if (value == null) return null;
-    try {
-      return DateTime.parse(value.toString());
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'username': username,
-      'email': email,
-      'vtNumber': vtNumber,
-      'isPremium': isPremium,
-      'activationCode': activationCode,
-      'createdAt': createdAt?.toIso8601String(),
-      'premiumExpiresAt': premiumExpiresAt?.toIso8601String(),
-      'avatar': avatar,
-      'status': status,
-    };
-  }
-
-  // ── Premium helpers ───────────────────────────────────────────────
-
-  /// True if premium active OR within 24h grace period after expiry.
-  bool hasAccess() {
+  /// VPN доступен если hasVpnAccess=true И (vpnExpiresAt null ИЛИ не истёк)
+  /// ИЛИ isPremium=true (полный доступ)
+  bool get canUseVpn {
     if (isPremium) return true;
-    if (premiumExpiresAt == null) return false;
-    final gracePeriodEnd = premiumExpiresAt!.add(const Duration(hours: 24));
-    return DateTime.now().isBefore(gracePeriodEnd);
+    if (!hasVpnAccess) return false;
+    if (vpnExpiresAt == null) return true;
+    return DateTime.now().isBefore(vpnExpiresAt!);
   }
 
-  String get premiumExpiresFormatted {
-    if (premiumExpiresAt == null) return 'Не указана';
-    final d = premiumExpiresAt!;
-    return '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
+  bool get canUseAi {
+    if (isPremium) return true;
+    if (!hasAiAccess) return false;
+    if (aiExpiresAt == null) return true;
+    return DateTime.now().isBefore(aiExpiresAt!);
   }
 
   String get premiumStatus {
     if (isPremium) return 'Premium активен';
     if (premiumExpiresAt == null) return 'Premium не активен';
-    final gracePeriodEnd = premiumExpiresAt!.add(const Duration(hours: 24));
-    if (DateTime.now().isBefore(gracePeriodEnd)) {
-      return 'Grace Period (льготный период)';
-    }
-    return 'Premium истек';
+    if (DateTime.now().isBefore(premiumExpiresAt!)) return 'Premium активен';
+    return 'Premium истёк';
   }
+
+  String get vpnStatus {
+    if (canUseVpn) {
+      if (vpnExpiresAt == null) return 'VPN — бессрочно';
+      return 'VPN до ${_formatDate(vpnExpiresAt!)}';
+    }
+    return 'VPN недоступен';
+  }
+
+  String _formatDate(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'username': username,
+    'email': email,
+    'vtNumber': vtNumber,
+    'isPremium': isPremium,
+    'premiumPlan': premiumPlan,
+    'premiumExpiresAt': premiumExpiresAt?.toIso8601String(),
+    'hasVpnAccess': hasVpnAccess,
+    'vpnExpiresAt': vpnExpiresAt?.toIso8601String(),
+    'hasAiAccess': hasAiAccess,
+    'aiExpiresAt': aiExpiresAt?.toIso8601String(),
+    'avatar': avatar,
+    'status': status,
+    'matrixUserId': matrixUserId,
+    'createdAt': createdAt?.toIso8601String(),
+  };
 
   User copyWith({
     String? id,
@@ -103,11 +120,16 @@ class User {
     String? email,
     String? vtNumber,
     bool? isPremium,
-    String? activationCode,
-    DateTime? createdAt,
+    String? premiumPlan,
     DateTime? premiumExpiresAt,
+    bool? hasVpnAccess,
+    DateTime? vpnExpiresAt,
+    bool? hasAiAccess,
+    DateTime? aiExpiresAt,
     String? avatar,
     String? status,
+    String? matrixUserId,
+    DateTime? createdAt,
   }) {
     return User(
       id: id ?? this.id,
@@ -115,11 +137,16 @@ class User {
       email: email ?? this.email,
       vtNumber: vtNumber ?? this.vtNumber,
       isPremium: isPremium ?? this.isPremium,
-      activationCode: activationCode ?? this.activationCode,
-      createdAt: createdAt ?? this.createdAt,
+      premiumPlan: premiumPlan ?? this.premiumPlan,
       premiumExpiresAt: premiumExpiresAt ?? this.premiumExpiresAt,
+      hasVpnAccess: hasVpnAccess ?? this.hasVpnAccess,
+      vpnExpiresAt: vpnExpiresAt ?? this.vpnExpiresAt,
+      hasAiAccess: hasAiAccess ?? this.hasAiAccess,
+      aiExpiresAt: aiExpiresAt ?? this.aiExpiresAt,
       avatar: avatar ?? this.avatar,
       status: status ?? this.status,
+      matrixUserId: matrixUserId ?? this.matrixUserId,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 }

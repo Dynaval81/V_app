@@ -105,7 +105,8 @@ class _RegisterScreenState extends State<RegisterScreen>
         final user = result['user'];
         final vtNumber = user?['vtNumber']?.toString() ?? '';
         final name = user?['username']?.toString() ?? email.split('@')[0];
-        context.go('/register-success', extra: {
+        context.go('/verify-email', extra: {
+          'email': email,
           'nickname': name,
           'vtalkNumber': vtNumber,
         });
