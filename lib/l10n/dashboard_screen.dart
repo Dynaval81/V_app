@@ -14,7 +14,7 @@ import 'package:vtalk_app/providers/user_provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:vtalk_app/core/utils/app_logger.dart';
 import 'package:vtalk_app/theme_provider.dart';
-import 'package:vtalk_app/l10n/app_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -267,14 +267,23 @@ class _DashboardScreenState extends State<DashboardScreen>
               _buildCard(
                 icon: Icons.favorite_outline_rounded,
                 title: AppLocalizations.of(context)!.dashboard_donations,
-                children: [
+                children: const [
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: EdgeInsets.symmetric(vertical: 8),
                     child: Text(
                       AppLocalizations.of(context)!.dashboard_donations_text,
-                      style: const TextStyle(fontSize: 16, color: Colors.grey),
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
                     ),
                   ),
+                ],
+              ),
+
+              _buildCard(
+                icon: Icons.memory_rounded,
+                title: AppLocalizations.of(context)!.dashboard_version_details,
+                children: [
+                  _infoRow('Build', '1'),
+                  _infoRow('API', 'v1.0'),
                 ],
               ),
 
@@ -505,8 +514,8 @@ class _ProfileOverlay extends StatelessWidget {
                     dense: true,
                     leading: Icon(Icons.settings_outlined,
                         size: 18, color: Colors.grey.shade600),
-                    title: Text(AppLocalizations.of(context)!.dashboard_settings,
-                        style: const TextStyle(fontSize: 14)),
+                    title: const Text('Настройки',
+                        style: TextStyle(fontSize: 14)),
                     onTap: () {
                       Navigator.of(context).pop();
                       context.push(AppRoutes.settings);
@@ -518,9 +527,9 @@ class _ProfileOverlay extends StatelessWidget {
                     dense: true,
                     leading: const Icon(Icons.logout_rounded,
                         size: 18, color: Colors.redAccent),
-                    title: Text(AppLocalizations.of(context)!.dashboard_logout,
+                    title: const Text('Выйти',
                         style:
-                            const TextStyle(fontSize: 14, color: Colors.redAccent)),
+                            TextStyle(fontSize: 14, color: Colors.redAccent)),
                     onTap: () async {
                       Navigator.of(context).pop();
                       await context.read<AuthController>().logout();
@@ -742,14 +751,14 @@ class _ReportSheetState extends State<_ReportSheet> {
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
-            'Сообщить об ошибке',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          Text(
+            AppLocalizations.of(context)!.dashboard_report,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Опиши что пошло не так — мы разберёмся.',
-            style: TextStyle(fontSize: 14, color: Colors.grey),
+          Text(
+            AppLocalizations.of(context)!.dashboard_report_hint,
+            style: const TextStyle(fontSize: 14, color: Colors.grey),
           ),
           const SizedBox(height: 16),
           if (_sent)
@@ -759,8 +768,8 @@ class _ReportSheetState extends State<_ReportSheet> {
                 children: [
                   Icon(Icons.check_circle, color: Colors.green),
                   SizedBox(width: 8),
-                  Text('Отправлено! Спасибо.',
-                      style: TextStyle(color: Colors.green, fontSize: 15)),
+                  Text(AppLocalizations.of(context)!.dashboard_report_sent,
+                      style: const TextStyle(color: Colors.green, fontSize: 15)),
                 ],
               ),
             )
@@ -775,8 +784,8 @@ class _ReportSheetState extends State<_ReportSheet> {
                 maxLines: 5,
                 autofocus: true,
                 style: const TextStyle(fontSize: 15, color: Colors.black87),
-                decoration: const InputDecoration(
-                  hintText: 'Например: при нажатии на кнопку VPN приложение зависает...',
+                decoration: InputDecoration(
+                  hintText: AppLocalizations.of(context)!.dashboard_report_placeholder,
                   hintStyle: TextStyle(color: Colors.black38, fontSize: 14),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.all(14),
@@ -803,8 +812,8 @@ class _ReportSheetState extends State<_ReportSheet> {
                         child: CircularProgressIndicator(
                             color: Colors.white, strokeWidth: 2),
                       )
-                    : const Text('Отправить',
-                        style: TextStyle(
+                    : Text(AppLocalizations.of(context)!.dashboard_report_send,
+                        style: const TextStyle(
                             fontWeight: FontWeight.w600, fontSize: 16)),
               ),
             ),

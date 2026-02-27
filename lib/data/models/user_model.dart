@@ -43,11 +43,15 @@ class User {
       try { return DateTime.parse(val.toString()); } catch (_) { return null; }
     }
 
+    // Нормализуем vtNumber — убираем VT- префикс если бэкенд его присылает
+    final rawVt = json['vtNumber']?.toString() ?? '';
+    final vtClean = rawVt.startsWith('VT-') ? rawVt.substring(3) : rawVt;
+
     return User(
       id: json['id']?.toString() ?? '',
       username: username,
       email: json['email']?.toString() ?? '',
-      vtNumber: json['vtNumber']?.toString() ?? '',
+      vtNumber: vtClean,
       isPremium: json['isPremium'] == true,
       premiumPlan: json['premiumPlan']?.toString(),
       premiumExpiresAt: _parseDate(json['premiumExpiresAt']),

@@ -6,7 +6,6 @@ import 'package:vtalk_app/core/constants.dart';
 import 'package:vtalk_app/core/constants/app_constants.dart';
 import 'package:vtalk_app/core/controllers/auth_controller.dart';
 import 'package:vtalk_app/presentation/atoms/airy_input_field.dart';
-import 'package:vtalk_app/services/api_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -101,19 +100,23 @@ class _LoginScreenState extends State<LoginScreen>
 
     setState(() => _isLoading = true);
     try {
-      final result = await ApiService().login(email: identifier, password: password);
+      final result = await context.read<AuthController>().loginWithCredentials(
+        identifier: identifier,
+        password: password,
+      );
       if (!mounted) return;
 
-      if (result['success'] == true) {
-        context.read<AuthController>().login();
+      if (result.success) {
         context.go(AppRoutes.home);
+      } else if (result.isEmailNotVerified) {
+        _showError('Подтвердите email перед входом');
+        _goBack();
       } else {
-        _showError(result['error'] ?? 'Ошибка входа');
-        // Wrong password — go back to step 0
+        _showError(result.error ?? 'Ошибка входа');
         _goBack();
       }
     } catch (e) {
-      _showError('Ошибка сети');
+      if (mounted) _showError('Ошибка сети');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -147,7 +150,7 @@ class _LoginScreenState extends State<LoginScreen>
       case 0: return TextInputType.name;
       case 1: return TextInputType.visiblePassword;
       case 2: return TextInputType.emailAddress;
-      default: return TextInputType.name;
+      default: return TextInputType.text;
     }
   }
 
@@ -311,7 +314,7 @@ class _LoginScreenState extends State<LoginScreen>
                       top: false,
                       child: GestureDetector(
                         onTap: () =>
-                            _showError('Регистрация — скоро'),
+                            context.go('/register'),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 24),
                           child: Center(

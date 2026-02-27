@@ -9,6 +9,7 @@ import 'package:vtalk_app/presentation/screens/chats_screen.dart';
 import 'package:vtalk_app/presentation/screens/dashboard/dashboard_screen.dart';
 import 'package:vtalk_app/presentation/screens/vpn_screen.dart';
 import 'package:vtalk_app/presentation/widgets/organisms/vpn_access_overlay.dart';
+import 'package:vtalk_app/l10n/app_localizations.dart';
 
 class MainNavShell extends StatefulWidget {
   final int initialIndex;
@@ -78,14 +79,15 @@ class _MainNavShellState extends State<MainNavShell> {
     final showVpn = tabVisibility.showVpnTab;
     final showChats = tabVisibility.showChatsTab;
 
+    final l10n = AppLocalizations.of(context)!;
     final activeTabs = <_TabItem>[
       if (showChats)
-        const _TabItem(icon: Icons.chat_bubble_outline_rounded, label: 'Chats', id: 'chats'),
+        _TabItem(icon: Icons.chat_bubble_outline_rounded, label: l10n.tab_chats, id: 'chats'),
       if (showAi)
-        const _TabItem(icon: Icons.psychology_rounded, label: 'AI', id: 'ai'),
+        _TabItem(icon: Icons.psychology_rounded, label: l10n.tab_ai, id: 'ai'),
       if (showVpn)
-        const _TabItem(icon: Icons.vpn_lock_rounded, label: 'VPN', id: 'vpn'),
-      const _TabItem(icon: Icons.dashboard_rounded, label: 'Dashboard', id: 'dashboard'),
+        _TabItem(icon: Icons.vpn_lock_rounded, label: l10n.tab_vpn, id: 'vpn'),
+      _TabItem(icon: Icons.dashboard_rounded, label: l10n.tab_dashboard, id: 'dashboard'),
     ];
 
     if (_currentIndex >= _allScreens.length) _currentIndex = 0;
@@ -185,9 +187,9 @@ class _ComingSoonOverlay extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    const Text(
-                      'Coming soon',
-                      style: TextStyle(
+                    Text(
+                      AppLocalizations.of(context)!.coming_soon,
+                      style: const TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.w700,
                         color: Colors.black87,
@@ -197,8 +199,8 @@ class _ComingSoonOverlay extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       tabId == 'ai'
-                          ? 'AI Assistant находится в разработке'
-                          : 'Чаты скоро будут доступны',
+                          ? AppLocalizations.of(context)!.coming_soon_ai
+                          : AppLocalizations.of(context)!.coming_soon_chats,
                       style: const TextStyle(fontSize: 15, color: Colors.black45),
                     ),
                   ],

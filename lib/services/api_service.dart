@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -6,7 +7,7 @@ class ApiService {
   // Используем переменную окружения для базового URL
   static const String _baseUrl = String.fromEnvironment(
     'BASE_URL',
-    defaultValue: 'https://hypermax.duckdns.org/api/v1',
+    defaultValue: 'http://57.128.239.33:3000/api/v1',
   );
   static const String _tokenKey = 'auth_token';
   static const Duration _timeout = Duration(seconds: 30); // ⭐ ТАЙМАУТ 30 СЕКУНД
@@ -97,15 +98,19 @@ class ApiService {
     required String password,
   }) async {
     try {
+      final url = Uri.parse('$_baseUrl/auth/login');
+      final headers = {'Content-Type': 'application/json'};
+      final bodyMap = {'identifier': email, 'password': password};
+      final bodyStr = jsonEncode(bodyMap);
+
+      debugPrint('[API] POST $url');
+      debugPrint('[API] headers: $headers');
+      debugPrint('[API] body: $bodyStr');
+
       final response = await http.post(
-        Uri.parse('$_baseUrl/auth/login'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'identifier': email,
-          'password': password,
-        }),
+        url,
+        headers: headers,
+        body: bodyStr,
       ).timeout(_timeout);
 
       final data = jsonDecode(response.body);
@@ -137,22 +142,12 @@ class ApiService {
           'error': data['message'] ?? 'Login failed',
         };
       }
-    } catch (e) {
-      // ⭐ КРИТИЧНО - ПРАВИЛЬНЫЙ ПАРСИНГ ОШИБОК
-      String errorMessage = 'Network error';
-      
-      try {
-        if (e.toString().contains('Exception:')) {
-          final errorString = e.toString().split('Exception: ')[1];
-          errorMessage = errorString.replaceAll(RegExp(r'[{}"]'), '').trim();
-        }
-      } catch (_) {
-        errorMessage = 'Network error: ${e.toString()}';
-      }
-      
+    } catch (e, stack) {
+      debugPrint('[API] login error: $e');
+      debugPrint('[API] login stack: $stack');
       return {
         'success': false,
-        'error': errorMessage,
+        'error': 'Network error: ${e.toString()}',
       };
     }
   }
@@ -387,7 +382,7 @@ class ApiService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: jsonEncode({'password': code}),
+        body: jsonEncode({'code': code}),
       ).timeout(_timeout);
 
       final data = jsonDecode(response.body);
@@ -483,6 +478,36 @@ class ApiService {
       }
     } catch (e) {
       return {'success': false, 'error': 'Network error: ${e.toString()}'};
+    }
+  }
+
+  // ⭐ ПОЛУЧЕНИЕ VPN СЕРВЕРОВ
+  Future<Map<String, dynamic>> getVpnServers({String? purpose}) async {
+    try {
+      final token = await _secureStorage.read(key: _tokenKey);
+      if (token == null) return {'success': false, 'error': 'No token'};
+
+      final uri = Uri.parse('$_baseUrl/vpn/servers').replace(
+        queryParameters: purpose != null ? {'purpose': purpose} : null,
+      );
+
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(_timeout);
+
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        final servers = data['servers'] ?? data['data']?['servers'] ?? [];
+        return {'success': true, 'servers': servers};
+      } else {
+        return {'success': false, 'error': data['message'] ?? 'Failed to load servers'};
+      }
+    } catch (e) {
+      return {'success': false, 'error': 'Network error: \${e.toString()}'};
     }
   }
 

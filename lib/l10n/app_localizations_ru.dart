@@ -66,7 +66,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get login_forgot_password => 'Забыли пароль?';
 
   @override
-  String get login_change_identifier => 'Изменить';
+  String get login_change_identifier => 'изменить';
 
   @override
   String get login_error_empty => 'Введите email, VT-ID или никнейм';
@@ -76,4 +76,195 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get login_error_network => 'Ошибка сети';
+
+  @override
+  String get register_title => 'Регистрация';
+
+  @override
+  String get register_subtitle => 'Создайте аккаунт';
+
+  @override
+  String get register_email_label => 'Email';
+
+  @override
+  String get register_email_hint => 'Введите email';
+
+  @override
+  String get register_password_label => 'Пароль';
+
+  @override
+  String get register_password_hint => 'Минимум 6 символов';
+
+  @override
+  String get register_nickname_label => 'Никнейм (необязательно)';
+
+  @override
+  String get register_nickname_hint => 'Введите никнейм';
+
+  @override
+  String get register_button => 'Создать аккаунт';
+
+  @override
+  String get register_have_account => 'Уже есть аккаунт? ';
+
+  @override
+  String get register_login => 'Войти';
+
+  @override
+  String get dashboard_title => 'Дашборд';
+
+  @override
+  String get dashboard_elements_store => 'Магазин элементов';
+
+  @override
+  String get dashboard_tab_chats => 'Вкладка Чаты';
+
+  @override
+  String get dashboard_tab_ai => 'Вкладка ИИ-ассистент';
+
+  @override
+  String get dashboard_tab_vpn => 'Вкладка VPN';
+
+  @override
+  String get dashboard_app_info => 'О приложении';
+
+  @override
+  String get dashboard_version_details => 'Детали версии';
+
+  @override
+  String get dashboard_donations => 'Донаты';
+
+  @override
+  String get dashboard_report => 'Сообщить об ошибке';
+
+  @override
+  String get dashboard_report_hint => 'Опиши что пошло не так — мы разберёмся.';
+
+  @override
+  String get dashboard_report_placeholder =>
+      'Например: при нажатии на кнопку VPN приложение зависает...';
+
+  @override
+  String get dashboard_report_send => 'Отправить';
+
+  @override
+  String get dashboard_report_sent => 'Отправлено! Спасибо.';
+
+  @override
+  String get dashboard_settings => 'Настройки';
+
+  @override
+  String get dashboard_logout => 'Выйти';
+
+  @override
+  String get vpn_title => 'VPN';
+
+  @override
+  String get vpn_connected => 'Подключено';
+
+  @override
+  String get vpn_disconnected => 'Отключено';
+
+  @override
+  String get vpn_connecting => 'Подключение...';
+
+  @override
+  String get vpn_select_server => 'Выбрать сервер';
+
+  @override
+  String get vpn_split_tunneling => 'Раздельное туннелирование';
+
+  @override
+  String get vpn_split_apps => 'Приложения';
+
+  @override
+  String get vpn_split_sites => 'Сайты';
+
+  @override
+  String get vpn_traffic_in => 'Входящий';
+
+  @override
+  String get vpn_traffic_out => 'Исходящий';
+
+  @override
+  String get vpn_access_title => 'Требуется доступ';
+
+  @override
+  String get vpn_access_subtitle => 'Введите код активации VPN';
+
+  @override
+  String get vpn_access_hint => 'Код активации';
+
+  @override
+  String get vpn_access_button => 'Активировать';
+
+  @override
+  String get settings_title => 'Настройки';
+
+  @override
+  String get settings_theme => 'Тема';
+
+  @override
+  String get settings_theme_light => 'Светлая';
+
+  @override
+  String get settings_theme_dark => 'Тёмная';
+
+  @override
+  String get settings_language => 'Язык';
+
+  @override
+  String get settings_account => 'Аккаунт';
+
+  @override
+  String get settings_premium => 'Premium';
+
+  @override
+  String get settings_activate_code => 'Введите код активации';
+
+  @override
+  String get settings_activate_button => 'Активировать';
+
+  @override
+  String get coming_soon => 'Скоро';
+
+  @override
+  String get coming_soon_ai => 'ИИ-ассистент в разработке';
+
+  @override
+  String get coming_soon_chats => 'Чаты скоро будут доступны';
+
+  @override
+  String get error_network => 'Ошибка сети';
+
+  @override
+  String get error_unknown => 'Неизвестная ошибка';
+
+  @override
+  String get button_ok => 'Понятно';
+
+  @override
+  String get button_cancel => 'Отмена';
+
+  @override
+  String get button_save => 'Сохранить';
+
+  @override
+  String get button_close => 'Закрыть';
+
+  @override
+  String get dashboard_donations_text =>
+      'Поддержи проект — донаты помогают V-Talk оставаться бесплатным.';
+
+  @override
+  String get tab_chats => 'Чаты';
+
+  @override
+  String get tab_ai => 'ИИ';
+
+  @override
+  String get tab_vpn => 'VPN';
+
+  @override
+  String get tab_dashboard => 'Профиль';
 }

@@ -22,9 +22,12 @@ import 'package:vtalk_app/providers/user_provider.dart';
 import 'package:vtalk_app/theme_provider.dart';
 import 'package:vtalk_app/theme/app_theme.dart';
 import 'l10n/app_localizations.dart';
+import 'package:vtalk_app/core/utils/app_logger.dart';
+import 'package:vtalk_app/core/config/flavor_config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  AppLogger.instance.init(); // Запускаем сбор логов
 
   final userProvider = UserProvider();
   final authController = AuthController(
@@ -55,35 +58,23 @@ void main() async {
   );
 }
 
-class VTalkApp extends StatelessWidget {
+class VTalkApp extends StatefulWidget {
   final String initialLocation;
 
   const VTalkApp({super.key, required this.initialLocation});
 
   @override
-  Widget build(BuildContext context) {
-    // ⭐ Слушаем ThemeProvider для переключения темы
-    final themeProvider = context.watch<ThemeProvider>();
+  State<VTalkApp> createState() => _VTalkAppState();
+}
 
-    return MaterialApp.router(
-      routerConfig: _goRouter(initialLocation),
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-      debugShowCheckedModeBanner: false,
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: AppLocalizations.supportedLocales,
-    );
-  }
+class _VTalkAppState extends State<VTalkApp> {
+  late final GoRouter _router;
 
-  GoRouter _goRouter(String initialLocation) {
-    return GoRouter(
-      initialLocation: initialLocation,
+  @override
+  void initState() {
+    super.initState();
+    _router = GoRouter(
+      initialLocation: widget.initialLocation,
       routes: [
         GoRoute(
           path: AppRoutes.splash,
@@ -135,6 +126,28 @@ class VTalkApp extends StatelessWidget {
         ),
       ],
       errorBuilder: (context, state) => _ErrorScreen(error: state.error),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
+    return MaterialApp.router(
+      routerConfig: _router,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      // Локаль фиксируется на этапе сборки через flavor
+      locale: Locale(FlavorConfig.locale),
     );
   }
 }

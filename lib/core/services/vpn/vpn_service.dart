@@ -4,7 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_singbox_vpn/flutter_singbox.dart';
 import 'package:http/http.dart' as http;
 import 'package:vtalk_app/data/models/server_model.dart';
-import 'package:vtalk_app/core/api_service.dart';
+import 'package:vtalk_app/services/api_service.dart';
 
 /// VPN engine — sing-box based, TUN mode, works without root.
 class VPNService {
@@ -170,6 +170,14 @@ class VPNService {
     _splitApps = List.from(apps);
     _splitDomains = List.from(domains);
     _splitTunnelingEnabled = enabled;
+
+    // Если VPN уже подключён — переподключаем с новым конфигом
+    if (_isConnected && _currentServer != null) {
+      debugPrint('[VPN] Restarting with new split tunneling config');
+      await disconnect();
+      await Future.delayed(const Duration(milliseconds: 500));
+      await connect(_currentServer!);
+    }
   }
 
   Future<void> selectServer(ServerModel server) async {
@@ -213,8 +221,14 @@ class VPNService {
     final routeRules = <Map<String, dynamic>>[
       {'protocol': 'dns', 'outbound': 'dns-out'},
       {'ip_cidr': privateRanges, 'outbound': 'direct'},
-      if (_splitTunnelingEnabled && _splitDomains.isNotEmpty)
-        {'domain': _splitDomains, 'outbound': 'direct'},
+      // Split tunneling: только выбранные приложения/домены через VPN, остальное direct
+      if (_splitTunnelingEnabled) ...([
+        if (_splitApps.isNotEmpty)
+          {'android_package_names': _splitApps, 'outbound': 'proxy'},
+        if (_splitDomains.isNotEmpty)
+          {'domain': _splitDomains, 'outbound': 'proxy'},
+        {'outbound': 'direct'},
+      ]),
     ];
 
     return {
@@ -281,7 +295,8 @@ class VPNService {
       ],
       'route': {
         'auto_detect_interface': true,
-        'final': 'proxy',
+        // Если split tunneling — дефолт direct, иначе всё через proxy
+        'final': _splitTunnelingEnabled ? 'direct' : 'proxy',
         'rules': routeRules,
       },
     };
