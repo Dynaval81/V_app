@@ -307,31 +307,31 @@ abstract class AppLocalizations {
   /// No description provided for @dashboard_title.
   ///
   /// In ru, this message translates to:
-  /// **'Дашборд'**
+  /// **'Настройки'**
   String get dashboard_title;
 
   /// No description provided for @dashboard_elements_store.
   ///
   /// In ru, this message translates to:
-  /// **'Магазин элементов'**
+  /// **'Элементы'**
   String get dashboard_elements_store;
 
   /// No description provided for @dashboard_tab_chats.
   ///
   /// In ru, this message translates to:
-  /// **'Вкладка Чаты'**
+  /// **'Чаты'**
   String get dashboard_tab_chats;
 
   /// No description provided for @dashboard_tab_ai.
   ///
   /// In ru, this message translates to:
-  /// **'Вкладка ИИ-ассистент'**
+  /// **'Ассистент'**
   String get dashboard_tab_ai;
 
   /// No description provided for @dashboard_tab_vpn.
   ///
   /// In ru, this message translates to:
-  /// **'Вкладка VPN'**
+  /// **'VPN'**
   String get dashboard_tab_vpn;
 
   /// No description provided for @dashboard_app_info.
@@ -349,7 +349,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboard_donations.
   ///
   /// In ru, this message translates to:
-  /// **'Донаты'**
+  /// **'Поддержка'**
   String get dashboard_donations;
 
   /// No description provided for @dashboard_report.
@@ -517,7 +517,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_premium.
   ///
   /// In ru, this message translates to:
-  /// **'Premium'**
+  /// **'Подписка'**
   String get settings_premium;
 
   /// No description provided for @settings_activate_code.
@@ -601,7 +601,7 @@ abstract class AppLocalizations {
   /// No description provided for @tab_ai.
   ///
   /// In ru, this message translates to:
-  /// **'ИИ'**
+  /// **'Ассистент'**
   String get tab_ai;
 
   /// No description provided for @tab_vpn.
@@ -613,8 +613,26 @@ abstract class AppLocalizations {
   /// No description provided for @tab_dashboard.
   ///
   /// In ru, this message translates to:
-  /// **'Профиль'**
+  /// **'Настройки'**
   String get tab_dashboard;
+
+  /// No description provided for @settings_notifications.
+  ///
+  /// In ru, this message translates to:
+  /// **'Уведомления'**
+  String get settings_notifications;
+
+  /// No description provided for @settings_logout.
+  ///
+  /// In ru, this message translates to:
+  /// **'Выйти'**
+  String get settings_logout;
+
+  /// No description provided for @settings_version.
+  ///
+  /// In ru, this message translates to:
+  /// **'Версия'**
+  String get settings_version;
 }
 
 class _AppLocalizationsDelegate

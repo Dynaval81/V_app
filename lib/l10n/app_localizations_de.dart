@@ -111,19 +111,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get register_login => 'Anmelden';
 
   @override
-  String get dashboard_title => 'Dashboard';
+  String get dashboard_title => 'Einstellungen';
 
   @override
-  String get dashboard_elements_store => 'Elemente-Store';
+  String get dashboard_elements_store => 'Elemente';
 
   @override
-  String get dashboard_tab_chats => 'Chats-Tab';
+  String get dashboard_tab_chats => 'Chats';
 
   @override
-  String get dashboard_tab_ai => 'KI-Assistent-Tab';
+  String get dashboard_tab_ai => 'Assistent';
 
   @override
-  String get dashboard_tab_vpn => 'VPN-Tab';
+  String get dashboard_tab_vpn => 'VPN';
 
   @override
   String get dashboard_app_info => 'App-Info';
@@ -132,7 +132,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dashboard_version_details => 'Versionsdetails';
 
   @override
-  String get dashboard_donations => 'Spenden';
+  String get dashboard_donations => 'Unterstützung';
 
   @override
   String get dashboard_report => 'Fehler melden';
@@ -218,7 +218,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_account => 'Konto';
 
   @override
-  String get settings_premium => 'Premium';
+  String get settings_premium => 'Abonnement';
 
   @override
   String get settings_activate_code => 'Aktivierungscode eingeben';
@@ -261,11 +261,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tab_chats => 'Chats';
 
   @override
-  String get tab_ai => 'KI';
+  String get tab_ai => 'Assistent';
 
   @override
   String get tab_vpn => 'VPN';
 
   @override
-  String get tab_dashboard => 'Profil';
+  String get tab_dashboard => 'Einstellungen';
+
+  @override
+  String get settings_notifications => 'Benachrichtigungen';
+
+  @override
+  String get settings_logout => 'Abmelden';
+
+  @override
+  String get settings_version => 'Version';
 }

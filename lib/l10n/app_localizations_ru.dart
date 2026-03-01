@@ -111,19 +111,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get register_login => 'Войти';
 
   @override
-  String get dashboard_title => 'Дашборд';
+  String get dashboard_title => 'Настройки';
 
   @override
-  String get dashboard_elements_store => 'Магазин элементов';
+  String get dashboard_elements_store => 'Элементы';
 
   @override
-  String get dashboard_tab_chats => 'Вкладка Чаты';
+  String get dashboard_tab_chats => 'Чаты';
 
   @override
-  String get dashboard_tab_ai => 'Вкладка ИИ-ассистент';
+  String get dashboard_tab_ai => 'Ассистент';
 
   @override
-  String get dashboard_tab_vpn => 'Вкладка VPN';
+  String get dashboard_tab_vpn => 'VPN';
 
   @override
   String get dashboard_app_info => 'О приложении';
@@ -132,7 +132,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get dashboard_version_details => 'Детали версии';
 
   @override
-  String get dashboard_donations => 'Донаты';
+  String get dashboard_donations => 'Поддержка';
 
   @override
   String get dashboard_report => 'Сообщить об ошибке';
@@ -217,7 +217,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get settings_account => 'Аккаунт';
 
   @override
-  String get settings_premium => 'Premium';
+  String get settings_premium => 'Подписка';
 
   @override
   String get settings_activate_code => 'Введите код активации';
@@ -260,11 +260,20 @@ class AppLocalizationsRu extends AppLocalizations {
   String get tab_chats => 'Чаты';
 
   @override
-  String get tab_ai => 'ИИ';
+  String get tab_ai => 'Ассистент';
 
   @override
   String get tab_vpn => 'VPN';
 
   @override
-  String get tab_dashboard => 'Профиль';
+  String get tab_dashboard => 'Настройки';
+
+  @override
+  String get settings_notifications => 'Уведомления';
+
+  @override
+  String get settings_logout => 'Выйти';
+
+  @override
+  String get settings_version => 'Версия';
 }
