@@ -9,7 +9,6 @@ import 'package:vtalk_app/presentation/screens/chats_screen.dart';
 import 'package:vtalk_app/presentation/screens/dashboard/dashboard_screen.dart';
 import 'package:vtalk_app/presentation/screens/vpn_screen.dart';
 import 'package:vtalk_app/presentation/widgets/organisms/vpn_access_overlay.dart';
-import 'package:vtalk_app/l10n/app_localizations.dart';
 
 class MainNavShell extends StatefulWidget {
   final int initialIndex;
@@ -22,7 +21,6 @@ class MainNavShell extends StatefulWidget {
 class _MainNavShellState extends State<MainNavShell> {
   String _activeTabId = 'vpn';
   int _currentIndex = 2;
-  bool _vpnAccessGranted = false;
 
   static const List<String> _allTabIds = ['chats', 'ai', 'vpn', 'dashboard'];
   static const List<Widget> _allScreens = [
@@ -38,15 +36,6 @@ class _MainNavShellState extends State<MainNavShell> {
   void initState() {
     super.initState();
     _currentIndex = _getFixedIndex('vpn');
-    // Проверяем доступ к VPN после первого frame
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkVpnAccess());
-  }
-
-  void _checkVpnAccess() {
-    final user = context.read<AuthController>().currentUser;
-    if (user != null && user.canUseVpn) {
-      setState(() => _vpnAccessGranted = true);
-    }
   }
 
   int _getFixedIndex(String tabId) => _allTabIds.indexOf(tabId);
@@ -54,12 +43,7 @@ class _MainNavShellState extends State<MainNavShell> {
   void _onTabTapped(String tabId) {
     if (_activeTabId == tabId) return;
     // При переходе на VPN — перепроверяем доступ (вдруг юзер только что активировал)
-    if (tabId == 'vpn') {
-      final user = context.read<AuthController>().currentUser;
-      if (user != null && user.canUseVpn) {
-        setState(() => _vpnAccessGranted = true);
-      }
-    }
+
     setState(() {
       _activeTabId = tabId;
       _currentIndex = _getFixedIndex(tabId);
@@ -79,15 +63,14 @@ class _MainNavShellState extends State<MainNavShell> {
     final showVpn = tabVisibility.showVpnTab;
     final showChats = tabVisibility.showChatsTab;
 
-    final l10n = AppLocalizations.of(context)!;
     final activeTabs = <_TabItem>[
       if (showChats)
-        _TabItem(icon: Icons.chat_bubble_outline_rounded, label: l10n.tab_chats, id: 'chats'),
+        const _TabItem(icon: Icons.chat_bubble_outline_rounded, label: 'Chats', id: 'chats'),
       if (showAi)
-        _TabItem(icon: Icons.psychology_rounded, label: l10n.tab_ai, id: 'ai'),
+        const _TabItem(icon: Icons.psychology_rounded, label: 'AI', id: 'ai'),
       if (showVpn)
-        _TabItem(icon: Icons.vpn_lock_rounded, label: l10n.tab_vpn, id: 'vpn'),
-      _TabItem(icon: Icons.dashboard_rounded, label: l10n.tab_dashboard, id: 'dashboard'),
+        const _TabItem(icon: Icons.vpn_lock_rounded, label: 'VPN', id: 'vpn'),
+      const _TabItem(icon: Icons.dashboard_rounded, label: 'Dashboard', id: 'dashboard'),
     ];
 
     if (_currentIndex >= _allScreens.length) _currentIndex = 0;
@@ -119,9 +102,9 @@ class _MainNavShellState extends State<MainNavShell> {
           ),
           if (_comingSoonTabs.contains(_activeTabId))
             _ComingSoonOverlay(tabId: _activeTabId),
-          if (_activeTabId == 'vpn' && !_vpnAccessGranted)
+          if (_activeTabId == 'vpn' && !(context.watch<AuthController>().currentUser?.canUseVpn ?? false))
             VpnAccessOverlay(
-              onAccessGranted: () => setState(() => _vpnAccessGranted = true),
+              onAccessGranted: () => setState(() {}),
             ),
         ],
       ),
@@ -187,9 +170,9 @@ class _ComingSoonOverlay extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    Text(
-                      AppLocalizations.of(context)!.coming_soon,
-                      style: const TextStyle(
+                    const Text(
+                      'Coming soon',
+                      style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.w700,
                         color: Colors.black87,
@@ -199,8 +182,8 @@ class _ComingSoonOverlay extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       tabId == 'ai'
-                          ? AppLocalizations.of(context)!.coming_soon_ai
-                          : AppLocalizations.of(context)!.coming_soon_chats,
+                          ? 'AI Assistant находится в разработке'
+                          : 'Чаты скоро будут доступны',
                       style: const TextStyle(fontSize: 15, color: Colors.black45),
                     ),
                   ],

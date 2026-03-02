@@ -39,35 +39,26 @@ class AuthController extends ChangeNotifier {
   bool get isRestoringSession => _isRestoringSession;
   User? get currentUser => _currentUser;
 
-  // ── Session restore ───────────────────────────────────────────────
-
   Future<void> tryRestoreSession() async {
     _isRestoringSession = true;
     notifyListeners();
 
     try {
       final hasToken = await _api.hasToken();
-      debugPrint('[AUTH] hasToken: $hasToken');
       if (!hasToken) {
         _setUnauthenticated();
         return;
       }
 
       final result = await _api.getUser();
-      debugPrint('[AUTH] getUser result: $result');
-
       if (result['success'] == true && result['user'] != null) {
-        final userJson = result['user'] as Map<String, dynamic>;
-        debugPrint('[AUTH] userJson: $userJson');
-        final user = User.fromJson(userJson);
-        debugPrint('[AUTH] restored: ${user.username}, vpn=${user.hasVpnAccess}');
+        final user = User.fromJson(result['user'] as Map<String, dynamic>);
         _setAuthenticated(user);
       } else {
-        debugPrint('[AUTH] restore failed: ${result['error']}');
         _setUnauthenticated();
       }
-    } catch (e, stack) {
-      debugPrint('[AUTH] restore ERROR: $e\n$stack');
+    } catch (e) {
+      debugPrint('[AUTH] session restore error: $e');
       _setUnauthenticated();
     } finally {
       _isRestoringSession = false;
@@ -75,33 +66,18 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  // ── Login ─────────────────────────────────────────────────────────
-
   Future<AuthResult> loginWithCredentials({
     required String identifier,
     required String password,
   }) async {
     try {
       final response = await _api.login(email: identifier, password: password);
-      debugPrint('[AUTH] login response: $response');
 
       if (response['success'] == true) {
-        // /auth/login возвращает урезанный user — нужен полный профиль
-        // Делаем запрос /auth/me чтобы получить username, hasVpnAccess и т.д.
-        final fullResult = await _api.getUser();
-        debugPrint('[AUTH] full profile: $fullResult');
-
-        if (fullResult['success'] == true && fullResult['user'] != null) {
-          final user = User.fromJson(fullResult['user'] as Map<String, dynamic>);
-          debugPrint('[AUTH] parsed: ${user.username}, vpn=${user.hasVpnAccess}');
+        final userJson = response['user'];
+        if (userJson != null) {
+          final user = User.fromJson(userJson as Map<String, dynamic>);
           _setAuthenticated(user);
-        } else {
-          // Fallback на данные из login если /auth/me не отработал
-          final userJson = response['user'];
-          if (userJson != null) {
-            final user = User.fromJson(userJson as Map<String, dynamic>);
-            _setAuthenticated(user);
-          }
         }
         return AuthResult.ok();
       }
@@ -114,18 +90,30 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  // ── Logout ────────────────────────────────────────────────────────
-
   Future<void> logout() async {
     await _api.logout();
     _setUnauthenticated();
   }
 
-  // ── Legacy shim ───────────────────────────────────────────────────
-  /// @deprecated
   void login() => _setAuthenticated(_currentUser ?? _placeholderUser());
 
-  // ── Private ───────────────────────────────────────────────────────
+  void updateUser(User user) {
+    _currentUser = user;
+    onUserLoaded?.call(user);
+    notifyListeners();
+  }
+
+  Future<void> refreshUser() async {
+    try {
+      final result = await _api.getUser();
+      if (result['success'] == true && result['user'] != null) {
+        final user = User.fromJson(result['user'] as Map<String, dynamic>);
+        _setAuthenticated(user);
+      }
+    } catch (e) {
+      debugPrint('[AUTH] refreshUser error: $e');
+    }
+  }
 
   void _setAuthenticated(User user) {
     _isAuthenticated = true;

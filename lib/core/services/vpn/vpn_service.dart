@@ -29,7 +29,6 @@ class VPNService {
 
     _singbox.onStatusChanged.listen((event) {
       final status = event['status'] as String?;
-      debugPrint('[VPN] sing-box status: $status');
       final connected = status == VPNStatus.STARTED;
       _isConnected = connected;
       onStatusChanged(connected);
@@ -64,8 +63,7 @@ class VPNService {
       const storage = FlutterSecureStorage();
       final token = await storage.read(key: 'auth_token');
       if (token == null) {
-        debugPrint('[VPN] loadConfig: no token');
-        return null;
+          return null;
       }
 
       const base = 'https://hypermax.duckdns.org/api/v1';
@@ -79,11 +77,9 @@ class VPNService {
         headers: headers,
       );
 
-      debugPrint('[VPN] loadConfig status: ${resp.statusCode}');
       final data = jsonDecode(resp.body) as Map<String, dynamic>;
       final nodeData = (data['data'] ?? data) as Map<String, dynamic>;
       final vlessUri = nodeData['vlessUri'] as String?;
-      debugPrint('[VPN] vlessUri: ${vlessUri != null ? "OK" : "null"}');
 
       return ServerModel.fromJson({
         'id': nodeData['nodeId'] ?? nodeId,
@@ -136,15 +132,12 @@ class VPNService {
 
   Future<void> connect(ServerModel server) async {
     final uri = server.vlessUri;
-    debugPrint('[VPN] Connecting to ${server.nodeId}');
-    debugPrint('[VPN] vlessUri: ${uri != null ? "present" : "NULL"}');
 
     if (uri == null || uri.isEmpty) {
       throw Exception('No VLESS URI for node ${server.nodeId}');
     }
 
     final singboxConfig = _buildSingboxConfig(uri);
-    debugPrint('[VPN] sing-box config built');
 
     final saved = await _singbox.saveConfig(jsonEncode(singboxConfig));
     if (!saved) throw Exception('Failed to save sing-box config');
@@ -153,7 +146,6 @@ class VPNService {
     if (!started) throw Exception('Failed to start VPN');
 
     _currentServer = server;
-    debugPrint('[VPN] startVPN called successfully');
   }
 
   Future<void> disconnect() async {
@@ -173,7 +165,6 @@ class VPNService {
 
     // Если VPN уже подключён — переподключаем с новым конфигом
     if (_isConnected && _currentServer != null) {
-      debugPrint('[VPN] Restarting with new split tunneling config');
       await disconnect();
       await Future.delayed(const Duration(milliseconds: 500));
       await connect(_currentServer!);
@@ -221,6 +212,9 @@ class VPNService {
     final routeRules = <Map<String, dynamic>>[
       {'protocol': 'dns', 'outbound': 'dns-out'},
       {'ip_cidr': privateRanges, 'outbound': 'direct'},
+      // STUN/TURN для звонков Telegram, WhatsApp, WebRTC
+      {'protocol': 'stun', 'outbound': 'direct'},
+      {'port': [3478, 3479, 5349, 19302, 19303, 19304, 19305, 19306, 19307, 19308, 19309], 'outbound': 'direct'},
       // Split tunneling: только выбранные приложения/домены через VPN, остальное direct
       if (_splitTunnelingEnabled) ...([
         if (_splitApps.isNotEmpty)

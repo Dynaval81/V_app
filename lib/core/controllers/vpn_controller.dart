@@ -15,7 +15,6 @@ class VpnController extends ChangeNotifier {
   }
 
   void _onServiceStatusChanged(bool connected) {
-    debugPrint('[VPN Controller] Status callback: $connected');
     if (connected) {
       _connectionState = VpnConnectionState.connected;
     } else {
@@ -67,7 +66,6 @@ class VpnController extends ChangeNotifier {
         _service.loadServers(purpose: 'reverse'),
       ]);
       _servers = [...results[0], ...results[1]];
-      debugPrint('[VPN Controller] Loaded ${_servers.length} servers');
       _pingServersInBackground();
     } catch (e) {
       debugPrint('[VPN Controller] loadServers error: $e');
@@ -117,19 +115,15 @@ class VpnController extends ChangeNotifier {
     try {
       ServerModel? target = _selectedServer;
       if (_autoMode || target == null) {
-        debugPrint('[VPN Controller] Auto: picking fastest...');
         target = await _service.pickFastest(_servers);
       }
       if (target == null) {
-        debugPrint('[VPN Controller] No server available');
         _connectionState = VpnConnectionState.disconnected;
         notifyListeners();
         return;
       }
-      debugPrint('[VPN Controller] Loading config for ${target.nodeId}...');
       final configured = await _service.loadConfig(target.nodeId);
       final serverWithConfig = configured ?? target;
-      debugPrint('[VPN Controller] vlessUri: ${serverWithConfig.vlessUri != null ? "OK" : "MISSING"}');
       await _service.connect(serverWithConfig);
       _selectedServer = serverWithConfig;
       // State set via _onServiceStatusChanged callback
