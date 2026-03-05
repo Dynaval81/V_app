@@ -8,26 +8,15 @@ import 'package:vtalk_app/presentation/widgets/molecules/premium_bottom_sheet.da
 import 'package:vtalk_app/presentation/molecules/server_picker.dart';
 import 'package:vtalk_app/presentation/molecules/split_tunneling_toggle.dart';
 
-/// Default demo servers (NekoBox-style locations). Single list, no duplicates.
-List<ServerModel> get defaultVpnServers => const [
-  ServerModel(id: 'us', name: 'United States', countryCode: 'US', flagEmoji: '🇺🇸', host: 'us.example.com', port: 443),
-  ServerModel(id: 'de', name: 'Germany', countryCode: 'DE', flagEmoji: '🇩🇪', host: 'de.example.com', port: 443),
-  ServerModel(id: 'nl', name: 'Netherlands', countryCode: 'NL', flagEmoji: '🇳🇱', host: 'nl.example.com', port: 443),
-  ServerModel(id: 'jp', name: 'Japan', countryCode: 'JP', flagEmoji: '🇯🇵', host: 'jp.example.com', port: 443),
-  ServerModel(id: 'sg', name: 'Singapore', countryCode: 'SG', flagEmoji: '🇸🇬', host: 'sg.example.com', port: 443),
-];
-
-/// HAI3 Organism: VPN panel – connect button, server picker, split tunneling (Airy).
 class VpnPanel extends StatelessWidget {
-  final List<ServerModel>? servers;
-
-  const VpnPanel({super.key, this.servers});
+  const VpnPanel({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final list = servers ?? defaultVpnServers;
-    return Consumer<VPNController>(
+    return Consumer<VpnController>(
       builder: (context, vpn, _) {
+        final servers = vpn.servers;
+
         return Container(
           color: AppColors.surface,
           child: SingleChildScrollView(
@@ -38,31 +27,30 @@ class VpnPanel extends StatelessWidget {
                 VpnConnectButton(
                   isConnected: vpn.isConnected,
                   isConnecting: vpn.isConnecting,
-                  onPressed: () {
-                    if (vpn.isConnected) {
-                      vpn.toggleVpn();
-                    } else {
-                      showPremiumBottomSheet(
-                        context,
-                        title: 'VPN is Premium',
-                        message: 'Upgrade to Premium to use VPN and secure your connection.',
-                      );
-                    }
-                  },
+                  onPressed: () => vpn.toggleConnection(),
                 ),
+
+                // Бейдж авто-выбранного сервера
+                if (vpn.isConnected && vpn.autoMode && vpn.selectedServer != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: _AutoConnectedBadge(server: vpn.selectedServer!),
+                  ),
+
                 const SizedBox(height: 24),
-                ServerPicker(
-                  servers: list,
-                  selectedServer: vpn.currentServer ?? list.first,
-                  onServerSelected: (s) => vpn.selectServer(s),
-                ),
+
+                if (servers.isNotEmpty)
+                  ServerPicker(
+                    servers: servers,
+                    selectedServer: vpn.selectedServer ?? servers.first,
+                    onServerSelected: (s) => vpn.selectServer(s),
+                  ),
+
                 const SizedBox(height: 16),
                 SplitTunnelingToggle(
-                  value: vpn.isSplitTunnelingEnabled,
-                  onChanged: (enabled) => vpn.setSplitTunneling(
-                    apps: vpn.splitApps,
-                    domains: vpn.splitDomains,
-                    enabled: enabled,
+                  value: vpn.routingMode != VpnRoutingMode.full,
+                  onChanged: (enabled) => vpn.setRoutingMode(
+                    enabled ? VpnRoutingMode.vtalkOnly : VpnRoutingMode.full,
                   ),
                 ),
               ],
@@ -70,6 +58,44 @@ class VpnPanel extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _AutoConnectedBadge extends StatelessWidget {
+  final ServerModel server;
+  const _AutoConnectedBadge({required this.server});
+
+  @override
+  Widget build(BuildContext context) {
+    final protocol = server.configType.toUpperCase();
+    final ping = context.watch<VpnController>().pingFor(server.nodeId);
+    final pingText = ping != null ? ' • ${ping}ms' : '';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.auto_awesome_rounded, size: 14, color: AppColors.primary),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              'Авто: ${server.location} • $protocol$pingText',
+              style: TextStyle(
+                color: AppColors.primary,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

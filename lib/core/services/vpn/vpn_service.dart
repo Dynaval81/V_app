@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_singbox_vpn/flutter_singbox.dart';
@@ -46,7 +47,7 @@ class VPNService {
             .toList();
       }
     } catch (e) {
-      debugPrint('[VPN] loadServers error: $e');
+      assert(() { debugPrint('[VPN] loadServers error: \$e'); return true; }());
     }
     return [];
   }
@@ -54,8 +55,7 @@ class VPNService {
   bool _isFakeServer(ServerModel s) {
     final loc = s.location.toUpperCase();
     final id = s.nodeId.toUpperCase();
-    return loc.contains('FAKE') || loc.contains('TEST ONLY') ||
-        id == 'FI-01' || id == 'RU-REVERSE';
+    return loc.contains('FAKE') || loc.contains('TEST ONLY');
   }
 
   Future<ServerModel?> loadConfig(String nodeId) async {
@@ -81,6 +81,8 @@ class VPNService {
       final nodeData = (data['data'] ?? data) as Map<String, dynamic>;
       final vlessUri = nodeData['vlessUri'] as String?;
 
+      final singboxConfig = nodeData['singboxConfig'] as Map<String, dynamic>?;
+
       return ServerModel.fromJson({
         'id': nodeData['nodeId'] ?? nodeId,
         'nodeId': nodeData['nodeId'] ?? nodeId,
@@ -95,22 +97,28 @@ class VPNService {
         'isAI': false,
         'available': true,
         'vlessUri': vlessUri,
-        'xrayConfig': null,
+        'xrayConfig': singboxConfig != null ? jsonEncode(singboxConfig) : null,
       });
     } catch (e) {
-      debugPrint('[VPN] loadConfig error: $e');
+      assert(() { debugPrint('[VPN] loadConfig error: \$e'); return true; }());
     }
     return null;
   }
 
+  /// Пингуем сервер TCP-коннектом к его endpoint.
+  /// Для всех протоколов — просто проверяем достижимость хоста.
   Future<int?> pingServer(ServerModel server) async {
     try {
+      final parts = server.endpoint.split(':');
+      if (parts.length < 2) return null;
+      final host = parts[0];
+      final port = int.tryParse(parts[1]) ?? 443;
       final sw = Stopwatch()..start();
-      final resp = await http
-          .get(Uri.parse('https://www.gstatic.com/generate_204'))
-          .timeout(const Duration(seconds: 3));
+      final socket = await Socket.connect(host, port,
+          timeout: const Duration(seconds: 3));
       sw.stop();
-      return resp.statusCode == 204 ? sw.elapsedMilliseconds : null;
+      socket.destroy();
+      return sw.elapsedMilliseconds;
     } catch (_) {
       return null;
     }
@@ -118,26 +126,58 @@ class VPNService {
 
   Future<Map<String, int?>> pingAll(List<ServerModel> servers) async {
     if (servers.isEmpty) return {};
-    final ms = await pingServer(servers.first);
-    return {for (final s in servers) s.nodeId: ms};
+    final results = await Future.wait(
+      servers.map((s) async => MapEntry(s.nodeId, await pingServer(s))),
+    );
+    return Map.fromEntries(results);
   }
 
+  /// Выбирает лучший сервер: сначала те что реально отвечают,
+  /// среди них — с наименьшим пингом.
   Future<ServerModel?> pickFastest(List<ServerModel> servers) async {
     if (servers.isEmpty) return null;
     final pings = await pingAll(servers);
-    servers.sort((a, b) =>
+    // Только живые серверы
+    final alive = servers.where((s) => pings[s.nodeId] != null).toList();
+    if (alive.isEmpty) return servers.first; // fallback
+    alive.sort((a, b) =>
         (pings[a.nodeId] ?? 9999).compareTo(pings[b.nodeId] ?? 9999));
-    return servers.first;
+    return alive.first;
   }
 
   Future<void> connect(ServerModel server) async {
-    final uri = server.vlessUri;
+    final Map<String, dynamic> singboxConfig;
 
-    if (uri == null || uri.isEmpty) {
-      throw Exception('No VLESS URI for node ${server.nodeId}');
+    switch (server.configType) {
+      case 'hysteria2':
+      case 'wireguard':
+        // Для этих протоколов берём singboxConfig с сервера как есть
+        if (server.xrayConfig == null) {
+          throw Exception('No singboxConfig for node \${server.nodeId}');
+        }
+        final raw = jsonDecode(server.xrayConfig!) as Map<String, dynamic>;
+        singboxConfig = _mergeWithServerConfig(raw, '');
+
+      case 'singbox':
+      case 'vless':
+      default:
+        // Для VLESS — берём singboxConfig с сервера или строим из vlessUri
+        Map<String, dynamic>? serverConfig;
+        try {
+          if (server.xrayConfig != null) {
+            serverConfig = jsonDecode(server.xrayConfig!) as Map<String, dynamic>;
+          }
+        } catch (_) {}
+        if (serverConfig != null) {
+          singboxConfig = _mergeWithServerConfig(serverConfig, server.vlessUri ?? '');
+        } else {
+          final uri = server.vlessUri;
+          if (uri == null || uri.isEmpty) {
+            throw Exception('No config for node \${server.nodeId}');
+          }
+          singboxConfig = _buildSingboxConfig(uri);
+        }
     }
-
-    final singboxConfig = _buildSingboxConfig(uri);
 
     final saved = await _singbox.saveConfig(jsonEncode(singboxConfig));
     if (!saved) throw Exception('Failed to save sing-box config');
@@ -173,6 +213,85 @@ class VPNService {
 
   Future<void> selectServer(ServerModel server) async {
     _currentServer = server;
+  }
+
+  Map<String, dynamic> _mergeWithServerConfig(
+      Map<String, dynamic> serverConfig, String vlessUri) {
+    final serverOutbounds =
+        (serverConfig['outbounds'] as List<dynamic>?)
+            ?.cast<Map<String, dynamic>>() ?? [];
+
+    // Добавляем xudp к proxy outbound для поддержки UDP мессенджеров
+    final patchedOutbounds = serverOutbounds.map((o) {
+      if (o['tag'] == 'proxy' && o['type'] == 'vless') {
+        return {...o, 'packet_encoding': 'xudp'};
+      }
+      return o;
+    }).toList();
+
+    final outbounds = [
+      ...patchedOutbounds,
+      if (!serverOutbounds.any((o) => o['tag'] == 'direct'))
+        {'tag': 'direct', 'type': 'direct'},
+      if (!serverOutbounds.any((o) => o['tag'] == 'dns-out'))
+        {'tag': 'dns-out', 'type': 'dns'},
+    ];
+
+    const privateRanges = [
+      '0.0.0.0/8', '10.0.0.0/8', '100.64.0.0/10', '127.0.0.0/8',
+      '169.254.0.0/16', '172.16.0.0/12', '192.0.0.0/24', '192.168.0.0/16',
+      '198.18.0.0/15', '198.51.100.0/24', '203.0.113.0/24',
+      '240.0.0.0/4', '255.255.255.255/32', '::1/128', 'fc00::/7', 'fe80::/10',
+    ];
+
+    final routeRules = <Map<String, dynamic>>[
+      {'protocol': 'dns', 'outbound': 'dns-out'},
+      {'ip_cidr': privateRanges, 'outbound': 'direct'},
+      if (_splitTunnelingEnabled) ...([
+        if (_splitApps.isNotEmpty)
+          {'android_package_names': _splitApps, 'outbound': 'proxy'},
+        if (_splitDomains.isNotEmpty)
+          {'domain': _splitDomains, 'outbound': 'proxy'},
+        {'outbound': 'direct'},
+      ]),
+    ];
+
+    return {
+      'log': {'level': 'warn', 'disabled': false, 'timestamp': false},
+      'dns': {
+        'servers': [
+          {'tag': 'remote-dns', 'address': 'tls://1.1.1.1', 'detour': 'proxy'},
+          {'tag': 'local-dns', 'address': 'local', 'detour': 'direct'},
+        ],
+        'rules': [
+          {'outbound': 'any', 'server': 'local-dns'},
+        ],
+        'final': 'remote-dns',
+        'strategy': 'prefer_ipv4',
+        'independent_cache': true,
+      },
+      'inbounds': [
+        {
+          'type': 'tun',
+          'tag': 'tun-in',
+          'interface_name': 'tun0',
+          'inet4_address': '172.19.0.1/30',
+          'mtu': 1280,
+          'auto_route': true,
+          'endpoint_independent_nat': true,
+          'strict_route': true,
+          'stack': 'system',
+          'sniff': true,
+          'sniff_override_destination': true,
+        }
+      ],
+      'outbounds': outbounds,
+      'route': {
+        'auto_detect_interface': true,
+        'final': _splitTunnelingEnabled ? 'direct' : 'proxy',
+        'rules': routeRules,
+      },
+    };
   }
 
   Map<String, dynamic> _buildSingboxConfig(String vlessUri) {
@@ -226,7 +345,7 @@ class VPNService {
     ];
 
     return {
-      'log': {'level': 'info', 'disabled': false, 'timestamp': true},
+      'log': {'level': 'warn', 'disabled': false, 'timestamp': false},
       'dns': {
         'servers': [
           {
@@ -252,13 +371,13 @@ class VPNService {
           'tag': 'tun-in',
           'interface_name': 'tun0',
           'inet4_address': '172.19.0.1/30',
-          'mtu': 1400,
+          'mtu': 1280,
           'auto_route': true,
-          'strict_route': false,
-          'stack': 'mixed',
+          'endpoint_independent_nat': true,
+          'strict_route': true,
+          'stack': 'system',
           'sniff': true,
-          'sniff_override_destination': false,
-          'domain_strategy': 'ipv4_only',
+          'sniff_override_destination': true,
         }
       ],
       'outbounds': [

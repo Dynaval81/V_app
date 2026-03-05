@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vtalk_app/core/services/vpn/vpn_service.dart';
@@ -9,6 +10,7 @@ enum VpnRoutingMode { full, vtalkOnly, apps, custom }
 
 class VpnController extends ChangeNotifier {
   final VPNService _service = VPNService();
+  Timer? _healthCheckTimer;
 
   VpnController() {
     _service.initialize(_onServiceStatusChanged);
@@ -17,10 +19,12 @@ class VpnController extends ChangeNotifier {
   void _onServiceStatusChanged(bool connected) {
     if (connected) {
       _connectionState = VpnConnectionState.connected;
+      _startHealthCheck();
     } else {
       if (_connectionState != VpnConnectionState.disconnecting) {
         _connectionState = VpnConnectionState.disconnected;
       }
+      _stopHealthCheck();
     }
     notifyListeners();
   }
@@ -98,6 +102,37 @@ class VpnController extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ── Health Check ──────────────────────────────────────────────────
+  void _startHealthCheck() {
+    _healthCheckTimer?.cancel();
+    _healthCheckTimer = Timer.periodic(const Duration(minutes: 2), (_) async {
+      if (!isConnected || _selectedServer == null) return;
+      final ping = await _service.pingServer(_selectedServer!);
+      if (ping == null) {
+        // Текущий сервер не отвечает — ищем лучший
+        debugPrint('[VPN] Health check failed for ${_selectedServer!.nodeId}, switching...');
+        if (_autoMode) {
+          final better = await _service.pickFastest(_servers);
+          if (better != null && better.nodeId != _selectedServer!.nodeId) {
+            debugPrint('[VPN] Switching to ${better.nodeId}');
+            await _disconnect();
+            _selectedServer = better;
+            await _connect();
+          }
+        }
+      } else {
+        debugPrint('[VPN] Health check OK: ${_selectedServer!.nodeId} ${ping}ms');
+        _pings[_selectedServer!.nodeId] = ping;
+        notifyListeners();
+      }
+    });
+  }
+
+  void _stopHealthCheck() {
+    _healthCheckTimer?.cancel();
+    _healthCheckTimer = null;
+  }
+
   // ── Connect / Disconnect ──────────────────────────────────────────
   Future<void> toggleConnection() async {
     if (_connectionState == VpnConnectionState.connecting ||
@@ -115,9 +150,14 @@ class VpnController extends ChangeNotifier {
     try {
       ServerModel? target = _selectedServer;
       if (_autoMode || target == null) {
+        debugPrint('[VPN] Auto mode: picking fastest server...');
         target = await _service.pickFastest(_servers);
+        if (target != null) {
+          debugPrint('[VPN] Auto selected: ${target.nodeId} (${target.location}) [${target.configType}]');
+        }
       }
       if (target == null) {
+        debugPrint('[VPN] No servers available');
         _connectionState = VpnConnectionState.disconnected;
         notifyListeners();
         return;
@@ -126,7 +166,7 @@ class VpnController extends ChangeNotifier {
       final serverWithConfig = configured ?? target;
       await _service.connect(serverWithConfig);
       _selectedServer = serverWithConfig;
-      // State set via _onServiceStatusChanged callback
+      debugPrint('[VPN] Connected to: ${serverWithConfig.nodeId} [${serverWithConfig.configType}]');
     } catch (e) {
       debugPrint('[VPN Controller] connect error: $e');
       _connectionState = VpnConnectionState.disconnected;
@@ -171,37 +211,23 @@ class VpnController extends ChangeNotifier {
 
   void _applyRoutingToService() {
     final domains = <String>[];
-
     switch (_routingMode) {
       case VpnRoutingMode.vtalkOnly:
-        // Only VTalk domains go through VPN — everything else direct
         domains.addAll(['vtalk.app', 'hypermax.duckdns.org']);
-        _service.setSplitTunneling(
-          apps: [],
-          domains: domains,
-          enabled: true,
-        );
+        _service.setSplitTunneling(apps: [], domains: domains, enabled: true);
         break;
       case VpnRoutingMode.custom:
         _service.setSplitTunneling(
-          apps: _selectedApps,
-          domains: _customDomains,
-          enabled: true,
-        );
+            apps: _selectedApps, domains: _customDomains, enabled: true);
         break;
       case VpnRoutingMode.apps:
         _service.setSplitTunneling(
-          apps: _selectedApps,
-          domains: [],
-          enabled: _selectedApps.isNotEmpty,
-        );
+            apps: _selectedApps,
+            domains: [],
+            enabled: _selectedApps.isNotEmpty);
         break;
       case VpnRoutingMode.full:
-        _service.setSplitTunneling(
-          apps: [],
-          domains: [],
-          enabled: false,
-        );
+        _service.setSplitTunneling(apps: [], domains: [], enabled: false);
         break;
     }
   }
@@ -235,5 +261,11 @@ class VpnController extends ChangeNotifier {
     } catch (e) {
       debugPrint('[VPN Controller] loadPreferences error: $e');
     }
+  }
+
+  @override
+  void dispose() {
+    _stopHealthCheck();
+    super.dispose();
   }
 }

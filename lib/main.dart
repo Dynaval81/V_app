@@ -30,8 +30,14 @@ void main() async {
   AppLogger.instance.init(); // Запускаем сбор логов
 
   final userProvider = UserProvider();
+  final vpnController = VpnController();
   final authController = AuthController(
     onUserLoaded: userProvider.setUser,
+    onLogout: () async {
+      if (vpnController.isConnected) {
+        await vpnController.toggleConnection();
+      }
+    },
   );
 
   await authController.tryRestoreSession();
@@ -51,7 +57,7 @@ void main() async {
         ChangeNotifierProvider.value(value: themeProvider),
         ChangeNotifierProvider(create: (_) => ChatController()),
         ChangeNotifierProvider(create: (_) => TabVisibilityController()..load()),
-        ChangeNotifierProvider(create: (_) => VpnController()),
+        ChangeNotifierProvider.value(value: vpnController),
       ],
       child: VTalkApp(initialLocation: initialLocation),
     ),
