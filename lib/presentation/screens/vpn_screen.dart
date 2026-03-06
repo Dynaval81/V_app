@@ -113,15 +113,33 @@ class _VpnScreenState extends State<VpnScreen>
             duration: const Duration(milliseconds: 300),
             child: Padding(
               padding: const EdgeInsets.only(bottom: 32),
-              child: Text(
-                controller.autoMode
-                    ? 'AI — авто-выбор'
-                    : controller.selectedServer?.location ?? '',
-                style: TextStyle(
-                  fontSize: 15,
-                  color: AppColors.onSurface.withOpacity(0.5),
-                  letterSpacing: 0.5,
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    controller.isConnected && controller.selectedServer != null
+                        ? controller.selectedServer!.location
+                        : controller.autoMode ? 'AI — авто-выбор' : controller.selectedServer?.location ?? '',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.onSurface,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                  if (controller.isConnected && controller.selectedServer != null)
+                    Builder(builder: (context) {
+                      final ping = controller.pingFor(controller.selectedServer!.nodeId);
+                      return Text(
+                        ping != null ? '$ping ms' : controller.selectedServer!.configType.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.onSurface.withOpacity(0.4),
+                          letterSpacing: 0.3,
+                        ),
+                      );
+                    }),
+                ],
               ),
             ),
           ),
@@ -404,21 +422,33 @@ class _ServersSheet extends StatelessWidget {
   Widget _serverTile(
       BuildContext context, VpnController controller, ServerModel server) {
     final ping = controller.pingFor(server.nodeId);
+    final isActive = controller.isConnected &&
+        controller.selectedServer?.nodeId == server.nodeId;
     final isSelected = !controller.autoMode &&
         controller.selectedServer?.nodeId == server.nodeId;
-    return _NodeTile(
-      leading: Text(server.flagEmoji, style: const TextStyle(fontSize: 28)),
-      title: server.location,
-      subtitle: server.loadLabel,
-      pingMs: ping,
-      trailing: isSelected
-          ? const Icon(Icons.check_circle_rounded,
-              color: AppColors.primary, size: 22)
-          : null,
-      onTap: () {
-        controller.selectServer(server);
-        Navigator.pop(context);
-      },
+    final isLocked = controller.isConnected;
+
+    return Opacity(
+      opacity: isLocked && !isActive ? 0.4 : 1.0,
+      child: _NodeTile(
+        leading: Text(server.flagEmoji, style: const TextStyle(fontSize: 28)),
+        title: server.location,
+        subtitle: isActive ? 'Подключено' : server.loadLabel,
+        pingMs: ping,
+        trailing: isActive
+            ? const Icon(Icons.radio_button_checked,
+                color: Color(0xFF34C759), size: 22)
+            : isSelected
+                ? const Icon(Icons.check_circle_rounded,
+                    color: AppColors.primary, size: 22)
+                : null,
+        onTap: isLocked
+            ? () {} // заморожено
+            : () {
+                controller.selectServer(server);
+                Navigator.pop(context);
+              },
+      ),
     );
   }
 }

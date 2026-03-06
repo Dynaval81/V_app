@@ -19,7 +19,7 @@ class ServiceNotification(
     private val service: Service
 ) {
     companion object {
-        private const val CHANNEL_ID = "tecclub_singbox_channel"
+        private const val CHANNEL_ID = "tecclub_singbox_channel_v2"
         private const val NOTIFICATION_ID = 1
     }
 

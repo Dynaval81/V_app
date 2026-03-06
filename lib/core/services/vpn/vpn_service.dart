@@ -9,6 +9,12 @@ import 'package:vtalk_app/services/api_service.dart';
 
 /// VPN engine — sing-box based, TUN mode, works without root.
 class VPNService {
+  static const _privateRanges = [
+    '0.0.0.0/8', '10.0.0.0/8', '100.64.0.0/10', '127.0.0.0/8',
+    '169.254.0.0/16', '172.16.0.0/12', '192.0.0.0/24', '192.168.0.0/16',
+    '198.18.0.0/15', '198.51.100.0/24', '203.0.113.0/24',
+    '240.0.0.0/4', '255.255.255.255/32', '::1/128', 'fc00::/7', 'fe80::/10',
+  ];
   final ApiService _api = ApiService();
   final FlutterSingbox _singbox = FlutterSingbox();
 
@@ -156,7 +162,7 @@ class VPNService {
           throw Exception('No singboxConfig for node \${server.nodeId}');
         }
         final raw = jsonDecode(server.xrayConfig!) as Map<String, dynamic>;
-        singboxConfig = _mergeWithServerConfig(raw, '');
+        singboxConfig = _mergeWithServerConfig(raw, '', serverEndpoint: server.endpoint);
 
       case 'singbox':
       case 'vless':
@@ -169,13 +175,13 @@ class VPNService {
           }
         } catch (_) {}
         if (serverConfig != null) {
-          singboxConfig = _mergeWithServerConfig(serverConfig, server.vlessUri ?? '');
+          singboxConfig = _mergeWithServerConfig(serverConfig, server.vlessUri ?? '', serverEndpoint: server.endpoint);
         } else {
           final uri = server.vlessUri;
           if (uri == null || uri.isEmpty) {
             throw Exception('No config for node \${server.nodeId}');
           }
-          singboxConfig = _buildSingboxConfig(uri);
+          singboxConfig = _buildSingboxConfig(uri, serverEndpoint: server.endpoint);
         }
     }
 
@@ -216,7 +222,7 @@ class VPNService {
   }
 
   Map<String, dynamic> _mergeWithServerConfig(
-      Map<String, dynamic> serverConfig, String vlessUri) {
+      Map<String, dynamic> serverConfig, String vlessUri, {String? serverEndpoint}) {
     final serverOutbounds =
         (serverConfig['outbounds'] as List<dynamic>?)
             ?.cast<Map<String, dynamic>>() ?? [];
@@ -237,15 +243,16 @@ class VPNService {
         {'tag': 'dns-out', 'type': 'dns'},
     ];
 
-    const privateRanges = [
-      '0.0.0.0/8', '10.0.0.0/8', '100.64.0.0/10', '127.0.0.0/8',
-      '169.254.0.0/16', '172.16.0.0/12', '192.0.0.0/24', '192.168.0.0/16',
-      '198.18.0.0/15', '198.51.100.0/24', '203.0.113.0/24',
-      '240.0.0.0/4', '255.255.255.255/32', '::1/128', 'fc00::/7', 'fe80::/10',
-    ];
+    const privateRanges = _privateRanges;
+
+    // Извлекаем и валидируем IP сервера (только IPv4)
+    final rawHost = serverEndpoint?.split(':').first;
+    final serverIp = _isValidIPv4(rawHost) ? rawHost : null;
 
     final routeRules = <Map<String, dynamic>>[
       {'protocol': 'dns', 'outbound': 'dns-out'},
+      if (serverIp != null)
+        {'ip_cidr': ['$serverIp/32'], 'outbound': 'direct'},
       {'ip_cidr': privateRanges, 'outbound': 'direct'},
       if (_splitTunnelingEnabled) ...([
         if (_splitApps.isNotEmpty)
@@ -294,7 +301,7 @@ class VPNService {
     };
   }
 
-  Map<String, dynamic> _buildSingboxConfig(String vlessUri) {
+  Map<String, dynamic> _buildSingboxConfig(String vlessUri, {String? serverEndpoint}) {
     // Parse: vless://UUID@HOST:PORT?params#name
     final uri = Uri.parse(vlessUri);
     final uuid = uri.userInfo;
@@ -309,27 +316,16 @@ class VPNService {
     final flow = params['flow'] ?? '';
 
     // Private IP ranges — replaces deprecated geoip:private
-    const privateRanges = [
-      '0.0.0.0/8',
-      '10.0.0.0/8',
-      '100.64.0.0/10',
-      '127.0.0.0/8',
-      '169.254.0.0/16',
-      '172.16.0.0/12',
-      '192.0.0.0/24',
-      '192.168.0.0/16',
-      '198.18.0.0/15',
-      '198.51.100.0/24',
-      '203.0.113.0/24',
-      '240.0.0.0/4',
-      '255.255.255.255/32',
-      '::1/128',
-      'fc00::/7',
-      'fe80::/10',
-    ];
+    const privateRanges = _privateRanges;
+
+    // Извлекаем и валидируем IP сервера (только IPv4)
+    final rawHost = serverEndpoint?.split(':').first;
+    final serverIp = _isValidIPv4(rawHost) ? rawHost : null;
 
     final routeRules = <Map<String, dynamic>>[
       {'protocol': 'dns', 'outbound': 'dns-out'},
+      if (serverIp != null)
+        {'ip_cidr': ['$serverIp/32'], 'outbound': 'direct'},
       {'ip_cidr': privateRanges, 'outbound': 'direct'},
       // STUN/TURN для звонков Telegram, WhatsApp, WebRTC
       {'protocol': 'stun', 'outbound': 'direct'},
@@ -413,6 +409,16 @@ class VPNService {
         'rules': routeRules,
       },
     };
+  }
+
+  static bool _isValidIPv4(String? ip) {
+    if (ip == null || ip.isEmpty) return false;
+    final parts = ip.split('.');
+    if (parts.length != 4) return false;
+    return parts.every((p) {
+      final n = int.tryParse(p);
+      return n != null && n >= 0 && n <= 255;
+    });
   }
 
   String _countryFromNodeId(String nodeId) {

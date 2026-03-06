@@ -388,7 +388,7 @@ class BoxService(
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED)
                 }
-            }, ContextCompat.RECEIVER_NOT_EXPORTED)
+            }, ContextCompat.RECEIVER_EXPORTED)
             receiverRegistered = true
         }
 
